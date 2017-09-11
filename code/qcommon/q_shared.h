@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define HOMEPATH_NAME_UNIX          ".sof2plus"
 #define HOMEPATH_NAME_WIN           "SoF2Plus"
 #define HOMEPATH_NAME_MACOSX        HOMEPATH_NAME_WIN
-#define GAMENAME_FOR_MASTER         "SoF2MP"
+#define GAMENAME_FOR_MASTER         "sof2mp"
 #define LEGACY_PROTOCOL
 
 // Heartbeat for dpmaster protocol. You shouldn't change this unless you know what you're doing
@@ -110,30 +110,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define Q_EXPORT
 #endif
 
-/**********************************************************************
-  VM Considerations
-
-  The VM can not use the standard system headers because we aren't really
-  using the compiler they were meant for.  We use bg_lib.h which contains
-  prototypes for the functions we define for our own use in bg_lib.c.
-
-  When writing mods, please add needed headers HERE, do not start including
-  stuff like <stdio.h> in the various .c files that make up each of the VMs
-  since you will be including system headers files can will have issues.
-
-  Remember, if you use a C library function that is not defined in bg_lib.c,
-  you will have to add your own version for support in the VM.
-
- **********************************************************************/
-
-#ifdef Q3_VM
-
-#include "../game/bg_lib.h"
-
-typedef int intptr_t;
-
-#else
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -163,8 +139,6 @@ typedef int intptr_t;
   #include <stdint.h>
 
   #define Q_vsnprintf vsnprintf
-#endif
-
 #endif
 
 
@@ -536,17 +510,6 @@ void ByteToDir( int b, vec3_t dir );
 
 #endif
 
-#ifdef Q3_VM
-#ifdef VectorCopy
-#undef VectorCopy
-// this is a little hack to get more efficient copies in our interpreter
-typedef struct {
-	float	v[3];
-} vec3struct_t;
-#define VectorCopy(a,b)	(*(vec3struct_t *)b=*(vec3struct_t *)a)
-#endif
-#endif
-
 #define VectorClear(a)			((a)[0]=(a)[1]=(a)[2]=0)
 #define VectorNegate(a,b)		((b)[0]=-(a)[0],(b)[1]=-(a)[1],(b)[2]=-(a)[2])
 #define VectorSet(v, x, y, z)	((v)[0]=(x), (v)[1]=(y), (v)[2]=(z))
@@ -572,7 +535,6 @@ float RadiusFromBounds( const vec3_t mins, const vec3_t maxs );
 void ClearBounds( vec3_t mins, vec3_t maxs );
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs );
 
-#if !defined( Q3_VM ) || ( defined( Q3_VM ) && defined( __Q3_VM_MATH ) )
 static ID_INLINE int VectorCompare( const vec3_t v1, const vec3_t v2 ) {
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2]) {
 		return 0;
@@ -626,25 +588,6 @@ static ID_INLINE void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cro
 	cross[1] = v1[2]*v2[0] - v1[0]*v2[2];
 	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
 }
-
-#else
-int VectorCompare( const vec3_t v1, const vec3_t v2 );
-
-vec_t VectorLength( const vec3_t v );
-
-vec_t VectorLengthSquared( const vec3_t v );
-
-vec_t Distance( const vec3_t p1, const vec3_t p2 );
-
-vec_t DistanceSquared( const vec3_t p1, const vec3_t p2 );
-
-void VectorNormalizeFast( vec3_t v );
-
-void VectorInverse( vec3_t v );
-
-void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross );
-
-#endif
 
 vec_t VectorNormalize (vec3_t v);		// returns vector length
 vec_t VectorNormalize2( const vec3_t v, vec3_t out );

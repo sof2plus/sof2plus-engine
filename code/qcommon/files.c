@@ -1267,16 +1267,16 @@ long FS_FOpenFileReadDir(const char *filename, searchpath_t *search, fileHandle_
 						   !FS_IsExt(filename, ".bot", len) &&
 						   !FS_IsExt(filename, ".arena", len) &&
 						   !FS_IsExt(filename, ".menu", len) &&
-						   Q_stricmp(filename, "vm/qagame.qvm") != 0 &&
+						   Q_stricmp(filename, "vm/sof2mp_game.qvm") != 0 &&
 						   !strstr(filename, "levelshots"))
 						{
 							pak->referenced |= FS_GENERAL_REF;
 						}
 					}
 
-					if(strstr(filename, "cgame.qvm"))
+					if(strstr(filename, "sof2mp_cgame.qvm"))
 						pak->referenced |= FS_CGAME_REF;
-					if(strstr(filename, "ui.qvm"))
+					if(strstr(filename, "sof2mp_ui.qvm"))
 						pak->referenced |= FS_UI_REF;
 
 					if(uniqueFILE)
@@ -1430,34 +1430,26 @@ long FS_FOpenFileRead(const char *filename, fileHandle_t *file, qboolean uniqueF
 =================
 FS_FindVM
 
-Find a suitable VM file in search path order.
+Find a suitable DLL file in search path order.
 
-In each searchpath try:
- - open DLL file if DLL loading enabled
- - open QVM file
+In each searchpath try to open a DLL file.
 
-Enable search for DLL by setting enableDll to FSVM_ENABLEDLL
-
-write found DLL or QVM to "found" and return VMI_NATIVE if DLL, VMI_COMPILED if QVM
+Write found DLL to "found" and return qtrue.
 Return the searchpath in "startSearch".
 =================
 */
 
-int FS_FindVM(void **startSearch, char *found, int foundlen, const char *name, int enableDll)
+qboolean FS_FindVM(void **startSearch, char *found, int foundlen, const char *name)
 {
 	searchpath_t *search, *lastSearch;
 	directory_t *dir;
-	pack_t *pack;
-	char dllName[MAX_OSPATH], qvmName[MAX_OSPATH];
+	char dllName[MAX_OSPATH];
 	char *netpath;
 
 	if(!fs_searchpaths)
 		Com_Error(ERR_FATAL, "Filesystem call made without initialization");
 
-	if(enableDll)
-		Com_sprintf(dllName, sizeof(dllName), "%s" ARCH_STRING DLL_EXT, name);
-
-	Com_sprintf(qvmName, sizeof(qvmName), "vm/%s.qvm", name);
+	Com_sprintf(dllName, sizeof(dllName), "%s" ARCH_STRING DLL_EXT, name);
 
 	lastSearch = *startSearch;
 	if(*startSearch == NULL)
@@ -1471,53 +1463,21 @@ int FS_FindVM(void **startSearch, char *found, int foundlen, const char *name, i
 		{
 			dir = search->dir;
 
-			if(enableDll)
+			netpath = FS_BuildOSPath(dir->path, dir->gamedir, dllName);
+
+			if(FS_FileInPathExists(netpath))
 			{
-				netpath = FS_BuildOSPath(dir->path, dir->gamedir, dllName);
-
-				if(FS_FileInPathExists(netpath))
-				{
-					Q_strncpyz(found, netpath, foundlen);
-					*startSearch = search;
-
-					return VMI_NATIVE;
-				}
-			}
-
-			if(FS_FOpenFileReadDir(qvmName, search, NULL, qfalse, qfalse) > 0)
-			{
-				*startSearch = search;
-				return VMI_COMPILED;
-			}
-		}
-		else if(search->pack)
-		{
-			pack = search->pack;
-
-			if(lastSearch && lastSearch->pack)
-			{
-				// make sure we only try loading one VM file per game dir
-				// i.e. if VM from pak7.pk3 fails we won't try one from pak6.pk3
-
-				if(!FS_FilenameCompare(lastSearch->pack->pakPathname, pack->pakPathname))
-				{
-					search = search->next;
-					continue;
-				}
-			}
-
-			if(FS_FOpenFileReadDir(qvmName, search, NULL, qfalse, qfalse) > 0)
-			{
+				Q_strncpyz(found, netpath, foundlen);
 				*startSearch = search;
 
-				return VMI_COMPILED;
+				return qtrue;
 			}
 		}
 
 		search = search->next;
 	}
 
-	return -1;
+	return qfalse;
 }
 
 /*

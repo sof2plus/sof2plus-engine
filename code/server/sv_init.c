@@ -383,7 +383,7 @@ static void SV_TouchCGame(void) {
 	fileHandle_t	f;
 	char filename[MAX_QPATH];
 
-	Com_sprintf( filename, sizeof(filename), "vm/%s.qvm", "cgame" );
+	Com_sprintf( filename, sizeof(filename), "vm/%s.qvm", "sof2mp_cgame" );
 	FS_FOpenFileRead( filename, &f, qfalse );
 	if ( f ) {
 		FS_FCloseFile( f );
@@ -575,7 +575,7 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 		Cvar_Set( "sv_pakNames", p );
 
 		// if a dedicated pure server we need to touch the cgame because it could be in a
-		// seperate pk3 file and the client will need to load the latest cgame.qvm
+		// seperate pk3 file and the client will need to load the latest sof2mp_cgame.qvm
 		if ( com_dedicated->integer ) {
 			SV_TouchCGame();
 		}

@@ -26,15 +26,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // this is for determining if we have an asm version of a C function
 #define idx64 0
 
-#ifdef Q3_VM
-
-#define id386 0
-#define idppc 0
-#define idppc_altivec 0
-#define idsparc 0
-
-#else
-
 #if (defined _M_IX86 || defined __i386__) && !defined(C_ONLY)
 #define id386 1
 #else
@@ -65,8 +56,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define idsparc 1
 #else
 #define idsparc 0
-#endif
-
 #endif
 
 #ifndef __ASM_I386__ // don't include the C bits if included from qasm.h
@@ -284,20 +273,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endif
 
-//================================================================== Q3VM ===
-
-#ifdef Q3_VM
-
-#define OS_STRING "q3vm"
-#define ID_INLINE
-#define PATH_SEP '/'
-
-#define ARCH_STRING "bytecode"
-
-#define DLL_EXT ".qvm"
-
-#endif
-
 //===========================================================================
 
 //catch missing defines in above blocks
@@ -352,15 +327,6 @@ float FloatSwap (const float *f);
 #define BigShort(x) ShortSwap(x)
 #define BigLong(x) LongSwap(x)
 #define BigFloat(x) FloatSwap(&x)
-
-#elif defined( Q3_VM )
-
-#define LittleShort
-#define LittleLong
-#define LittleFloat
-#define BigShort
-#define BigLong
-#define BigFloat
 
 #else
 #error "Endianness not defined"
