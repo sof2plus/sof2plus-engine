@@ -310,10 +310,10 @@ typedef struct {
 */
 
 
-#define BSP_IDENT	(('P'<<24)+('S'<<16)+('B'<<8)+'I')
-		// little-endian "IBSP"
+#define BSP_IDENT	(('P'<<24)+('S'<<16)+('B'<<8)+'R')
+		// little-endian "RBSP"
 
-#define BSP_VERSION			46
+#define BSP_VERSION			1
 
 
 // there shouldn't be any problem with increasing these values at the
@@ -334,8 +334,8 @@ typedef struct {
 #define	MAX_MAP_LEAFBRUSHES 0x40000
 #define	MAX_MAP_PORTALS		0x20000
 #define	MAX_MAP_LIGHTING	0x800000
-#define	MAX_MAP_LIGHTGRID	0x800000
-#define	MAX_MAP_VISIBILITY	0x200000
+#define	MAX_MAP_LIGHTGRID	0xffff
+#define	MAX_MAP_VISIBILITY	0x600000
 
 #define	MAX_MAP_DRAW_SURFS	0x20000
 #define	MAX_MAP_DRAW_VERTS	0x80000
@@ -364,24 +364,25 @@ typedef struct {
 	int		fileofs, filelen;
 } lump_t;
 
-#define	LUMP_ENTITIES		0
-#define	LUMP_SHADERS		1
-#define	LUMP_PLANES			2
-#define	LUMP_NODES			3
-#define	LUMP_LEAFS			4
-#define	LUMP_LEAFSURFACES	5
-#define	LUMP_LEAFBRUSHES	6
-#define	LUMP_MODELS			7
-#define	LUMP_BRUSHES		8
-#define	LUMP_BRUSHSIDES		9
-#define	LUMP_DRAWVERTS		10
-#define	LUMP_DRAWINDEXES	11
-#define	LUMP_FOGS			12
-#define	LUMP_SURFACES		13
-#define	LUMP_LIGHTMAPS		14
-#define	LUMP_LIGHTGRID		15
-#define	LUMP_VISIBILITY		16
-#define	HEADER_LUMPS		17
+#define LUMP_ENTITIES       0
+#define LUMP_SHADERS        1
+#define LUMP_PLANES         2
+#define LUMP_NODES          3
+#define LUMP_LEAFS          4
+#define LUMP_LEAFSURFACES   5
+#define LUMP_LEAFBRUSHES    6
+#define LUMP_MODELS         7
+#define LUMP_BRUSHES        8
+#define LUMP_BRUSHSIDES     9
+#define LUMP_DRAWVERTS      10
+#define LUMP_DRAWINDEXES    11
+#define LUMP_FOGS           12
+#define LUMP_SURFACES       13
+#define LUMP_LIGHTMAPS      14
+#define LUMP_LIGHTGRID      15
+#define LUMP_VISIBILITY     16
+#define LUMP_LIGHTARRAY     17
+#define HEADER_LUMPS        18
 
 typedef struct {
 	int			ident;
@@ -431,8 +432,9 @@ typedef struct {
 } dleaf_t;
 
 typedef struct {
-	int			planeNum;			// positive plane side faces out of the leaf
-	int			shaderNum;
+    int         planeNum;           // positive plane side faces out of the leaf
+    int         shaderNum;
+    int         drawSurfNum;
 } dbrushside_t;
 
 typedef struct {
@@ -447,12 +449,15 @@ typedef struct {
 	int			visibleSide;	// the brush side that ray tests need to clip against (-1 == none)
 } dfog_t;
 
+// Light Style Constants
+#define MAXLIGHTMAPS    4
+
 typedef struct {
-	vec3_t		xyz;
-	float		st[2];
-	float		lightmap[2];
-	vec3_t		normal;
-	byte		color[4];
+    vec3_t      xyz;
+    float       st[2];
+    float       lightmap[MAXLIGHTMAPS][2];
+    vec3_t      normal;
+    byte        color[MAXLIGHTMAPS][4];
 } drawVert_t;
 
 #define drawVert_t_cleared(x) drawVert_t (x) = {{0, 0, 0}, {0, 0}, {0, 0}, {0, 0, 0}, {0, 0, 0, 0}}
@@ -466,26 +471,26 @@ typedef enum {
 } mapSurfaceType_t;
 
 typedef struct {
-	int			shaderNum;
-	int			fogNum;
-	int			surfaceType;
+    int         shaderNum;
+    int         fogNum;
+    int         surfaceType;
 
-	int			firstVert;
-	int			numVerts;
+    int         firstVert;
+    int         numVerts;
 
-	int			firstIndex;
-	int			numIndexes;
+    int         firstIndex;
+    int         numIndexes;
 
-	int			lightmapNum;
-	int			lightmapX, lightmapY;
-	int			lightmapWidth, lightmapHeight;
+    byte        lightmapStyles[MAXLIGHTMAPS], vertexStyles[MAXLIGHTMAPS];
+    int         lightmapNum[MAXLIGHTMAPS];
+    int         lightmapX[MAXLIGHTMAPS], lightmapY[MAXLIGHTMAPS];
+    int         lightmapWidth, lightmapHeight;
 
-	vec3_t		lightmapOrigin;
-	vec3_t		lightmapVecs[3];	// for patches, [0] and [1] are lodbounds
+    vec3_t      lightmapOrigin;
+    vec3_t      lightmapVecs[3];	// for patches, [0] and [1] are lodbounds
 
-	int			patchWidth;
-	int			patchHeight;
+    int         patchWidth;
+    int         patchHeight;
 } dsurface_t;
-
 
 #endif

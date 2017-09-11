@@ -3954,11 +3954,11 @@ void FS_InitFilesystem( void ) {
 	FS_CheckPak0( );
 #endif
 
-	// if we can't find default.cfg, assume that the paths are
+	// if we can't find sof2mp_default.cfg, assume that the paths are
 	// busted and error out now, rather than getting an unreadable
 	// graphics screen when the font fails to load
-	if ( FS_ReadFile( "default.cfg", NULL ) <= 0 ) {
-		Com_Error( ERR_FATAL, "Couldn't load default.cfg" );
+	if ( FS_ReadFile( "sof2mp_default.cfg", NULL ) <= 0 ) {
+		Com_Error( ERR_FATAL, "Couldn't load sof2mp_default.cfg" );
 	}
 
 	Q_strncpyz(lastValidBase, fs_basepath->string, sizeof(lastValidBase));
@@ -3995,7 +3995,7 @@ void FS_Restart( int checksumFeed ) {
 	// if we can't find default.cfg, assume that the paths are
 	// busted and error out now, rather than getting an unreadable
 	// graphics screen when the font fails to load
-	if ( FS_ReadFile( "default.cfg", NULL ) <= 0 ) {
+	if ( FS_ReadFile( "sof2mp_default.cfg", NULL ) <= 0 ) {
 		// this might happen when connecting to a pure server not using BASEGAME/pak0.pk3
 		// (for instance a TA demo server)
 		if (lastValidBase[0]) {
@@ -4012,7 +4012,7 @@ void FS_Restart( int checksumFeed ) {
 			Com_Error( ERR_DROP, "Invalid game folder" );
 			return;
 		}
-		Com_Error( ERR_FATAL, "Couldn't load default.cfg" );
+		Com_Error( ERR_FATAL, "Couldn't load sof2mp_default.cfg" );
 	}
 
 	lastGameDir = ( lastValidGame[0] ) ? lastValidGame : lastValidComBaseGame;

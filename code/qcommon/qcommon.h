@@ -599,11 +599,7 @@ issues.
 
 #define	MAX_FILE_HANDLES	64
 
-#ifdef DEDICATED
-#	define Q3CONFIG_CFG "q3config_server.cfg"
-#else
-#	define Q3CONFIG_CFG "q3config.cfg"
-#endif
+#define Q3CONFIG_CFG "sof2plus.cfg"
 
 qboolean FS_Initialized( void );
 
