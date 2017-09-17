@@ -157,6 +157,51 @@ float   Q_crandom( int *seed ) {
     return 2.0 * ( Q_random( seed ) - 0.5 );
 }
 
+// This is the VC libc version of rand() without multiple seeds per thread or 12 levels
+// of subroutine calls.
+// Both calls have been designed to minimise the inherent number of float <--> int
+// conversions and the additional math required to get the desired value.
+// eg the typical tint = (rand() * 255) / 32768
+// becomes tint = irand(0, 255)
+static uint32_t        holdrand = 0x89abcdef;
+
+void Rand_Init( int seed )
+{
+    holdrand = seed;
+}
+
+// Returns a float min <= x < max (exclusive; will get max - 0.00001; but never max)
+float flrand(float min, float max)
+{
+    float   result;
+
+    holdrand = (holdrand * 214013L) + 2531011L;
+    result = (float)(holdrand >> 17); // 0 - 32767 range
+    result = ((result * (max - min)) / (float)QRAND_MAX) + min;
+
+    return(result);
+}
+
+// Returns an integer min <= x <= max (ie inclusive)
+int irand( int min, int max )
+{
+    int     result;
+
+    assert((max - min) < QRAND_MAX);
+
+    max++;
+    holdrand = (holdrand * 214013L) + 2531011L;
+    result = holdrand >> 17;
+    result = ((result * (max - min)) >> 15) + min;
+
+    return result;
+}
+
+int Q_irand( int value1, int value2 )
+{
+    return irand(value1, value2);
+}
+
 //=======================================================
 
 signed char ClampChar( int i ) {
@@ -179,6 +224,28 @@ signed short ClampShort( int i ) {
     return i;
 }
 
+int Com_Clamp( int min, int max, int value )
+{
+    if ( value < min )
+    {
+        return min;
+    }
+    if ( value > max )
+    {
+        return max;
+    }
+    return value;
+}
+
+float Com_Clampf( float min, float max, float value ) {
+    if ( value < min ) {
+        return min;
+    }
+    if ( value > max ) {
+        return max;
+    }
+    return value;
+}
 
 // this isn't a real cheap function to call!
 int DirToByte( vec3_t dir ) {
@@ -523,7 +590,6 @@ float Q_fabs( float f ) {
 /*
 ===============
 LerpAngle
-
 ===============
 */
 float LerpAngle (float from, float to, float frac) {
@@ -540,6 +606,17 @@ float LerpAngle (float from, float to, float frac) {
     return a;
 }
 
+/*
+===============
+LerpVector
+===============
+*/
+void LerpVector ( vec3_t from, vec3_t to, float lerp, vec3_t out )
+{
+    out[0] = from[0] + (to[0]-from[0]) * lerp;
+    out[1] = from[1] + (to[1]-from[1]) * lerp;
+    out[2] = from[2] + (to[2]-from[2]) * lerp;
+}
 
 /*
 =================
@@ -860,6 +937,12 @@ void Vector4Scale( const vec4_t in, vec_t scale, vec4_t out ) {
     out[3] = in[3]*scale;
 }
 
+float Q_powf ( float x, int y ){
+    float r = x;
+    for ( y--; y>0; y-- )
+        r *= x;
+    return r;
+}
 
 int Q_log2( int val ) {
     int answer;
@@ -870,8 +953,6 @@ int Q_log2( int val ) {
     }
     return answer;
 }
-
-
 
 /*
 =================

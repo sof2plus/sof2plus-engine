@@ -65,22 +65,6 @@ const char *GetStringForID(stringID_table_t *table, int id){
 
 /*
 ============
-COM_Clamp
-============
-*/
-float Com_Clamp( float min, float max, float value ) {
-    if ( value < min ) {
-        return min;
-    }
-    if ( value > max ) {
-        return max;
-    }
-    return value;
-}
-
-
-/*
-============
 COM_SkipPath
 ============
 */

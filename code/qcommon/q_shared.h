@@ -436,8 +436,10 @@ float Q_rsqrt( float f );       // reciprocal square root
 
 #define SQRTFAST( x ) ( (x) * Q_rsqrt( x ) )
 
-signed char ClampChar( int i );
-signed short ClampShort( int i );
+signed char     ClampChar   ( int i );
+signed short    ClampShort  ( int i );
+int             Com_Clamp   ( int min, int max, int value );
+float           Com_Clampf  ( float min, float max, float value );
 
 // this isn't a real cheap function to call!
 int DirToByte( vec3_t dir );
@@ -533,13 +535,21 @@ vec_t VectorNormalize (vec3_t v);       // returns vector length
 vec_t VectorNormalize2( const vec3_t v, vec3_t out );
 void Vector4Scale( const vec4_t in, vec_t scale, vec4_t out );
 void VectorRotate( vec3_t in, vec3_t matrix[3], vec3_t out );
-int Q_log2(int val);
 
-float Q_acos(float c);
+float   Q_powf  ( float x, int y );
+int     Q_log2  ( int val );
+float   Q_acos  ( float c );
 
-int     Q_rand( int *seed );
-float   Q_random( int *seed );
-float   Q_crandom( int *seed );
+#define QRAND_MAX   32768
+
+int     Q_rand      ( int *seed );
+float   Q_random    ( int *seed );
+float   Q_crandom   ( int *seed );
+
+void    Rand_Init   ( int seed );
+float   flrand      ( float min, float max );
+int     irand       ( int min, int max );
+int     Q_irand     ( int value1, int value2 );
 
 #define random()    ((rand () & 0x7fff) / ((float)0x7fff))
 #define crandom()   (2.0 * (random() - 0.5))
@@ -562,6 +572,7 @@ qboolean BoundsIntersectPoint(const vec3_t mins, const vec3_t maxs,
 
 float   AngleMod(float a);
 float   LerpAngle (float from, float to, float frac);
+void    LerpVector ( vec3_t from, vec3_t to, float lerp, vec3_t out );
 float   AngleSubtract( float a1, float a2 );
 void    AnglesSubtract( vec3_t v1, vec3_t v2, vec3_t v3 );
 
@@ -582,17 +593,15 @@ void MatrixMultiply(float in1[3][3], float in2[3][3], float out[3][3]);
 void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void PerpendicularVector( vec3_t dst, const vec3_t src );
 
-#ifndef MAX
-#define MAX(x,y) ((x)>(y)?(x):(y))
+#ifndef max
+#define max(x,y) ((x)>(y)?(x):(y))
 #endif
 
-#ifndef MIN
-#define MIN(x,y) ((x)<(y)?(x):(y))
+#ifndef min
+#define min(x,y) ((x)<(y)?(x):(y))
 #endif
 
 //=============================================
-
-float Com_Clamp( float min, float max, float value );
 
 char    *COM_SkipPath( char *pathname );
 const char  *COM_GetExtension( const char *name );
