@@ -30,7 +30,7 @@ void CL_Shutdown(char *finalmsg, qboolean disconnect, qboolean quit)
 }
 
 void CL_Init( void ) {
-	cl_shownet = Cvar_Get ("cl_shownet", "0", CVAR_TEMP );
+    cl_shownet = Cvar_Get ("cl_shownet", "0", CVAR_TEMP );
 }
 
 void CL_MouseEvent( int dx, int dy, int time ) {
@@ -62,7 +62,7 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 }
 
 qboolean UI_GameCommand( void ) {
-	return qfalse;
+    return qfalse;
 }
 
 void CL_ForwardCommandToServer( const char *string ) {

@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 /*****************************************************************************
- * name:		be_aas_cluster.h
+ * name:        be_aas_cluster.h
  *
- * desc:		AAS
+ * desc:        AAS
  *
  * $Archive: /source/code/botlib/be_aas_cluster.h $
  *

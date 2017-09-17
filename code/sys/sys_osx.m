@@ -43,51 +43,51 @@ Display an OS X dialog box
 */
 dialogResult_t Sys_Dialog( dialogType_t type, const char *message, const char *title )
 {
-	dialogResult_t result = DR_OK;
-	NSAlert *alert = [NSAlert new];
+    dialogResult_t result = DR_OK;
+    NSAlert *alert = [NSAlert new];
 
-	[alert setMessageText: [NSString stringWithUTF8String: title]];
-	[alert setInformativeText: [NSString stringWithUTF8String: message]];
+    [alert setMessageText: [NSString stringWithUTF8String: title]];
+    [alert setInformativeText: [NSString stringWithUTF8String: message]];
 
-	if( type == DT_ERROR )
-		[alert setAlertStyle: NSCriticalAlertStyle];
-	else
-		[alert setAlertStyle: NSWarningAlertStyle];
+    if( type == DT_ERROR )
+        [alert setAlertStyle: NSCriticalAlertStyle];
+    else
+        [alert setAlertStyle: NSWarningAlertStyle];
 
-	switch( type )
-	{
-		default:
-			[alert runModal];
-			result = DR_OK;
-			break;
+    switch( type )
+    {
+        default:
+            [alert runModal];
+            result = DR_OK;
+            break;
 
-		case DT_YES_NO:
-			[alert addButtonWithTitle: @"Yes"];
-			[alert addButtonWithTitle: @"No"];
-			switch( [alert runModal] )
-			{
-				default:
-				case NSAlertFirstButtonReturn: result = DR_YES; break;
-				case NSAlertSecondButtonReturn: result = DR_NO; break;
-			}
-			break;
+        case DT_YES_NO:
+            [alert addButtonWithTitle: @"Yes"];
+            [alert addButtonWithTitle: @"No"];
+            switch( [alert runModal] )
+            {
+                default:
+                case NSAlertFirstButtonReturn: result = DR_YES; break;
+                case NSAlertSecondButtonReturn: result = DR_NO; break;
+            }
+            break;
 
-		case DT_OK_CANCEL:
-			[alert addButtonWithTitle: @"OK"];
-			[alert addButtonWithTitle: @"Cancel"];
+        case DT_OK_CANCEL:
+            [alert addButtonWithTitle: @"OK"];
+            [alert addButtonWithTitle: @"Cancel"];
 
-			switch( [alert runModal] )
-			{
-				default:
-				case NSAlertFirstButtonReturn: result = DR_OK; break;
-				case NSAlertSecondButtonReturn: result = DR_CANCEL; break;
-			}
-			break;
-	}
+            switch( [alert runModal] )
+            {
+                default:
+                case NSAlertFirstButtonReturn: result = DR_OK; break;
+                case NSAlertSecondButtonReturn: result = DR_CANCEL; break;
+            }
+            break;
+    }
 
-	[alert release];
+    [alert release];
 
-	return result;
+    return result;
 }
 
 /*
@@ -101,17 +101,17 @@ the result is returned. If not, dir is returned untouched.
 */
 char *Sys_StripAppBundle( char *dir )
 {
-	static char cwd[MAX_OSPATH];
+    static char cwd[MAX_OSPATH];
 
-	Q_strncpyz(cwd, dir, sizeof(cwd));
-	if(strcmp(Sys_Basename(cwd), "MacOS"))
-		return dir;
-	Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
-	if(strcmp(Sys_Basename(cwd), "Contents"))
-		return dir;
-	Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
-	if(!strstr(Sys_Basename(cwd), ".app"))
-		return dir;
-	Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
-	return cwd;
+    Q_strncpyz(cwd, dir, sizeof(cwd));
+    if(strcmp(Sys_Basename(cwd), "MacOS"))
+        return dir;
+    Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
+    if(strcmp(Sys_Basename(cwd), "Contents"))
+        return dir;
+    Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
+    if(!strstr(Sys_Basename(cwd), ".app"))
+        return dir;
+    Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
+    return cwd;
 }

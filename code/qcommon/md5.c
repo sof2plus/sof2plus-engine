@@ -18,30 +18,30 @@
 #include "qcommon.h"
 
 typedef struct MD5Context {
-	uint32_t buf[4];
-	uint32_t bits[2];
-	unsigned char in[64];
+    uint32_t buf[4];
+    uint32_t bits[2];
+    unsigned char in[64];
 } MD5_CTX;
 
 #ifndef Q3_BIG_ENDIAN
-	#define byteReverse(buf, len)	/* Nothing */
+    #define byteReverse(buf, len)   /* Nothing */
 #else
-	static void byteReverse(unsigned char *buf, unsigned longs);
+    static void byteReverse(unsigned char *buf, unsigned longs);
 
-	/*
-	 * Note: this code is harmless on little-endian machines.
-	 */
-	static void byteReverse(unsigned char *buf, unsigned longs)
-	{
-	    uint32_t t;
-	    do {
-		t = (uint32_t)
-			((unsigned) buf[3] << 8 | buf[2]) << 16 |
-			((unsigned) buf[1] << 8 | buf[0]);
-		*(uint32_t *) buf = t;
-		buf += 4;
-	    } while (--longs);
-	}
+    /*
+     * Note: this code is harmless on little-endian machines.
+     */
+    static void byteReverse(unsigned char *buf, unsigned longs)
+    {
+        uint32_t t;
+        do {
+        t = (uint32_t)
+            ((unsigned) buf[3] << 8 | buf[2]) << 16 |
+            ((unsigned) buf[1] << 8 | buf[0]);
+        *(uint32_t *) buf = t;
+        buf += 4;
+        } while (--longs);
+    }
 #endif // Q3_BIG_ENDIAN
 
 /*
@@ -68,7 +68,7 @@ static void MD5Init(struct MD5Context *ctx)
 
 /* This is the central step in the MD5 algorithm. */
 #define MD5STEP(f, w, x, y, z, data, s) \
-	( w += f(x, y, z) + data,  w = w<<s | w>>(32-s),  w += x )
+    ( w += f(x, y, z) + data,  w = w<<s | w>>(32-s),  w += x )
 
 /*
  * The core of the MD5 algorithm, this alters an existing MD5 hash to
@@ -76,7 +76,7 @@ static void MD5Init(struct MD5Context *ctx)
  * the data and converts bytes into longwords for this routine.
  */
 static void MD5Transform(uint32_t buf[4],
-	uint32_t const in[16])
+    uint32_t const in[16])
 {
     uint32_t a, b, c, d;
 
@@ -164,7 +164,7 @@ static void MD5Transform(uint32_t buf[4],
  * of bytes.
  */
 static void MD5Update(struct MD5Context *ctx, unsigned char const *buf,
-	unsigned len)
+    unsigned len)
 {
     uint32_t t;
 
@@ -172,35 +172,35 @@ static void MD5Update(struct MD5Context *ctx, unsigned char const *buf,
 
     t = ctx->bits[0];
     if ((ctx->bits[0] = t + ((uint32_t) len << 3)) < t)
-	ctx->bits[1]++;		/* Carry from low to high */
+    ctx->bits[1]++;     /* Carry from low to high */
     ctx->bits[1] += len >> 29;
 
-    t = (t >> 3) & 0x3f;	/* Bytes already in shsInfo->data */
+    t = (t >> 3) & 0x3f;    /* Bytes already in shsInfo->data */
 
     /* Handle any leading odd-sized chunks */
 
     if (t) {
-	unsigned char *p = (unsigned char *) ctx->in + t;
+    unsigned char *p = (unsigned char *) ctx->in + t;
 
-	t = 64 - t;
-	if (len < t) {
-	    memcpy(p, buf, len);
-	    return;
-	}
-	memcpy(p, buf, t);
-	byteReverse(ctx->in, 16);
-	MD5Transform(ctx->buf, (uint32_t *) ctx->in);
-	buf += t;
-	len -= t;
+    t = 64 - t;
+    if (len < t) {
+        memcpy(p, buf, len);
+        return;
+    }
+    memcpy(p, buf, t);
+    byteReverse(ctx->in, 16);
+    MD5Transform(ctx->buf, (uint32_t *) ctx->in);
+    buf += t;
+    len -= t;
     }
     /* Process data in 64-byte chunks */
 
     while (len >= 64) {
-	memcpy(ctx->in, buf, 64);
-	byteReverse(ctx->in, 16);
-	MD5Transform(ctx->buf, (uint32_t *) ctx->in);
-	buf += 64;
-	len -= 64;
+    memcpy(ctx->in, buf, 64);
+    byteReverse(ctx->in, 16);
+    MD5Transform(ctx->buf, (uint32_t *) ctx->in);
+    buf += 64;
+    len -= 64;
     }
 
     /* Handle any remaining bytes of data. */
@@ -210,7 +210,7 @@ static void MD5Update(struct MD5Context *ctx, unsigned char const *buf,
 
 
 /*
- * Final wrapup - pad to 64-byte boundary with the bit pattern 
+ * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
 static void MD5Final(struct MD5Context *ctx, unsigned char *digest)
@@ -231,16 +231,16 @@ static void MD5Final(struct MD5Context *ctx, unsigned char *digest)
 
     /* Pad out to 56 mod 64 */
     if (count < 8) {
-	/* Two lots of padding:  Pad the first block to 64 bytes */
-	memset(p, 0, count);
-	byteReverse(ctx->in, 16);
-	MD5Transform(ctx->buf, (uint32_t *) ctx->in);
+    /* Two lots of padding:  Pad the first block to 64 bytes */
+    memset(p, 0, count);
+    byteReverse(ctx->in, 16);
+    MD5Transform(ctx->buf, (uint32_t *) ctx->in);
 
-	/* Now fill the next block with 56 bytes */
-	memset(ctx->in, 0, 56);
+    /* Now fill the next block with 56 bytes */
+    memset(ctx->in, 0, 56);
     } else {
-	/* Pad block to 56 bytes */
-	memset(p, 0, count - 8);
+    /* Pad block to 56 bytes */
+    memset(p, 0, count - 8);
     }
     byteReverse(ctx->in, 14);
 
@@ -250,61 +250,61 @@ static void MD5Final(struct MD5Context *ctx, unsigned char *digest)
 
     MD5Transform(ctx->buf, (uint32_t *) ctx->in);
     byteReverse((unsigned char *) ctx->buf, 4);
-    
+
     if (digest!=NULL)
-	    memcpy(digest, ctx->buf, 16);
-    memset(ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
+        memcpy(digest, ctx->buf, 16);
+    memset(ctx, 0, sizeof(*ctx));   /* In case it's sensitive */
 }
 
 
 char *Com_MD5File( const char *fn, int length, const char *prefix, int prefix_len )
 {
-	static char final[33] = {""};
-	unsigned char digest[16] = {""}; 
-	fileHandle_t f;
-	MD5_CTX md5;
-	byte buffer[2048];
-	int i;
-	int filelen = 0;
-	int r = 0;
-	int total = 0;
+    static char final[33] = {""};
+    unsigned char digest[16] = {""};
+    fileHandle_t f;
+    MD5_CTX md5;
+    byte buffer[2048];
+    int i;
+    int filelen = 0;
+    int r = 0;
+    int total = 0;
 
-	Q_strncpyz( final, "", sizeof( final ) );
+    Q_strncpyz( final, "", sizeof( final ) );
 
-	filelen = FS_SV_FOpenFileRead( fn, &f );
+    filelen = FS_SV_FOpenFileRead( fn, &f );
 
-	if( !f ) {
-		return final;
-	}
-	if( filelen < 1 ) {
-		FS_FCloseFile( f );
-		return final;
-	}
-	if(filelen < length || !length) {
-		length = filelen;
-	}
+    if( !f ) {
+        return final;
+    }
+    if( filelen < 1 ) {
+        FS_FCloseFile( f );
+        return final;
+    }
+    if(filelen < length || !length) {
+        length = filelen;
+    }
 
-	MD5Init(&md5);
+    MD5Init(&md5);
 
-	if( prefix_len && *prefix )
-		MD5Update(&md5 , (unsigned char *)prefix, prefix_len);
+    if( prefix_len && *prefix )
+        MD5Update(&md5 , (unsigned char *)prefix, prefix_len);
 
-	for(;;) {
-		r = FS_Read(buffer, sizeof(buffer), f);
-		if(r < 1)
-			break;
-		if(r + total > length)
-			r = length - total;
-		total += r;
-		MD5Update(&md5 , buffer, r);
-		if(r < sizeof(buffer) || total >= length)
-			break;
-	}
-	FS_FCloseFile(f);
-	MD5Final(&md5, digest);
-	final[0] = '\0';
-	for(i = 0; i < 16; i++) {
-		Q_strcat(final, sizeof(final), va("%02X", digest[i]));
-	}
-	return final;
+    for(;;) {
+        r = FS_Read(buffer, sizeof(buffer), f);
+        if(r < 1)
+            break;
+        if(r + total > length)
+            r = length - total;
+        total += r;
+        MD5Update(&md5 , buffer, r);
+        if(r < sizeof(buffer) || total >= length)
+            break;
+    }
+    FS_FCloseFile(f);
+    MD5Final(&md5, digest);
+    final[0] = '\0';
+    for(i = 0; i < 16; i++) {
+        Q_strcat(final, sizeof(final), va("%02X", digest[i]));
+    }
+    return final;
 }

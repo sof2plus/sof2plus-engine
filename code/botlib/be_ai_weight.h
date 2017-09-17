@@ -21,43 +21,43 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 /*****************************************************************************
- * name:		be_ai_weight.h
+ * name:        be_ai_weight.h
  *
- * desc:		fuzzy weights
+ * desc:        fuzzy weights
  *
  * $Archive: /source/code/botlib/be_ai_weight.h $
  *
  *****************************************************************************/
 
-#define WT_BALANCE			1
-#define MAX_WEIGHTS			128
+#define WT_BALANCE          1
+#define MAX_WEIGHTS         128
 
 //fuzzy seperator
 typedef struct fuzzyseperator_s
 {
-	int index;
-	int value;
-	int type;
-	float weight;
-	float minweight;
-	float maxweight;
-	struct fuzzyseperator_s *child;
-	struct fuzzyseperator_s *next;
+    int index;
+    int value;
+    int type;
+    float weight;
+    float minweight;
+    float maxweight;
+    struct fuzzyseperator_s *child;
+    struct fuzzyseperator_s *next;
 } fuzzyseperator_t;
 
 //fuzzy weight
 typedef struct weight_s
 {
-	char *name;
-	struct fuzzyseperator_s *firstseperator;
+    char *name;
+    struct fuzzyseperator_s *firstseperator;
 } weight_t;
 
 //weight configuration
 typedef struct weightconfig_s
 {
-	int numweights;
-	weight_t weights[MAX_WEIGHTS];
-	char		filename[MAX_QPATH];
+    int numweights;
+    weight_t weights[MAX_WEIGHTS];
+    char        filename[MAX_QPATH];
 } weightconfig_t;
 
 //reads a weight configuration

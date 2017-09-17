@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
 /*****************************************************************************
- * name:		be_ea.h
+ * name:        be_ea.h
  *
- * desc:		elementary actions
+ * desc:        elementary actions
  *
  * $Archive: /source/code/botlib/be_ea.h $
  *

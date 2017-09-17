@@ -51,7 +51,7 @@ CON_Input
 */
 char *CON_Input( void )
 {
-	return NULL;
+    return NULL;
 }
 
 /*
@@ -61,8 +61,8 @@ CON_Print
 */
 void CON_Print( const char *msg )
 {
-	if( com_ansiColor && com_ansiColor->integer )
-		Sys_AnsiColorPrint( msg );
-	else
-		fputs( msg, stderr );
+    if( com_ansiColor && com_ansiColor->integer )
+        Sys_AnsiColorPrint( msg );
+    else
+        fputs( msg, stderr );
 }

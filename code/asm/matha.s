@@ -26,29 +26,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qasm.h"
 
 
-#if	id386
+#if id386
 
-	.text
+    .text
 
 // TODO: rounding needed?
 // stack parameter offset
-#define	val	4
+#define val 4
 
 .globl C(Invert24To16)
 C(Invert24To16):
 
-	movl	val(%esp),%ecx
-	movl	$0x100,%edx		// 0x10000000000 as dividend
-	cmpl	%edx,%ecx
-	jle		LOutOfRange
+    movl    val(%esp),%ecx
+    movl    $0x100,%edx     // 0x10000000000 as dividend
+    cmpl    %edx,%ecx
+    jle     LOutOfRange
 
-	subl	%eax,%eax
-	divl	%ecx
+    subl    %eax,%eax
+    divl    %ecx
 
-	ret
+    ret
 
 LOutOfRange:
-	movl	$0xFFFFFFFF,%eax
-	ret
+    movl    $0xFFFFFFFF,%eax
+    ret
 
-#endif	// id386
+#endif  // id386

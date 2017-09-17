@@ -21,17 +21,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 /*****************************************************************************
- * name:		l_util.h
+ * name:        l_util.h
  *
- * desc:		utils
+ * desc:        utils
  *
  * $Archive: /source/code/botlib/l_util.h $
  *
  *****************************************************************************/
 
-#define Vector2Angles(v,a)		vectoangles(v,a)
+#define Vector2Angles(v,a)      vectoangles(v,a)
 #ifndef MAX_PATH
-#define MAX_PATH				MAX_QPATH
+#define MAX_PATH                MAX_QPATH
 #endif
-#define Maximum(x,y)			(x > y ? x : y)
-#define Minimum(x,y)			(x < y ? x : y)
+#define Maximum(x,y)            (x > y ? x : y)
+#define Minimum(x,y)            (x < y ? x : y)

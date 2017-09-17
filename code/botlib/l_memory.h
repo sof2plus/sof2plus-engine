@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 /*****************************************************************************
- * name:		l_memory.h
+ * name:        l_memory.h
  *
- * desc:		memory management
+ * desc:        memory management
  *
  * $Archive: /source/code/botlib/l_memory.h $
  *
@@ -32,15 +32,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //#define MEMDEBUG
 
 #ifdef MEMDEBUG
-#define GetMemory(size)				GetMemoryDebug(size, #size, __FILE__, __LINE__);
-#define GetClearedMemory(size)		GetClearedMemoryDebug(size, #size, __FILE__, __LINE__);
+#define GetMemory(size)             GetMemoryDebug(size, #size, __FILE__, __LINE__);
+#define GetClearedMemory(size)      GetClearedMemoryDebug(size, #size, __FILE__, __LINE__);
 //allocate a memory block of the given size
 void *GetMemoryDebug(unsigned long size, char *label, char *file, int line);
 //allocate a memory block of the given size and clear it
 void *GetClearedMemoryDebug(unsigned long size, char *label, char *file, int line);
 //
-#define GetHunkMemory(size)			GetHunkMemoryDebug(size, #size, __FILE__, __LINE__);
-#define GetClearedHunkMemory(size)	GetClearedHunkMemoryDebug(size, #size, __FILE__, __LINE__);
+#define GetHunkMemory(size)         GetHunkMemoryDebug(size, #size, __FILE__, __LINE__);
+#define GetClearedHunkMemory(size)  GetClearedHunkMemoryDebug(size, #size, __FILE__, __LINE__);
 //allocate a memory block of the given size
 void *GetHunkMemoryDebug(unsigned long size, char *label, char *file, int line);
 //allocate a memory block of the given size and clear it
