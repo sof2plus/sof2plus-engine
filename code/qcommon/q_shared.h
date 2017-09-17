@@ -344,6 +344,7 @@ extern vec4_t   g_color_table[8];
 struct cplane_s;
 
 extern  vec3_t  vec3_origin;
+extern  vec3_t  vec3_identity;
 extern  vec3_t  axisDefault[3];
 
 #define nanmask (255<<23)
@@ -652,7 +653,11 @@ typedef enum {
     FS_READ,
     FS_WRITE,
     FS_APPEND,
-    FS_APPEND_SYNC
+    FS_APPEND_SYNC,
+    FS_READ_TEXT,
+    FS_WRITE_TEXT,
+    FS_APPEND_TEXT,
+    FS_APPEND_SYNC_TEXT
 } fsMode_t;
 
 typedef enum {
@@ -853,7 +858,52 @@ typedef struct cplane_s {
     byte    signbits;       // signx + (signy<<1) + (signz<<2), used as lookup during collision
     byte    pad[2];
 } cplane_t;
+/*
+========================================================================
 
+Ghoul2
+
+========================================================================
+*/
+
+typedef struct {
+    float mDistance;
+    int mEntityNum;
+    int mModelIndex;
+    int mPolyIndex;
+    int mSurfaceIndex;
+    vec3_t mCollisionPosition;
+    vec3_t mCollisionNormal;
+    int mFlags;
+    int mMaterial;
+    int mLocation;
+    float mBarycentricI; // two barycentic coodinates for the hit point
+    float mBarycentricJ; // K = 1-I-J
+} CollisionRecord_t;
+
+#define MAX_G2_COLLISIONS   16
+
+typedef CollisionRecord_t G2Trace_t[MAX_G2_COLLISIONS]; // map that describes all of the parts of ghoul2 models that got hit
+
+typedef struct {
+    float matrix[3][4];
+} mdxaBone_t;
+
+// For ghoul2 axis use
+
+typedef enum {
+    ORIGIN = 0,
+    POSITIVE_X,
+    POSITIVE_Z,
+    POSITIVE_Y,
+    NEGATIVE_X,
+    NEGATIVE_Z,
+    NEGATIVE_Y
+} Eorientations;
+
+/*
+========================================================================
+*/
 
 // a trace is returned when a box is swept through the world
 typedef struct {
@@ -894,6 +944,21 @@ typedef struct
     int         animTime;
 
 } animInfo_t;
+
+// sound channels
+// channel 0 never willingly overrides
+// other channels will allways override a playing sound on that channel
+typedef enum {
+    CHAN_AUTO,
+    CHAN_LOCAL,         // menu sounds, etc
+    CHAN_WEAPON,
+    CHAN_VOICE,
+    CHAN_ITEM,
+    CHAN_BODY,
+    CHAN_LOCAL_SOUND,   // chat messages, etc
+    CHAN_ANNOUNCER,     // announcer voices, etc
+    CHAN_AMBIENT,       //# ingame NPC weapons only, do not use in scripts!
+} soundChannel_t;
 
 /*
 ========================================================================
@@ -1212,6 +1277,19 @@ typedef struct entityState_s
     int             leanOffset;     // Lean direction
 } entityState_t;
 
+typedef enum {
+    CA_UNINITIALIZED,
+    CA_DISCONNECTED,    // not talking to a server
+    CA_AUTHORIZING,     // not used any more, was checking cd key
+    CA_CONNECTING,      // sending request packets to the server
+    CA_CHALLENGING,     // sending challenge packets to the server
+    CA_CONNECTED,       // netchan_t established, getting gamestate
+    CA_LOADING,         // only during cgame initialization, never during main loop
+    CA_PRIMED,          // got gamestate, waiting for first frame
+    CA_ACTIVE,          // game views should be displayed
+    CA_CINEMATIC        // playing a cinematic or a static pic, not connected to a server
+} connstate_t;
+
 #define Square(x) ((x)*(x))
 
 // real time
@@ -1233,38 +1311,6 @@ typedef struct qtime_s {
 #define SAY_ALL     0
 #define SAY_TEAM    1
 #define SAY_TELL    2
-
-/*
-========================================================================
-
-Ghoul2
-
-========================================================================
-*/
-
-/*
-Ghoul2 Insert Start
-*/
-
-typedef struct {
-    float       matrix[3][4];
-} mdxaBone_t;
-
-// For ghoul2 axis use
-
-typedef enum
-{
-    ORIGIN = 0,
-    POSITIVE_X,
-    POSITIVE_Z,
-    POSITIVE_Y,
-    NEGATIVE_X,
-    NEGATIVE_Z,
-    NEGATIVE_Y
-} Eorientations;
-/*
-Ghoul2 Insert End
-*/
 
 // define the new memory tags for the zone, used by all modules now
 //

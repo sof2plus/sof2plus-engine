@@ -23,6 +23,51 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.c -- stateless support routines that are included in each code dll
 #include "q_shared.h"
 
+/*
+============
+GetIDForString
+============
+*/
+int GetIDForString(stringID_table_t *table, const char *string){
+    int index = 0;
+
+    while((table[index].name != NULL) &&
+        (table[index].name[0] != 0)){
+        if(!Q_stricmp(table[index].name, string)){
+            return table[index].id;
+        }
+
+        index++;
+    }
+
+    return -1;
+}
+
+/*
+============
+GetStringForID
+============
+*/
+const char *GetStringForID(stringID_table_t *table, int id){
+    int index = 0;
+
+    while((table[index].name != NULL) &&
+        (table[index].name[0] != 0)){
+        if(table[index].id == id){
+            return table[index].name;
+        }
+
+        index++;
+    }
+
+    return NULL;
+}
+
+/*
+============
+COM_Clamp
+============
+*/
 float Com_Clamp( float min, float max, float value ) {
     if ( value < min ) {
         return min;
