@@ -59,13 +59,6 @@ void SV_GetChallenge(netadr_t from)
 	int		clientChallenge;
 	challenge_t	*challenge;
 	qboolean wasfound = qfalse;
-	char *gameName;
-	qboolean gameMismatch;
-
-	// ignore if we are in single player
-	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive")) {
-		return;
-	}
 
 	// Prevent using getchallenge as an amplifier
 	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
@@ -78,24 +71,6 @@ void SV_GetChallenge(netadr_t from)
 	// excess outbound bandwidth usage when being flooded inbound
 	if ( SVC_RateLimit( &outboundLeakyBucket, 10, 100 ) ) {
 		Com_DPrintf( "SV_GetChallenge: rate limit exceeded, dropping request\n" );
-		return;
-	}
-
-	gameName = Cmd_Argv(2);
-
-#ifdef LEGACY_PROTOCOL
-	// gamename is optional for legacy protocol
-	if (com_legacyprotocol->integer && !*gameName)
-		gameMismatch = qfalse;
-	else
-#endif
-		gameMismatch = !*gameName || strcmp(gameName, com_gamename->string) != 0;
-
-	// reject client if the gamename string sent by the client doesn't match ours
-	if (gameMismatch)
-	{
-		NET_OutOfBandPrint(NS_SERVER, from, "print\nGame mismatch: This is a %s server\n",
-			com_gamename->string);
 		return;
 	}
 
@@ -1445,24 +1420,12 @@ void SV_UserinfoChanged( client_t *cl ) {
 	else
 		i = 50;
 
-	if(i != cl->snapshotMsec)
-	{
-		// Reset last sent snapshot so we avoid desync between server frame time and snapshot send time
-		cl->lastSnapshotTime = 0;
-		cl->snapshotMsec = i;		
-	}
-	
-#ifdef USE_VOIP
-#ifdef LEGACY_PROTOCOL
-	if(cl->compat)
-		cl->hasVoip = qfalse;
-	else
-#endif
-	{
-		val = Info_ValueForKey(cl->userinfo, "cl_voipProtocol");
-		cl->hasVoip = !Q_stricmp( val, "opus" );
-	}
-#endif
+    if(i != cl->snapshotMsec)
+    {
+        // Reset last sent snapshot so we avoid desync between server frame time and snapshot send time
+        cl->lastSnapshotTime = 0;
+        cl->snapshotMsec = i;
+    }
 
 	// TTimo
 	// maintain the IP information

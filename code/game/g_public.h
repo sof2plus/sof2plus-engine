@@ -1,26 +1,5 @@
-/*
-===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
-
-This file is part of Quake III Arena source code.
-
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
-
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-===========================================================================
-*/
+// Copyright (C) 2001-2002 Raven Software.
 //
-
 // g_public.h -- game module information visible to server
 
 #define	GAME_API_VERSION	8
@@ -30,11 +9,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // in entityStates (level eType), so the game must explicitly flag
 // special server behaviors
 #define	SVF_NOCLIENT			0x00000001	// don't send entity to clients, even if it has effects
-
-// TTimo
-// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=551
-#define SVF_CLIENTMASK 0x00000002
-
 #define SVF_BOT					0x00000008	// set if the entity is a bot
 #define	SVF_BROADCAST			0x00000020	// send to all connected clients
 #define	SVF_PORTAL				0x00000040	// merge a second pvs at origin2 into snapshots
@@ -48,23 +22,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SVF_NOTSINGLECLIENT		0x00000800	// send entity to everyone but one client
 											// (entityShared_t->singleClient)
 
+#define SVF_GLASS_BRUSH			0x08000000	// Ent is a glass brush
 
+#define SVF_INFLATED_BBOX		0x00001000	// Bounding box has been doubled
+#define SVF_LINKHACK			0x10000000	// Hack to link an entity into extra clusters
+#define SVF_DETAIL				0x20000000	// Entity is a detail entity and can be dropped from the snapshot
+#define SVF_SKIP				0x80000000	// Dont include this entity in the current snapshot (internal use only)
 
 //===============================================================
 
 
 typedef struct {
-	entityState_t	unused;			// apparently this field was put here accidentally
-									//  (and is kept only for compatibility, as a struct pad)
-
 	qboolean	linked;				// qfalse if not in any good cluster
 	int			linkcount;
 
 	int			svFlags;			// SVF_NOCLIENT, SVF_BROADCAST, etc
-
-	// only send to this client when SVF_SINGLECLIENT is set	
-	// if SVF_CLIENTMASK is set, use bitmask for clients to send to (maxclients must be <= 32, up to the mod to enforce this)
-	int			singleClient;		
+	int			singleClient;		// only send to this client when SVF_SINGLECLIENT is set
 
 	qboolean	bmodel;				// if false, assume an explicit mins / maxs bounding box
 									// only set by trap_SetBrushModel
@@ -84,9 +57,17 @@ typedef struct {
 	// when a trace call is made and passEntityNum != ENTITYNUM_NONE,
 	// an ent will be excluded from testing if:
 	// ent->s.number == passEntityNum	(don't interact with self)
-	// ent->r.ownerNum == passEntityNum	(don't interact with your own missiles)
-	// entity[ent->r.ownerNum].r.ownerNum == passEntityNum	(don't interact with other missiles from owner)
+	// ent->s.ownerNum = passEntityNum	(don't interact with your own missiles)
+	// entity[ent->s.ownerNum].ownerNum = passEntityNum	(don't interact with other missiles from owner)
 	int			ownerNum;
+
+	// mask of clients that this entity should be broadcast too.  The first 32 clients
+	// are represented by the first array index and the latter 32 clients are represented
+	// by the second array index.
+	int			broadcastClients[2];
+
+	int			detailTime;
+
 } entityShared_t;
 
 
@@ -148,6 +129,11 @@ typedef enum {
 	// the game needs to let the server system know where and how big the gentities
 	// are, so it can look at them directly without going through an interface
 
+	G_GET_WORLD_BOUNDS,		// ( vec3_t mins, vec3_t maxs )
+							// Returns the mins and maxs of the world
+
+	G_RMG_INIT,
+
 	G_DROP_CLIENT,		// ( int clientNum, const char *reason );
 	// kick a client off the server with a message
 
@@ -176,6 +162,8 @@ typedef enum {
 
 	G_SET_BRUSH_MODEL,	// ( gentity_t *ent, const char *name );
 	// sets mins and maxs based on the brushmodel name
+
+	G_SET_ACTIVE_SUBBSP,	// int index
 
 	G_TRACE,	// ( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
 	// collision detection against all linked entities
@@ -219,6 +207,8 @@ typedef enum {
 	// This should only be done at GAME_INIT time.
 
 	G_FS_GETFILELIST,
+	G_BOT_GET_MEMORY,
+	G_BOT_FREE_MEMORY,
 	G_DEBUG_POLYGON_CREATE,
 	G_DEBUG_POLYGON_DELETE,
 	G_REAL_TIME,
@@ -226,9 +216,26 @@ typedef enum {
 
 	G_TRACECAPSULE,	// ( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
 	G_ENTITY_CONTACTCAPSULE,	// ( const vec3_t mins, const vec3_t maxs, const gentity_t *ent );
-	
-	// 1.32
-	G_FS_SEEK,
+
+	G_MEMSET = 100,
+	G_MEMCPY,
+	G_STRNCPY,
+	G_SIN,
+	G_COS,
+	G_ATAN2,
+	G_SQRT,
+	G_ANGLEVECTORS,
+	G_PERPENDICULARVECTOR,
+	G_FLOOR,
+	G_CEIL,
+
+	G_TESTPRINTINT,
+	G_TESTPRINTFLOAT,
+
+	G_ACOS,
+	G_ASIN,
+
+	G_MATRIXMULTIPLY,
 
 	BOTLIB_SETUP = 200,				// ( void );
 	BOTLIB_SHUTDOWN,				// ( void );
@@ -278,6 +285,8 @@ typedef enum {
 	BOTLIB_EA_GESTURE,
 	BOTLIB_EA_TALK,
 	BOTLIB_EA_ATTACK,
+	BOTLIB_EA_ALT_ATTACK,
+	BOTLIB_EA_FORCEPOWER,
 	BOTLIB_EA_USE,
 	BOTLIB_EA_RESPAWN,
 	BOTLIB_EA_CROUCH,
@@ -387,7 +396,74 @@ typedef enum {
 	BOTLIB_PC_LOAD_SOURCE,
 	BOTLIB_PC_FREE_SOURCE,
 	BOTLIB_PC_READ_TOKEN,
-	BOTLIB_PC_SOURCE_FILE_AND_LINE
+	BOTLIB_PC_SOURCE_FILE_AND_LINE,
+	BOTLIB_PC_LOAD_GLOBAL_DEFINES,
+	BOTLIB_PC_REMOVE_ALL_GLOBAL_DEFINES,
+
+	G_G2_LISTBONES,
+	G_G2_LISTSURFACES,
+	G_G2_HAVEWEGHOULMODELS,
+	G_G2_SETMODELS,
+	G_G2_GETBOLT,
+	G_G2_INITGHOUL2MODEL,
+	G_G2_ADDBOLT,
+	G_G2_SETBOLTINFO,
+	G_G2_ANGLEOVERRIDE,
+	G_G2_PLAYANIM,
+	G_G2_GETGLANAME,
+	G_G2_COPYGHOUL2INSTANCE,
+	G_G2_COPYSPECIFICGHOUL2MODEL,
+	G_G2_DUPLICATEGHOUL2INSTANCE,
+	G_G2_REMOVEGHOUL2MODEL,
+	G_G2_CLEANMODELS,
+
+	// CGenericParser2 (void *) routines
+	G_GP_PARSE,
+	G_GP_PARSE_FILE,
+	G_GP_CLEAN,
+	G_GP_DELETE,
+	G_GP_GET_BASE_PARSE_GROUP,
+
+	// CGPGroup (void *) routines
+	G_GPG_GET_NAME,
+	G_GPG_GET_NEXT,
+	G_GPG_GET_INORDER_NEXT,
+	G_GPG_GET_INORDER_PREVIOUS,
+	G_GPG_GET_PAIRS,
+	G_GPG_GET_INORDER_PAIRS,
+	G_GPG_GET_SUBGROUPS,
+	G_GPG_GET_INORDER_SUBGROUPS,
+	G_GPG_FIND_SUBGROUP,
+	G_GPG_FIND_PAIR,
+	G_GPG_FIND_PAIRVALUE,
+
+	// CGPValue (void *) routines
+	G_GPV_GET_NAME,
+	G_GPV_GET_NEXT,
+	G_GPV_GET_INORDER_NEXT,
+	G_GPV_GET_INORDER_PREVIOUS,
+	G_GPV_IS_LIST,
+	G_GPV_GET_TOP_VALUE,
+	G_GPV_GET_LIST,
+
+	G_CM_REGISTER_TERRAIN,
+	G_GET_MODEL_FORMALNAME,
+
+	G_VM_LOCALALLOC,
+	G_VM_LOCALALLOCUNALIGNED,
+	G_VM_LOCALTEMPALLOC,
+	G_VM_LOCALTEMPFREE,
+	G_VM_LOCALSTRINGALLOC,
+
+	G_G2_COLLISIONDETECT,
+	G_G2_REGISTERSKIN,
+	G_G2_SETSKIN,
+	G_G2_GETANIMFILENAMEINDEX,
+
+	G_GT_INIT,
+	G_GT_RUNFRAME,
+	G_GT_START,
+	G_GT_SENDEVENT,
 
 } gameImport_t;
 
@@ -419,12 +495,21 @@ typedef enum {
 
 	GAME_RUN_FRAME,					// ( int levelTime );
 
+	GAME_GHOUL_INIT,
+
+	GAME_GHOUL_SHUTDOWN,
+
 	GAME_CONSOLE_COMMAND,			// ( void );
 	// ConsoleCommand will be called when a command has been issued
 	// that is not recognized as a builtin function.
 	// The game can issue trap_argc() / trap_argv() commands to get the command
 	// and parameters.  Return qfalse if the game doesn't recognize it as a command.
 
-	BOTAI_START_FRAME				// ( int time );
+	BOTAI_START_FRAME,				// ( int time );
+
+	GAME_SPAWN_RMG_ENTITY,
+
+	GAME_GAMETYPE_COMMAND,			// ( int cmd, int arg0, int arg1, int arg2, int arg3, int arg4 );
+
 } gameExport_t;
 

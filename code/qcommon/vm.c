@@ -235,8 +235,11 @@ void VM_Free( vm_t *vm ) {
 	if(vm->destroy)
 		vm->destroy(vm);
 
-	Sys_UnloadDll( vm->dllHandle );
-	Com_Memset( vm, 0, sizeof( *vm ) );
+    if(vm->dllHandle) {
+        Sys_UnloadDll(vm->dllHandle);
+        Com_Memset(vm, 0, sizeof(*vm));
+    }
+    Com_Memset(vm, 0, sizeof(*vm));
 
 	currentVM = NULL;
 	lastVM = NULL;

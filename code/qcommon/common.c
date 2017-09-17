@@ -89,9 +89,6 @@ cvar_t	*com_abnormalExit;
 cvar_t	*com_standalone;
 cvar_t	*com_gamename;
 cvar_t	*com_protocol;
-#ifdef LEGACY_PROTOCOL
-cvar_t	*com_legacyprotocol;
-#endif
 cvar_t	*com_basegame;
 cvar_t  *com_homepath;
 cvar_t	*com_busyWait;
@@ -2699,7 +2696,11 @@ void Com_Init( char *commandLine ) {
 	Cmd_Init ();
 
 	// get the developer cvar set as early as possible
-	com_developer = Cvar_Get("developer", "0", CVAR_TEMP);
+#ifdef _DEBUG
+	com_developer = Cvar_Get("developer", "1", CVAR_TEMP);
+#else
+    com_developer = Cvar_Get("developer", "0", CVAR_TEMP);
+#endif // _DEBUG
 
 	// done early so bind command exists
 	CL_InitKeyCommands();
@@ -2789,7 +2790,8 @@ void Com_Init( char *commandLine ) {
 	s = va("%s %s %s", Q3_VERSION, PLATFORM_STRING, PRODUCT_DATE );
 	com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
 	com_gamename = Cvar_Get("com_gamename", GAMENAME_FOR_MASTER, CVAR_SERVERINFO | CVAR_INIT);
-	com_protocol = Cvar_Get("com_protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_INIT);
+	com_protocol = Cvar_Get("protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_INIT);
+    /*
 #ifdef LEGACY_PROTOCOL
 	com_legacyprotocol = Cvar_Get("com_legacyprotocol", va("%i", PROTOCOL_LEGACY_VERSION), CVAR_INIT);
 
@@ -2799,6 +2801,7 @@ void Com_Init( char *commandLine ) {
 	else
 #endif
 		Cvar_Get("protocol", com_protocol->string, CVAR_ROM);
+    */
 
 #ifndef DEDICATED
 	con_autochat = Cvar_Get("con_autochat", "1", CVAR_ARCHIVE);

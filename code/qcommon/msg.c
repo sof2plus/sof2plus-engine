@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "q_shared.h"
 #include "qcommon.h"
+#include "../game/bg_public.h"
 
 static huffman_t		msgHuff;
 
@@ -780,59 +781,61 @@ typedef struct {
 // using the stringizing operator to save typing...
 #define	NETF(x) #x,(size_t)&((entityState_t*)0)->x
 
-netField_t	entityStateFields[] = 
+netField_t	entityStateFields[] =
 {
-{ NETF(pos.trTime), 32 },
-{ NETF(pos.trBase[0]), 0 },
-{ NETF(pos.trBase[1]), 0 },
-{ NETF(pos.trDelta[0]), 0 },
-{ NETF(pos.trDelta[1]), 0 },
-{ NETF(pos.trBase[2]), 0 },
-{ NETF(apos.trBase[1]), 0 },
-{ NETF(pos.trDelta[2]), 0 },
-{ NETF(apos.trBase[0]), 0 },
-{ NETF(event), 10 },
-{ NETF(angles2[1]), 0 },
-{ NETF(eType), 8 },
-{ NETF(torsoAnim), 8 },
-{ NETF(eventParm), 8 },
-{ NETF(legsAnim), 8 },
-{ NETF(groundEntityNum), GENTITYNUM_BITS },
-{ NETF(pos.trType), 8 },
-{ NETF(eFlags), 19 },
-{ NETF(otherEntityNum), GENTITYNUM_BITS },
-{ NETF(weapon), 8 },
-{ NETF(clientNum), 8 },
-{ NETF(angles[1]), 0 },
-{ NETF(pos.trDuration), 32 },
-{ NETF(apos.trType), 8 },
-{ NETF(origin[0]), 0 },
-{ NETF(origin[1]), 0 },
-{ NETF(origin[2]), 0 },
-{ NETF(solid), 24 },
-{ NETF(powerups), MAX_POWERUPS },
-{ NETF(modelindex), 8 },
-{ NETF(otherEntityNum2), GENTITYNUM_BITS },
-{ NETF(loopSound), 8 },
-{ NETF(generic1), 8 },
-{ NETF(origin2[2]), 0 },
-{ NETF(origin2[0]), 0 },
-{ NETF(origin2[1]), 0 },
-{ NETF(modelindex2), 8 },
-{ NETF(angles[0]), 0 },
-{ NETF(time), 32 },
-{ NETF(apos.trTime), 32 },
-{ NETF(apos.trDuration), 32 },
-{ NETF(apos.trBase[2]), 0 },
-{ NETF(apos.trDelta[0]), 0 },
-{ NETF(apos.trDelta[1]), 0 },
-{ NETF(apos.trDelta[2]), 0 },
-{ NETF(time2), 32 },
-{ NETF(angles[2]), 0 },
-{ NETF(angles2[0]), 0 },
-{ NETF(angles2[2]), 0 },
-{ NETF(constantLight), 32 },
-{ NETF(frame), 16 }
+    {NETF(pos.trTime), 32},
+    {NETF(pos.trBase[0]), 0},
+    {NETF(pos.trBase[1]), 0},
+    {NETF(pos.trDelta[0]), 0},
+    {NETF(pos.trDelta[1]), 0},
+    {NETF(pos.trBase[2]), 0},
+    {NETF(apos.trBase[1]), 0},
+    {NETF(pos.trDelta[2]), 0},
+    {NETF(apos.trBase[0]), 0},
+    {NETF(event), 10},
+    {NETF(angles2[1]), 0},
+    {NETF(eType), 8},
+    {NETF(torsoAnim), 12},
+    {NETF(torsoTimer), 13},
+    {NETF(eventParm), 0},
+    {NETF(legsAnim), 12},
+    {NETF(groundEntityNum), GENTITYNUM_BITS},
+    {NETF(pos.trType), 8},
+    {NETF(eFlags), 32},
+    {NETF(otherEntityNum), GENTITYNUM_BITS},
+    {NETF(weapon), 8},
+    {NETF(clientNum), 8},
+    {NETF(angles[1]), 0},
+    {NETF(pos.trDuration), 32},
+    {NETF(apos.trType), 8},
+    {NETF(origin[0]), 0},
+    {NETF(origin[1]), 0},
+    {NETF(origin[2]), 0},
+    {NETF(solid), 24},
+    {NETF(gametypeitems), 8},
+    {NETF(modelindex), 8},
+    {NETF(otherEntityNum2), GENTITYNUM_BITS},
+    {NETF(loopSound), 8},
+    {NETF(generic1), 8},
+    {NETF(mSoundSet), 6},
+    {NETF(origin2[2]), 0},
+    {NETF(origin2[0]), 0},
+    {NETF(origin2[1]), 0},
+    {NETF(modelindex2), 8},
+    {NETF(angles[0]), 0},
+    {NETF(time), 32},
+    {NETF(apos.trTime), 32},
+    {NETF(apos.trDuration), 32},
+    {NETF(apos.trBase[2]), 0},
+    {NETF(apos.trDelta[0]), 0},
+    {NETF(apos.trDelta[1]), 0},
+    {NETF(apos.trDelta[2]), 0},
+    {NETF(time2), 32},
+    {NETF(angles[2]), 0},
+    {NETF(angles2[0]), 0},
+    {NETF(angles2[2]), 0},
+    {NETF(frame), 16},
+    {NETF(leanOffset), 6},
 };
 
 
@@ -1097,56 +1100,71 @@ plyer_state_t communication
 // using the stringizing operator to save typing...
 #define	PSF(x) #x,(size_t)&((playerState_t*)0)->x
 
-netField_t	playerStateFields[] = 
+netField_t	playerStateFields[] =
 {
-{ PSF(commandTime), 32 },				
-{ PSF(origin[0]), 0 },
-{ PSF(origin[1]), 0 },
-{ PSF(bobCycle), 8 },
-{ PSF(velocity[0]), 0 },
-{ PSF(velocity[1]), 0 },
-{ PSF(viewangles[1]), 0 },
-{ PSF(viewangles[0]), 0 },
-{ PSF(weaponTime), -16 },
-{ PSF(origin[2]), 0 },
-{ PSF(velocity[2]), 0 },
-{ PSF(legsTimer), 8 },
-{ PSF(pm_time), -16 },
-{ PSF(eventSequence), 16 },
-{ PSF(torsoAnim), 8 },
-{ PSF(movementDir), 4 },
-{ PSF(events[0]), 8 },
-{ PSF(legsAnim), 8 },
-{ PSF(events[1]), 8 },
-{ PSF(pm_flags), 16 },
-{ PSF(groundEntityNum), GENTITYNUM_BITS },
-{ PSF(weaponstate), 4 },
-{ PSF(eFlags), 16 },
-{ PSF(externalEvent), 10 },
-{ PSF(gravity), 16 },
-{ PSF(speed), 16 },
-{ PSF(delta_angles[1]), 16 },
-{ PSF(externalEventParm), 8 },
-{ PSF(viewheight), -8 },
-{ PSF(damageEvent), 8 },
-{ PSF(damageYaw), 8 },
-{ PSF(damagePitch), 8 },
-{ PSF(damageCount), 8 },
-{ PSF(generic1), 8 },
-{ PSF(pm_type), 8 },					
-{ PSF(delta_angles[0]), 16 },
-{ PSF(delta_angles[2]), 16 },
-{ PSF(torsoTimer), 12 },
-{ PSF(eventParms[0]), 8 },
-{ PSF(eventParms[1]), 8 },
-{ PSF(clientNum), 8 },
-{ PSF(weapon), 5 },
-{ PSF(viewangles[2]), 0 },
-{ PSF(grapplePoint[0]), 0 },
-{ PSF(grapplePoint[1]), 0 },
-{ PSF(grapplePoint[2]), 0 },
-{ PSF(jumppad_ent), GENTITYNUM_BITS },
-{ PSF(loopSound), 16 }
+    {PSF(commandTime), 32},
+    {PSF(origin[0]), 0},
+    {PSF(origin[1]), 0},
+    {PSF(bobCycle), 8},
+    {PSF(velocity[0]), 0},
+    {PSF(velocity[1]), 0},
+    {PSF(viewangles[1]), 0},
+    {PSF(viewangles[0]), 0},
+    {PSF(weaponTime), -16},
+    {PSF(weaponAnimTime), -16},
+    {PSF(weaponFireBurstCount), 3},
+    {PSF(weaponAnimId), -16},
+    {PSF(weaponAnimIdChoice), -16},
+    {PSF(weaponCallbackTime), 16},
+    {PSF(weaponCallbackStep), -8},
+    {PSF(origin[2]), 0},
+    {PSF(velocity[2]), 0},
+    {PSF(pm_time), -16},
+    {PSF(eventSequence), 16},
+    {PSF(torsoAnim), 12},
+    {PSF(movementDir), 4},
+    {PSF(events[0]), 10},
+    {PSF(events[1]), 10},
+    {PSF(events[2]), 10},
+    {PSF(events[3]), 10},
+    {PSF(legsAnim), 12},
+    {PSF(pm_flags), 32},
+    {PSF(pm_debounce), 16},
+    {PSF(groundEntityNum), GENTITYNUM_BITS},
+    {PSF(weaponstate), 4},
+    {PSF(eFlags), 32},
+    {PSF(externalEvent), 10},
+    {PSF(gravity), 16},
+    {PSF(speed), 16},
+    {PSF(delta_angles[1]), 16},
+    {PSF(externalEventParm), 8},
+    {PSF(viewheight), -8},
+    {PSF(damageEvent), 8},
+    {PSF(damageYaw), 8},
+    {PSF(damagePitch), 8},
+    {PSF(damageCount), 8},
+    {PSF(inaccuracy), 32},
+    {PSF(inaccuracyTime), 16},
+    {PSF(kickPitch), 18},
+    {PSF(generic1), 8},
+    {PSF(pm_type), 8},
+    {PSF(delta_angles[0]), 16},
+    {PSF(delta_angles[2]), 16},
+    {PSF(torsoTimer), 13},
+    {PSF(eventParms[0]), 32},
+    {PSF(eventParms[1]), 32},
+    {PSF(eventParms[2]), 32},
+    {PSF(eventParms[3]), 32},
+    {PSF(clientNum), 8},
+    {PSF(weapon), 5},
+    {PSF(viewangles[2]), 0},
+    {PSF(loopSound), 16},
+    {PSF(zoomTime), 32},
+    {PSF(zoomFov), 6},
+    {PSF(ladder), 6},
+    {PSF(leanTime), 16},
+    {PSF(grenadeTimer), 13},
+    {PSF(respawnTimer), 32},
 };
 
 /*
@@ -1161,7 +1179,9 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	int				statsbits;
 	int				persistantbits;
 	int				ammobits;
-	int				powerupbits;
+    int				clipbits;
+    int				altclipbits;
+    int				firemodebits;
 	int				numFields;
 	netField_t		*field;
 	int				*fromF, *toF;
@@ -1238,19 +1258,31 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		}
 	}
 	ammobits = 0;
-	for (i=0 ; i<MAX_WEAPONS ; i++) {
+	for (i=0 ; i<MAX_AMMO ; i++) {
 		if (to->ammo[i] != from->ammo[i]) {
 			ammobits |= 1<<i;
 		}
 	}
-	powerupbits = 0;
-	for (i=0 ; i<MAX_POWERUPS ; i++) {
-		if (to->powerups[i] != from->powerups[i]) {
-			powerupbits |= 1<<i;
-		}
-	}
+    clipbits = 0;
+    for(i = 0; i<MAX_WEAPONS; i++) {
+        if(to->clip[ATTACK_NORMAL][i] != from->clip[ATTACK_NORMAL][i]) {
+            clipbits |= 1 << i;
+        }
+    }
+    altclipbits = 0;
+    for(i = 0; i<MAX_WEAPONS; i++) {
+        if(to->clip[ATTACK_ALTERNATE][i] != from->clip[ATTACK_ALTERNATE][i]) {
+            altclipbits |= 1 << i;
+        }
+    }
+    firemodebits = 0;
+    for(i = 0; i<MAX_WEAPONS; i++) {
+        if(to->firemode[i] != from->firemode[i]) {
+            firemodebits |= 1 << i;
+        }
+    }
 
-	if (!statsbits && !persistantbits && !ammobits && !powerupbits) {
+	if (!statsbits && !persistantbits && !ammobits && !clipbits && !altclipbits && !firemodebits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 		oldsize += 4;
 		return;
@@ -1289,16 +1321,38 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		MSG_WriteBits( msg, 0, 1 );	// no change
 	}
 
+    if(clipbits) {
+        MSG_WriteBits(msg, 1, 1);	// changed
+        MSG_WriteShort(msg, clipbits);
+        for(i = 0; i<MAX_WEAPONS; i++)
+            if(clipbits & (1 << i))
+                MSG_WriteByte(msg, to->clip[ATTACK_NORMAL][i]);
+    }
+    else {
+        MSG_WriteBits(msg, 0, 1);	// no change
+    }
 
-	if ( powerupbits ) {
-		MSG_WriteBits( msg, 1, 1 );	// changed
-		MSG_WriteBits( msg, powerupbits, MAX_POWERUPS );
-		for (i=0 ; i<MAX_POWERUPS ; i++)
-			if (powerupbits & (1<<i) )
-				MSG_WriteLong( msg, to->powerups[i] );
-	} else {
-		MSG_WriteBits( msg, 0, 1 );	// no change
-	}
+    if(altclipbits) {
+        MSG_WriteBits(msg, 1, 1);	// changed
+        MSG_WriteShort(msg, altclipbits);
+        for(i = 0; i<MAX_WEAPONS; i++)
+            if(altclipbits & (1 << i))
+                MSG_WriteByte(msg, to->clip[ATTACK_ALTERNATE][i]);
+    }
+    else {
+        MSG_WriteBits(msg, 0, 1);	// no change
+    }
+
+    if(firemodebits) {
+        MSG_WriteBits(msg, 1, 1);	// changed
+        MSG_WriteShort(msg, firemodebits);
+        for(i = 0; i<MAX_WEAPONS; i++)
+            if(firemodebits & (1 << i))
+                MSG_WriteBits(msg, to->firemode[i], WP_FIREMODE_MAX);
+    }
+    else {
+        MSG_WriteBits(msg, 0, 1);	// no change
+    }
 }
 
 
@@ -1424,16 +1478,38 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 			}
 		}
 
-		// parse powerups
-		if ( MSG_ReadBits( msg, 1 ) ) {
-			LOG("PS_POWERUPS");
-			bits = MSG_ReadBits (msg, MAX_POWERUPS);
-			for (i=0 ; i<MAX_POWERUPS ; i++) {
-				if (bits & (1<<i) ) {
-					to->powerups[i] = MSG_ReadLong(msg);
-				}
-			}
-		}
+        // parse clips
+        if(MSG_ReadBits(msg, 1)) {
+            LOG("PS_CLIP");
+            bits = MSG_ReadBits(msg, MAX_WEAPONS);
+            for(i = 0; i<MAX_WEAPONS; i++) {
+                if(bits & (1 << i)) {
+                    to->clip[ATTACK_NORMAL][i] = MSG_ReadByte(msg);
+                }
+            }
+        }
+
+        // parse alt clip
+        if(MSG_ReadBits(msg, 1)) {
+            LOG("PS_ALTCLIP");
+            bits = MSG_ReadBits(msg, MAX_WEAPONS);
+            for(i = 0; i<MAX_WEAPONS; i++) {
+                if(bits & (1 << i)) {
+                    to->clip[ATTACK_ALTERNATE][i] = MSG_ReadByte(msg);
+                }
+            }
+        }
+
+        // pase firemodes
+        if(MSG_ReadBits(msg, 1)) {
+            LOG("PS_FIREMODE");
+            bits = MSG_ReadBits(msg, MAX_WEAPONS);
+            for(i = 0; i<MAX_WEAPONS; i++) {
+                if(bits & (1 << i)) {
+                    to->firemode[i] = MSG_ReadBits(msg, WP_FIREMODE_MAX);
+                }
+            }
+        }
 	}
 
 	if ( print ) {

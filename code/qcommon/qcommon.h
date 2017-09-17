@@ -229,9 +229,7 @@ typedef struct {
 	int		lastSentTime;
 	int		lastSentSize;
 
-#ifdef LEGACY_PROTOCOL
 	qboolean	compat;
-#endif
 } netchan_t;
 
 void Netchan_Init( int qport );
@@ -251,7 +249,7 @@ PROTOCOL
 ==============================================================
 */
 
-#define	PROTOCOL_VERSION	71
+#define	PROTOCOL_VERSION	2004
 #define PROTOCOL_LEGACY_VERSION	68
 // 1.31 - 67
 
@@ -259,26 +257,13 @@ PROTOCOL
 // NOTE: that stuff only works with two digits protocols
 extern int demo_protocols[];
 
-#if !defined UPDATE_SERVER_NAME && !defined STANDALONE
-#define	UPDATE_SERVER_NAME	"update.quake3arena.com"
-#endif
 // override on command line, config files etc.
 #ifndef MASTER_SERVER_NAME
-#define MASTER_SERVER_NAME	"master.quake3arena.com"
+#define MASTER_SERVER_NAME	"master.sof2.ravensoft.com"
 #endif
 
-#ifndef STANDALONE
-  #ifndef AUTHORIZE_SERVER_NAME
-    #define	AUTHORIZE_SERVER_NAME	"authorize.quake3arena.com"
-  #endif
-  #ifndef PORT_AUTHORIZE
-  #define	PORT_AUTHORIZE		27952
-  #endif
-#endif
-
-#define	PORT_MASTER			27950
-#define	PORT_UPDATE			27951
-#define	PORT_SERVER			27960
+#define	PORT_MASTER			20110
+#define	PORT_SERVER			20100
 #define	NUM_SERVER_PORTS	4		// broadcast scan this many ports after
 									// PORT_SERVER so a single machine can
 									// run multiple servers
@@ -867,9 +852,7 @@ extern	cvar_t	*sv_packetdelay;
 
 extern	cvar_t	*com_gamename;
 extern	cvar_t	*com_protocol;
-#ifdef LEGACY_PROTOCOL
-extern	cvar_t	*com_legacyprotocol;
-#endif
+
 #ifndef DEDICATED
 extern  cvar_t  *con_autochat;
 #endif
@@ -886,15 +869,6 @@ extern	qboolean	com_fullyInitialized;
 
 extern	fileHandle_t	com_journalFile;
 extern	fileHandle_t	com_journalDataFile;
-
-typedef enum {
-	TAG_FREE,
-	TAG_GENERAL,
-	TAG_BOTLIB,
-	TAG_RENDERER,
-	TAG_SMALL,
-	TAG_STATIC
-} memtag_t;
 
 /*
 

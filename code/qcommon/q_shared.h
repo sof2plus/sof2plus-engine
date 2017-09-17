@@ -34,7 +34,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define HOMEPATH_NAME_WIN           "SoF2Plus"
 #define HOMEPATH_NAME_MACOSX        HOMEPATH_NAME_WIN
 #define GAMENAME_FOR_MASTER         "sof2mp"
-#define LEGACY_PROTOCOL
 
 // Heartbeat for dpmaster protocol. You shouldn't change this unless you know what you're doing
 #define HEARTBEAT_FOR_MASTER		"sof2mp"
@@ -231,6 +230,9 @@ typedef enum {
 //
 #define	MAX_MAP_AREA_BYTES		32		// bit vector of area visibility
 
+#define LS_STYLES_START			0
+#define LS_NUM_STYLES			32
+#define MAX_LIGHT_STYLES		64
 
 // print levels from renderer (FIXME: set up for game / cgame?)
 typedef enum {
@@ -254,29 +256,6 @@ typedef enum {
 	ERR_NEED_CD					// pop up the need-cd dialog
 } errorParm_t;
 
-
-// font rendering values used by ui and cgame
-
-#define PROP_GAP_WIDTH			3
-#define PROP_SPACE_WIDTH		8
-#define PROP_HEIGHT				27
-#define PROP_SMALL_SIZE_SCALE	0.75
-
-#define BLINK_DIVISOR			200
-#define PULSE_DIVISOR			75
-
-#define UI_LEFT			0x00000000	// default
-#define UI_CENTER		0x00000001
-#define UI_RIGHT		0x00000002
-#define UI_FORMATMASK	0x00000007
-#define UI_SMALLFONT	0x00000010
-#define UI_BIGFONT		0x00000020	// default
-#define UI_GIANTFONT	0x00000040
-#define UI_DROPSHADOW	0x00000800
-#define UI_BLINK		0x00001000
-#define UI_INVERSE		0x00002000
-#define UI_PULSE		0x00004000
-
 #if !defined(NDEBUG) && !defined(BSPC)
 	#define HUNK_DEBUG
 #endif
@@ -297,12 +276,6 @@ void *Hunk_Alloc( int size, ha_pref preference );
 #define Com_Memset memset
 #define Com_Memcpy memcpy
 
-#define CIN_system	1
-#define CIN_loop	2
-#define	CIN_hold	4
-#define CIN_silent	8
-#define CIN_shader	16
-
 /*
 ==============================================================
 
@@ -310,7 +283,6 @@ MATHLIB
 
 ==============================================================
 */
-
 
 typedef float vec_t;
 typedef vec_t vec2_t[2];
@@ -328,23 +300,6 @@ typedef	int	fixed16_t;
 
 #define NUMVERTEXNORMALS	162
 extern	vec3_t	bytedirs[NUMVERTEXNORMALS];
-
-// all drawing is done to a 640*480 virtual screen size
-// and will be automatically scaled to the real resolution
-#define	SCREEN_WIDTH		640
-#define	SCREEN_HEIGHT		480
-
-#define TINYCHAR_WIDTH		(SMALLCHAR_WIDTH)
-#define TINYCHAR_HEIGHT		(SMALLCHAR_HEIGHT/2)
-
-#define SMALLCHAR_WIDTH		8
-#define SMALLCHAR_HEIGHT	16
-
-#define BIGCHAR_WIDTH		16
-#define BIGCHAR_HEIGHT		16
-
-#define	GIANTCHAR_WIDTH		32
-#define	GIANTCHAR_HEIGHT	48
 
 extern	vec4_t		colorBlack;
 extern	vec4_t		colorRed;
@@ -382,9 +337,6 @@ extern	vec4_t		colorDkGrey;
 #define S_COLOR_WHITE	"^7"
 
 extern vec4_t	g_color_table[8];
-
-#define	MAKERGB( v, r, g, b ) v[0]=r;v[1]=g;v[2]=b
-#define	MAKERGBA( v, r, g, b, a ) v[0]=r;v[1]=g;v[2]=b;v[3]=a
 
 #define DEG2RAD( a ) ( ( (a) * M_PI ) / 180.0F )
 #define RAD2DEG( a ) ( ( (a) * 180.0f ) / M_PI )
@@ -490,25 +442,12 @@ signed short ClampShort( int i );
 int DirToByte( vec3_t dir );
 void ByteToDir( int b, vec3_t dir );
 
-#if	1
-
 #define DotProduct(x,y)			((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
 #define VectorSubtract(a,b,c)	((c)[0]=(a)[0]-(b)[0],(c)[1]=(a)[1]-(b)[1],(c)[2]=(a)[2]-(b)[2])
 #define VectorAdd(a,b,c)		((c)[0]=(a)[0]+(b)[0],(c)[1]=(a)[1]+(b)[1],(c)[2]=(a)[2]+(b)[2])
 #define VectorCopy(a,b)			((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2])
 #define	VectorScale(v, s, o)	((o)[0]=(v)[0]*(s),(o)[1]=(v)[1]*(s),(o)[2]=(v)[2]*(s))
 #define	VectorMA(v, s, b, o)	((o)[0]=(v)[0]+(b)[0]*(s),(o)[1]=(v)[1]+(b)[1]*(s),(o)[2]=(v)[2]+(b)[2]*(s))
-
-#else
-
-#define DotProduct(x,y)			_DotProduct(x,y)
-#define VectorSubtract(a,b,c)	_VectorSubtract(a,b,c)
-#define VectorAdd(a,b,c)		_VectorAdd(a,b,c)
-#define VectorCopy(a,b)			_VectorCopy(a,b)
-#define	VectorScale(v, s, o)	_VectorScale(v,s,o)
-#define	VectorMA(v, s, b, o)	_VectorMA(v,s,b,o)
-
-#endif
 
 #define VectorClear(a)			((a)[0]=(a)[1]=(a)[2]=0)
 #define VectorNegate(a,b)		((b)[0]=-(a)[0],(b)[1]=-(a)[1],(b)[2]=-(a)[2])
@@ -879,23 +818,6 @@ typedef struct {
 	char		string[MAX_CVAR_VALUE_STRING];
 } vmCvar_t;
 
-
-/*
-==============================================================
-
-VoIP
-
-==============================================================
-*/
-
-// if you change the count of flags be sure to also change VOIP_FLAGNUM
-#define VOIP_SPATIAL		0x01		// spatialized voip message
-#define VOIP_DIRECT		0x02		// non-spatialized voip message
-
-// number of flags voip knows. You will have to bump protocol version number if you
-// change this.
-#define VOIP_FLAGCNT		2
-
 /*
 ==============================================================
 
@@ -955,38 +877,23 @@ typedef struct {
 	int		numPoints;
 } markFragment_t;
 
-
-
 typedef struct {
 	vec3_t		origin;
 	vec3_t		axis[3];
 } orientation_t;
 
-//=====================================================================
+typedef struct
+{
+    float		yawAngle;
+    qboolean	yawing;
 
+    float		pitchAngle;
+    qboolean	pitching;
 
-// in order from highest priority to lowest
-// if none of the catchers are active, bound key strings will be executed
-#define KEYCATCH_CONSOLE		0x0001
-#define	KEYCATCH_UI					0x0002
-#define	KEYCATCH_MESSAGE		0x0004
-#define	KEYCATCH_CGAME			0x0008
+    int			anim;
+    int			animTime;
 
-
-// sound channels
-// channel 0 never willingly overrides
-// other channels will allways override a playing sound on that channel
-typedef enum {
-	CHAN_AUTO,
-	CHAN_LOCAL,		// menu sounds, etc
-	CHAN_WEAPON,
-	CHAN_VOICE,
-	CHAN_ITEM,
-	CHAN_BODY,
-	CHAN_LOCAL_SOUND,	// chat messages, etc
-	CHAN_ANNOUNCER		// announcer voices, etc
-} soundChannel_t;
-
+} animInfo_t;
 
 /*
 ========================================================================
@@ -1008,6 +915,10 @@ typedef enum {
 //
 #define	MAX_CLIENTS			64		// absolute limit
 #define MAX_LOCATIONS		64
+#define MAX_TERRAINS		32
+#define MAX_LADDERS			64
+
+#define MAX_INSTANCE_TYPES		16
 
 #define	GENTITYNUM_BITS		10		// don't need to send any more
 #define	MAX_GENTITIES		(1<<GENTITYNUM_BITS)
@@ -1022,16 +933,21 @@ typedef enum {
 
 #define	MAX_MODELS			256		// these are sent over the net as 8 bits
 #define	MAX_SOUNDS			256		// so they cannot be blindly increased
+#define MAX_AMBIENT_SOUNDSETS	64
+#define MAX_FX					64		// max effects strings, I'm hoping that 64 will be plenty
+#define MAX_SUB_BSP				32
+#define MAX_ICONS				32
+#define	MAX_CHARSKINS			64		// character skins
+#define	MAX_HUDICONS			16		// icons on hud
 
-
-#define	MAX_CONFIGSTRINGS	1024
+#define	MAX_CONFIGSTRINGS       1400
 
 // these are the only configstrings that the system reserves, all the
 // other ones are strictly for servergame to clientgame communication
 #define	CS_SERVERINFO		0		// an info string with all the serverinfo cvars
 #define	CS_SYSTEMINFO		1		// an info string for server system to client system configuration (timescale, etc)
-
-#define	RESERVED_CONFIGSTRINGS	2	// game can't modify below this, only the system can
+#define	CS_PLAYERS			2
+#define CS_CUSTOM			(CS_PLAYERS + MAX_CLIENTS )
 
 #define	MAX_GAMESTATE_CHARS	16000
 typedef struct {
@@ -1045,12 +961,22 @@ typedef struct {
 // bit field limits
 #define	MAX_STATS				16
 #define	MAX_PERSISTANT			16
+#define	MAX_AMMO				16
 #define	MAX_POWERUPS			16
-#define	MAX_WEAPONS				16		
+#define	MAX_WEAPONS				32
+#define MAX_GAMETYPE_ITEMS		5
 
-#define	MAX_PS_EVENTS			2
+#define	MAX_PS_EVENTS			4
 
 #define PS_PMOVEFRAMECOUNTBITS	6
+
+typedef enum
+{
+    ATTACK_NORMAL,
+    ATTACK_ALTERNATE,
+    ATTACK_MAX
+
+} attackType_t;
 
 // playerState_t is the information needed by both the client and server
 // to predict player motion and actions
@@ -1062,75 +988,114 @@ typedef struct {
 // playerState_t is a full superset of entityState_t as it is used by players,
 // so if a playerState_t is transmitted, the entityState_t can be fully derived
 // from it.
-typedef struct playerState_s {
-	int			commandTime;	// cmd->serverTime of last executed command
-	int			pm_type;
-	int			bobCycle;		// for view bobbing and footstep generation
-	int			pm_flags;		// ducked, jump_held, etc
-	int			pm_time;
+typedef struct playerState_s
+{
+    int			commandTime;	// cmd->serverTime of last executed command
+    int			pm_type;
+    int			bobCycle;		// for view bobbing and footstep generation
+    int			pm_flags;		// ducked, etc
+    int			pm_debounce;	// debounce buttons
+    int			pm_time;
 
-	vec3_t		origin;
-	vec3_t		velocity;
-	int			weaponTime;
-	int			gravity;
-	int			speed;
-	int			delta_angles[3];	// add to command angles to get view direction
-									// changed by spawns, rotating objects, and teleporters
+    vec3_t		origin;
+    vec3_t		velocity;
 
-	int			groundEntityNum;// ENTITYNUM_NONE = in air
+    int			weaponTime;
+    int			weaponFireBurstCount;
+    int			weaponAnimId;
+    int			weaponAnimIdChoice;
+    int			weaponAnimTime;
+    int			weaponCallbackTime;
+    int			weaponCallbackStep;
 
-	int			legsTimer;		// don't change low priority animations until this runs out
-	int			legsAnim;		// mask off ANIM_TOGGLEBIT
+    int			gravity;
+    int			speed;
+    int			delta_angles[3];				// add to command angles to get view direction
+                                                // changed by spawns, rotating objects, and teleporters
+    int			groundEntityNum;				// ENTITYNUM_NONE = in air
 
-	int			torsoTimer;		// don't change low priority animations until this runs out
-	int			torsoAnim;		// mask off ANIM_TOGGLEBIT
+    int			legsAnim;						// mask off ANIM_TOGGLEBIT
 
-	int			movementDir;	// a number 0 to 7 that represents the relative angle
-								// of movement to the view angle (axial and diagonals)
-								// when at rest, the value will remain unchanged
-								// used to twist the legs during strafing
+    int			torsoTimer;						// don't change low priority animations until this runs out
+    int			torsoAnim;						// mask off ANIM_TOGGLEBIT
 
-	vec3_t		grapplePoint;	// location of grapple to pull towards if PMF_GRAPPLE_PULL
+    int			movementDir;					// a number 0 to 7 that represents the reletive angle
+                                                // of movement to the view angle (axial and diagonals)
+                                                // when at rest, the value will remain unchanged
+                                                // used to twist the legs during strafing
 
-	int			eFlags;			// copied to entityState_t->eFlags
+    int			eFlags;							// copied to entityState_t->eFlags
 
-	int			eventSequence;	// pmove generated events
-	int			events[MAX_PS_EVENTS];
-	int			eventParms[MAX_PS_EVENTS];
+    int			eventSequence;					// pmove generated events
+    int			events[MAX_PS_EVENTS];
+    int			eventParms[MAX_PS_EVENTS];
 
-	int			externalEvent;	// events set on player from another source
-	int			externalEventParm;
-	int			externalEventTime;
+    int			externalEvent;					// events set on player from another source
+    int			externalEventParm;
+    int			externalEventTime;
 
-	int			clientNum;		// ranges from 0 to MAX_CLIENTS-1
-	int			weapon;			// copied to entityState_t->weapon
-	int			weaponstate;
+    int			clientNum;						// ranges from 0 to MAX_CLIENTS-1
+    int			weapon;							// copied to entityState_t->weapon
+    int			weaponstate;
 
-	vec3_t		viewangles;		// for fixed views
-	int			viewheight;
+    vec3_t		viewangles;						// for fixed views
+    int			viewheight;
 
-	// damage feedback
-	int			damageEvent;	// when it changes, latch the other parms
-	int			damageYaw;
-	int			damagePitch;
-	int			damageCount;
+    // damage feedback							
+    int			damageEvent;					// when it changes, latch the other parms
+    int			damageYaw;
+    int			damagePitch;
+    int			damageCount;
 
-	int			stats[MAX_STATS];
-	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
-	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
-	int			ammo[MAX_WEAPONS];
+    int			painTime;						// used for both game and client side to process the pain twitch - NOT sent across the network
+    int			painDirection;					// NOT sent across the network
 
-	int			generic1;
-	int			loopSound;
-	int			jumppad_ent;	// jumppad entity hit this frame
+    int			stats[MAX_STATS];
+    int			persistant[MAX_PERSISTANT];		// stats that aren't cleared on death
+    int			ammo[MAX_AMMO];
+    int			clip[ATTACK_MAX][MAX_WEAPONS];
+    int			firemode[MAX_WEAPONS];
 
-	// not communicated over the net at all
-	int			ping;			// server to game info for scoreboard
-	int			pmove_framecount;
-	int			jumppad_frame;
-	int			entityEventSequence;
+    int			generic1;
+    int			loopSound;
+
+    // Incaccuracy values for firing
+    int			inaccuracy;
+    int			inaccuracyTime;
+    int			kickPitch;
+
+    // not communicated over the net at all
+    int			ping;							// server to game info for scoreboard
+    int			pmove_framecount;				// FIXME: don't transmit over the network
+    int			jumppad_frame;
+    int			entityEventSequence;
+    vec3_t		pvsOrigin;						// view origin used to calculate PVS (also the lean origin)
+                                                // THIS VARIABLE MUST AT LEAST BE THE PLAYERS ORIGIN ALL OF THE 
+                                                // TIME OR THE PVS CALCULATIONS WILL NOT WORK.
+
+                                                // Zooming
+    int			zoomTime;
+    int			zoomFov;
+
+    // Ladders
+    int			ladder;
+    int			leanTime;
+
+    // Timers 
+    int			grenadeTimer;
+    int			respawnTimer;
 } playerState_t;
 
+typedef enum
+{
+    TEAM_FREE,
+    TEAM_RED,
+    TEAM_BLUE,
+    TEAM_SPECTATOR,
+
+    TEAM_NUM_TEAMS
+
+} team_t;
 
 //====================================================================
 
@@ -1139,27 +1104,25 @@ typedef struct playerState_s {
 // usercmd_t->button bits, many of which are generated by the client system,
 // so they aren't game/cgame only definitions
 //
-#define	BUTTON_ATTACK		1
-#define	BUTTON_TALK			2			// displays talk balloon and disables actions
-#define	BUTTON_USE_HOLDABLE	4
-#define	BUTTON_GESTURE		8
-#define	BUTTON_WALKING		16			// walking can't just be infered from MOVE_RUN
-										// because a key pressed late in the frame will
-										// only generate a small move value for that frame
-										// walking will use different animations and
-										// won't generate footsteps
-#define BUTTON_AFFIRMATIVE	32
-#define	BUTTON_NEGATIVE		64
+#define	BUTTON_ATTACK		(1<<0)
+#define	BUTTON_TALK			(1<<1)			// displays talk balloon and disables actions	
+#define BUTTON_GOGGLES		(1<<2)			// turns nv or therm goggles on/off
+#define BUTTON_LEAN			(1<<3)			// lean modifier, when held strafe left and right will lean
+#define	BUTTON_WALKING		(1<<4)			// walking can't just be infered from MOVE_RUN
+// because a key pressed late in the frame will
+// only generate a small move value for that frame
+// walking will use different animations and
+// won't generate footsteps
+#define	BUTTON_USE			(1<<5)			// the ol' use key returns!
+#define	BUTTON_RELOAD		(1<<6)			// reloads current weapon
+#define BUTTON_ALT_ATTACK	(1<<7)
+#define	BUTTON_ANY			(1<<8)			// any key whatsoever
+#define BUTTON_ZOOMIN		(1<<9)
+#define BUTTON_ZOOMOUT		(1<<10)
+#define BUTTON_FIREMODE		(1<<11)
 
-#define BUTTON_GETFLAG		128
-#define BUTTON_GUARDBASE	256
-#define BUTTON_PATROL		512
-#define BUTTON_FOLLOWME		1024
-
-#define	BUTTON_ANY			2048			// any key whatsoever
-
-#define	MOVE_RUN			120			// if forwardmove or rightmove are >= MOVE_RUN,
-										// then BUTTON_WALKING should be set
+#define BUTTON_LEAN_RIGHT	(1<<12)
+#define BUTTON_LEAN_LEFT	(1<<13)
 
 // usercmd_t is sent to the server each client frame
 typedef struct usercmd_s {
@@ -1181,7 +1144,9 @@ typedef enum {
 	TR_LINEAR,
 	TR_LINEAR_STOP,
 	TR_SINE,					// value = base + sin( time / duration ) * delta
-	TR_GRAVITY
+	TR_GRAVITY,
+    TR_HEAVYGRAVITY,
+    TR_LIGHTGRAVITY
 } trType_t;
 
 typedef struct {
@@ -1199,91 +1164,53 @@ typedef struct {
 // The messages are delta compressed, so it doesn't really matter if
 // the structure size is fairly large
 
-typedef struct entityState_s {
-	int		number;			// entity index
-	int		eType;			// entityType_t
-	int		eFlags;
+typedef struct entityState_s
+{
+    int				number;			// entity index
+    int				eType;			// entityType_t
+    int				eFlags;
 
-	trajectory_t	pos;	// for calculating position
-	trajectory_t	apos;	// for calculating angles
+    trajectory_t	pos;			// for calculating position
+    trajectory_t	apos;			// for calculating angles
 
-	int		time;
-	int		time2;
+    int				time;
+    int				time2;
 
-	vec3_t	origin;
-	vec3_t	origin2;
+    vec3_t			origin;
+    vec3_t			origin2;
 
-	vec3_t	angles;
-	vec3_t	angles2;
+    vec3_t			angles;
+    vec3_t			angles2;
 
-	int		otherEntityNum;	// shotgun sources, etc
-	int		otherEntityNum2;
+    int				otherEntityNum;	// shotgun sources, etc
+    int				otherEntityNum2;
 
-	int		groundEntityNum;	// ENTITYNUM_NONE = in air
+    int				groundEntityNum;	// -1 = in air
 
-	int		constantLight;	// r + (g<<8) + (b<<16) + (intensity<<24)
-	int		loopSound;		// constantly loop this sound
+    int				loopSound;		// constantly loop this sound
+    int				mSoundSet;
 
-	int		modelindex;
-	int		modelindex2;
-	int		clientNum;		// 0 to (MAX_CLIENTS - 1), for players and corpses
-	int		frame;
+    int				modelindex;
+    int				modelindex2;
+    int				clientNum;		// 0 to (MAX_CLIENTS - 1), for players and corpses
+    int				frame;
 
-	int		solid;			// for client side prediction, trap_linkentity sets this properly
+    int				solid;			// for client side prediction, trap_linkentity sets this properly
 
-	int		event;			// impulse events -- muzzle flashes, footsteps, etc
-	int		eventParm;
+    int				event;			// impulse events -- muzzle flashes, footsteps, etc
+    int				eventParm;
 
-	// for players
-	int		powerups;		// bit flags
-	int		weapon;			// determines weapon and flash model, etc
-	int		legsAnim;		// mask off ANIM_TOGGLEBIT
-	int		torsoAnim;		// mask off ANIM_TOGGLEBIT
+    int				generic1;
 
-	int		generic1;
+    // for players
+    // these fields are only transmitted for client entities!!!!!
+    int				gametypeitems;	// bit flags indicating which items are carried
+    int				weapon;			// determines weapon and flash model, etc
+    int				legsAnim;		// mask off ANIM_TOGGLEBIT
+    int				torsoAnim;		// mask off ANIM_TOGGLEBIT
+    int				torsoTimer;		// time the animation will play for
+    int				leanOffset;		// Lean direction
 } entityState_t;
-
-typedef enum {
-	CA_UNINITIALIZED,
-	CA_DISCONNECTED, 	// not talking to a server
-	CA_AUTHORIZING,		// not used any more, was checking cd key 
-	CA_CONNECTING,		// sending request packets to the server
-	CA_CHALLENGING,		// sending challenge packets to the server
-	CA_CONNECTED,		// netchan_t established, getting gamestate
-	CA_LOADING,			// only during cgame initialization, never during main loop
-	CA_PRIMED,			// got gamestate, waiting for first frame
-	CA_ACTIVE,			// game views should be displayed
-	CA_CINEMATIC		// playing a cinematic or a static pic, not connected to a server
-} connstate_t;
-
-// font support 
-
-#define GLYPH_START 0
-#define GLYPH_END 255
-#define GLYPH_CHARSTART 32
-#define GLYPH_CHAREND 127
-#define GLYPHS_PER_FONT GLYPH_END - GLYPH_START + 1
-typedef struct {
-  int height;       // number of scan lines
-  int top;          // top of glyph in buffer
-  int bottom;       // bottom of glyph in buffer
-  int pitch;        // width for copying
-  int xSkip;        // x adjustment
-  int imageWidth;   // width of actual image
-  int imageHeight;  // height of actual image
-  float s;          // x offset in image where glyph starts
-  float t;          // y offset in image where glyph starts
-  float s2;
-  float t2;
-  qhandle_t glyph;  // handle to the shader with the glyph
-  char shaderName[32];
-} glyphInfo_t;
-
-typedef struct {
-  glyphInfo_t glyphs [GLYPHS_PER_FONT];
-  float glyphScale;
-  char name[MAX_QPATH];
-} fontInfo_t;
 
 #define Square(x) ((x)*(x))
 
@@ -1303,50 +1230,77 @@ typedef struct qtime_s {
 	int tm_isdst;   /* daylight savings time flag */
 } qtime_t;
 
-
-// server browser sources
-// TTimo: AS_MPLAYER is no longer used
-#define AS_LOCAL			0
-#define AS_MPLAYER		1
-#define AS_GLOBAL			2
-#define AS_FAVORITES	3
-
-
-// cinematic states
-typedef enum {
-	FMV_IDLE,
-	FMV_PLAY,		// play
-	FMV_EOF,		// all other conditions, i.e. stop/EOF/abort
-	FMV_ID_BLT,
-	FMV_ID_IDLE,
-	FMV_LOOPED,
-	FMV_ID_WAIT
-} e_status;
-
-typedef enum _flag_status {
-	FLAG_ATBASE = 0,
-	FLAG_TAKEN,			// CTF
-	FLAG_TAKEN_RED,		// One Flag CTF
-	FLAG_TAKEN_BLUE,	// One Flag CTF
-	FLAG_DROPPED
-} flagStatus_t;
-
-
-
-#define	MAX_GLOBAL_SERVERS				4096
-#define	MAX_OTHER_SERVERS					128
-#define MAX_PINGREQUESTS					32
-#define MAX_SERVERSTATUSREQUESTS	16
-
 #define SAY_ALL		0
 #define SAY_TEAM	1
 #define SAY_TELL	2
 
-#define CDKEY_LEN 16
-#define CDCHKSUM_LEN 2
+/*
+========================================================================
 
+Ghoul2
 
-#define LERP( a, b, w ) ( ( a ) * ( 1.0f - ( w ) ) + ( b ) * ( w ) )
-#define LUMA( red, green, blue ) ( 0.2126f * ( red ) + 0.7152f * ( green ) + 0.0722f * ( blue ) )
+========================================================================
+*/
+
+/*
+Ghoul2 Insert Start
+*/
+
+typedef struct {
+    float		matrix[3][4];
+} mdxaBone_t;
+
+// For ghoul2 axis use
+
+typedef enum
+{
+    ORIGIN = 0,
+    POSITIVE_X,
+    POSITIVE_Z,
+    POSITIVE_Y,
+    NEGATIVE_X,
+    NEGATIVE_Z,
+    NEGATIVE_Y
+} Eorientations;
+/*
+Ghoul2 Insert End
+*/
+
+// define the new memory tags for the zone, used by all modules now
+//
+#define TAGDEF(blah) TAG_ ## blah
+typedef enum {
+#include "../qcommon/tags.h"
+} memtag_t;
+
+typedef struct
+{
+    int		isValid;
+    void	*ghoul2;
+    int		modelNum;
+    int		boltNum;
+    vec3_t	angles;
+    vec3_t	origin;
+    vec3_t	scale;
+    vec3_t	dir;
+    vec3_t	forward;
+} CFxBoltInterface;
+
+/*
+========================================================================
+
+String ID Tables
+
+========================================================================
+*/
+#define ENUM2STRING(arg)   #arg,arg
+typedef struct stringID_table_s
+{
+    char	*name;
+    int		id;
+} stringID_table_t;
+
+int GetIDForString(stringID_table_t *table, const char *string);
+const char *GetStringForID(stringID_table_t *table, int id);
 
 #endif	// __Q_SHARED_H

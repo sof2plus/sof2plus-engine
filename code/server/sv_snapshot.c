@@ -324,6 +324,11 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			continue;
 		}
 
+        if(ent->s.eFlags & EF_PERMANENT)
+        {	// he's permanent, so don't send him down!
+            continue;
+        }
+
 		if (ent->s.number != e) {
 			Com_DPrintf ("FIXING ENT->S.NUMBER!!!\n");
 			ent->s.number = e;
@@ -346,13 +351,6 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 				continue;
 			}
 		}
-		// entities can be flagged to be sent to a given mask of clients
-		if ( ent->r.svFlags & SVF_CLIENTMASK ) {
-			if (frame->ps.clientNum >= 32)
-				Com_Error( ERR_DROP, "SVF_CLIENTMASK: clientNum >= 32" );
-			if (~ent->r.singleClient & (1 << frame->ps.clientNum))
-				continue;
-		}
 
 		svEnt = SV_SvEntityForGentity( ent );
 
@@ -361,8 +359,9 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			continue;
 		}
 
-		// broadcast entities are always sent
-		if ( ent->r.svFlags & SVF_BROADCAST ) {
+		// broadcast entities are always sent, and so is the main player so we don't see noclip weirdness
+        if(ent->r.svFlags & SVF_BROADCAST || (e == frame->ps.clientNum) || (ent->r.broadcastClients[frame->ps.clientNum / 32] & (1 << (frame->ps.clientNum % 32))))
+        {
 			SV_AddEntToSnapshot( svEnt, ent, eNums );
 			continue;
 		}
