@@ -339,6 +339,11 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case G_LOCATE_GAME_DATA:
         SV_LocateGameData( VMA(1), args[2], args[3], VMA(4), args[5] );
         return 0;
+
+    case G_GET_WORLD_BOUNDS:
+        CM_ModelBounds(0, VMA(1), VMA(2));
+        return 0;
+
     case G_DROP_CLIENT:
         SV_GameDropClient( args[1], VMA(2) );
         return 0;

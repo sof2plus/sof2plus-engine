@@ -662,11 +662,7 @@ typedef enum {
     FS_READ,
     FS_WRITE,
     FS_APPEND,
-    FS_APPEND_SYNC,
-    FS_READ_TEXT,
-    FS_WRITE_TEXT,
-    FS_APPEND_TEXT,
-    FS_APPEND_SYNC_TEXT
+    FS_APPEND_SYNC
 } fsMode_t;
 
 typedef enum {
