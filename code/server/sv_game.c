@@ -798,6 +798,76 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION:
         return botlib_export->ai.GeneticParentsAndChildSelection(args[1], VMA(2), VMA(3), VMA(4), VMA(5));
 
+    case G_GP_PARSE:
+        return (intptr_t)GP_Parse(VMA(1));
+    case G_GP_PARSE_FILE:
+        {
+            TGenericParser2 GP2;
+            char            *dataPtr;
+            union {
+                char    *c;
+                void    *v;
+            } buf;
+
+            FS_ReadFile(VMA(1), &buf.v);
+            if(!buf.c){
+                return 0;
+            }
+
+            dataPtr = buf.c;
+            GP2 = GP_Parse(&dataPtr);
+
+            FS_FreeFile(buf.v);
+            return (intptr_t)GP2;
+        }
+    case G_GP_CLEAN:
+        GP_Clean((TGenericParser2)args[1]);
+        return 0;
+    case G_GP_DELETE:
+        GP_Delete((TGenericParser2)args[1]);
+        return 0;
+    case G_GP_GET_BASE_PARSE_GROUP:
+        return (intptr_t)GP_GetBaseParseGroup((TGenericParser2)args[1]);
+
+    case G_GPG_GET_NAME:
+        return (intptr_t)GPG_GetName((TGPGroup)args[1], VMA(2), args[3]);
+    case G_GPG_GET_NEXT:
+        return (intptr_t)GPG_GetNext((TGPGroup)args[1]);
+    case G_GPG_GET_INORDER_NEXT:
+        return (intptr_t)GPG_GetInOrderNext((TGPGroup)args[1]);
+    case G_GPG_GET_INORDER_PREVIOUS:
+        return (intptr_t)GPG_GetInOrderPrevious((TGPGroup)args[1]);
+    case G_GPG_GET_PAIRS:
+        return (intptr_t)GPG_GetPairs((TGPGroup)args[1]);
+    case G_GPG_GET_INORDER_PAIRS:
+        return (intptr_t)GPG_GetInOrderPairs((TGPGroup)args[1]);
+    case G_GPG_GET_SUBGROUPS:
+        return (intptr_t)GPG_GetSubGroups((TGPGroup)args[1]);
+    case G_GPG_GET_INORDER_SUBGROUPS:
+        return (intptr_t)GPG_GetInOrderSubGroups((TGPGroup)args[1]);
+    case G_GPG_FIND_SUBGROUP:
+        return (intptr_t)GPG_FindSubGroup((TGPGroup)args[1], VMA(2));
+    case G_GPG_FIND_PAIR:
+        return (intptr_t)GPG_FindPair((TGPGroup)args[1], VMA(2));
+    case G_GPG_FIND_PAIRVALUE:
+        GPG_FindPairValue((TGPGroup)args[1], VMA(2), VMA(3), VMA(4), args[5]);
+        return 0;
+
+    case G_GPV_GET_NAME:
+        return GPV_GetName((TGPValue)args[1], VMA(2), args[3]);
+    case G_GPV_GET_NEXT:
+        return (intptr_t)GPV_GetNext((TGPValue)args[1]);
+    case G_GPV_GET_INORDER_NEXT:
+        return (intptr_t)GPV_GetInOrderNext((TGPValue)args[1]);
+    case G_GPV_GET_INORDER_PREVIOUS:
+        return (intptr_t)GPV_GetInOrderPrevious((TGPValue)args[1]);
+    case G_GPV_IS_LIST:
+        return GPV_IsList((TGPValue)args[1]);
+    case G_GPV_GET_TOP_VALUE:
+        return GPV_GetTopValue((TGPValue)args[1], VMA(2), args[3]);
+    case G_GPV_GET_LIST:
+        return (intptr_t)GPV_GetList((TGPValue)args[1]);
+
     case TRAP_MEMSET:
         Com_Memset( VMA(1), args[2], args[3] );
         return 0;
