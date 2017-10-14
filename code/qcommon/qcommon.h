@@ -133,7 +133,7 @@ NET
 
 #define MAX_PACKET_USERCMDS     32      // max number of usercmd_t in a packet
 
-#define MAX_SNAPSHOT_ENTITIES   256
+#define MAX_SNAPSHOT_ENTITIES   1024
 
 #define PORT_ANY            -1
 
@@ -228,12 +228,10 @@ typedef struct {
     int         challenge;
     int     lastSentTime;
     int     lastSentSize;
-
-    qboolean    compat;
 } netchan_t;
 
 void Netchan_Init( int qport );
-void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, int challenge, qboolean compat);
+void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport);
 
 void Netchan_Transmit( netchan_t *chan, int length, const byte *data );
 void Netchan_TransmitNextFragment( netchan_t *chan );
@@ -282,11 +280,8 @@ enum svc_ops_e {
     svc_serverCommand,          // [string] to be executed by client game module
     svc_download,               // [short] size [size bytes]
     svc_snapshot,
+    svc_mapchange,
     svc_EOF,
-
-// new commands, supported only by ioquake3 protocol but not legacy
-    svc_voipSpeex,     // not wrapped in USE_VOIP, so this value is reserved.
-    svc_voipOpus,      //
 };
 
 
@@ -300,10 +295,6 @@ enum clc_ops_e {
     clc_moveNoDelta,        // [[usercmd_t]
     clc_clientCommand,      // [string] message
     clc_EOF,
-
-// new commands, supported only by ioquake3 protocol but not legacy
-    clc_voipSpeex,   // not wrapped in USE_VOIP, so this value is reserved.
-    clc_voipOpus,    //
 };
 
 /*
@@ -809,8 +800,6 @@ int         Com_FilterPath(char *filter, char *name, int casesensitive);
 int         Com_RealTime(qtime_t *qtime);
 qboolean    Com_SafeMode( void );
 void        Com_RunAndTimeServerPacket(netadr_t *evFrom, msg_t *buf);
-
-qboolean    Com_IsVoipTarget(uint8_t *voipTargets, int voipTargetsSize, int clientNum);
 
 void        Com_StartupVariable( const char *match );
 // checks for and removes command line "+set var arg" constructs

@@ -392,6 +392,29 @@ static void SV_TouchCGame(void) {
 
 /*
 ================
+SV_SendMapChange
+
+When the server is changing to a new map,
+ensure clients get to know this.
+================
+*/
+static void SV_SendMapChange(void)
+{
+    int     i;
+
+    if(svs.clients){
+        for(i = 0; i < sv_maxclients->integer; i++){
+            if(svs.clients[i].state >= CS_CONNECTED
+                && svs.clients[i].netchan.remoteAddress.type != NA_BOT)
+            {
+                SV_SendClientMapChange(&svs.clients[i]);
+            }
+        }
+    }
+}
+
+/*
+================
 SV_SpawnServer
 
 Change the server to a new map, taking all connected
@@ -406,11 +429,15 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
     char        systemInfo[16384];
     const char  *p;
 
+    SV_SendMapChange();
+
     // shut down the existing game if it is running
     SV_ShutdownGameProgs();
 
     Com_Printf ("------ Server Initialization ------\n");
     Com_Printf ("Server: %s\n",server);
+
+    SV_SendMapChange();
 
     // if not running a dedicated server CL_MapLoading will connect the client to the server
     // also print some status stuff
@@ -434,6 +461,15 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
             SV_ChangeMaxClients();
         }
     }
+
+    SV_SendMapChange();
+
+    // FIXME BOE: Review.
+    /*
+    re.SVModelInit();
+
+    SV_SendMapChange();
+    */
 
     // clear pak references
     FS_ClearPakReferences(0);
@@ -472,6 +508,8 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
     FS_Restart( sv.checksumFeed );
 
     CM_LoadMap( va("maps/%s.bsp", server), qfalse, &checksum );
+
+    SV_SendMapChange();
 
     // set serverinfo visible name
     Cvar_Set( "mapname", server );
@@ -609,14 +647,6 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 
     Hunk_SetMark();
 
-#ifndef DEDICATED
-    if ( com_dedicated->integer ) {
-        // restart renderer in order to show console for dedicated servers
-        // launched through the regular binary
-        CL_StartHunkUsers( qtrue );
-    }
-#endif
-
     Com_Printf ("-----------------------------------\n");
 }
 
@@ -637,7 +667,7 @@ void SV_Init (void)
     Cvar_Get ("dmflags", "0", CVAR_SERVERINFO);
     Cvar_Get ("fraglimit", "20", CVAR_SERVERINFO);
     Cvar_Get ("timelimit", "0", CVAR_SERVERINFO);
-    sv_gametype = Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_LATCH );
+    sv_gametype = Cvar_Get ("g_gametype", "dm", CVAR_SERVERINFO | CVAR_LATCH );
     Cvar_Get ("sv_keywords", "", CVAR_SERVERINFO);
     sv_mapname = Cvar_Get ("mapname", "nomap", CVAR_SERVERINFO | CVAR_ROM);
     sv_privateClients = Cvar_Get ("sv_privateClients", "0", CVAR_SERVERINFO);
@@ -655,11 +685,7 @@ void SV_Init (void)
     Cvar_Get ("sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );
     sv_serverid = Cvar_Get ("sv_serverid", "0", CVAR_SYSTEMINFO | CVAR_ROM );
     sv_pure = Cvar_Get ("sv_pure", "1", CVAR_SYSTEMINFO );
-#ifdef USE_VOIP
-    sv_voip = Cvar_Get("sv_voip", "1", CVAR_LATCH);
-    Cvar_CheckRange(sv_voip, 0, 1, qtrue);
-    sv_voipProtocol = Cvar_Get("sv_voipProtocol", sv_voip->integer ? "opus" : "", CVAR_SYSTEMINFO | CVAR_ROM );
-#endif
+
     Cvar_Get ("sv_paks", "", CVAR_SYSTEMINFO | CVAR_ROM );
     Cvar_Get ("sv_pakNames", "", CVAR_SYSTEMINFO | CVAR_ROM );
     Cvar_Get ("sv_referencedPaks", "", CVAR_SYSTEMINFO | CVAR_ROM );

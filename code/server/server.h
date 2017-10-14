@@ -34,21 +34,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define MAX_ENT_CLUSTERS    16
 
-#ifdef USE_VOIP
-#define VOIP_QUEUE_LENGTH 64
-
-typedef struct voipServerPacket_s
-{
-    int generation;
-    int sequence;
-    int frames;
-    int len;
-    int sender;
-    int flags;
-    byte data[4000];
-} voipServerPacket_t;
-#endif
-
 typedef struct svEntity_s {
     struct worldSector_s *worldSector;
     struct svEntity_s *nextEntityInWorldSector;
@@ -125,9 +110,9 @@ typedef enum {
 typedef struct netchan_buffer_s {
     msg_t           msg;
     byte            msgBuffer[MAX_MSGLEN];
-#ifdef LEGACY_PROTOCOL
-    char        clientCommandString[MAX_STRING_CHARS];  // valid command string for SV_Netchan_Encode
-#endif
+
+    char            clientCommandString[MAX_STRING_CHARS];  // valid command string for SV_Netchan_Encode
+
     struct netchan_buffer_s *next;
 } netchan_buffer_t;
 
@@ -185,21 +170,8 @@ typedef struct client_s {
     netchan_buffer_t *netchan_start_queue;
     netchan_buffer_t **netchan_end_queue;
 
-#ifdef USE_VOIP
-    qboolean hasVoip;
-    qboolean muteAllVoip;
-    qboolean ignoreVoipFromClient[MAX_CLIENTS];
-    voipServerPacket_t *voipPacket[VOIP_QUEUE_LENGTH];
-    int queuedVoipPackets;
-    int queuedVoipIndex;
-#endif
-
     int             oldServerTime;
     qboolean        csUpdated[MAX_CONFIGSTRINGS];
-
-#ifdef LEGACY_PROTOCOL
-    qboolean        compat;
-#endif
 } client_t;
 
 //=============================================================================
@@ -300,12 +272,6 @@ extern  cvar_t  *sv_banFile;
 extern  serverBan_t serverBans[SERVER_MAXBANS];
 extern  int serverBansCount;
 
-#ifdef USE_VOIP
-extern  cvar_t  *sv_voip;
-extern  cvar_t  *sv_voipProtocol;
-#endif
-
-
 //===========================================================
 
 //
@@ -375,6 +341,7 @@ void SV_AuthorizeIpPacket( netadr_t from );
 void SV_ExecuteClientMessage( client_t *cl, msg_t *msg );
 void SV_UserinfoChanged( client_t *cl );
 
+void SV_SendClientMapChange( client_t *client );
 void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd );
 void SV_FreeClient(client_t *client);
 void SV_DropClient( client_t *drop, const char *reason );

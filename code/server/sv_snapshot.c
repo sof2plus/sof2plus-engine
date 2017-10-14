@@ -421,7 +421,6 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
             }
             SV_AddEntitiesVisibleFromPoint( ent->s.origin2, frame, eNums, qtrue );
         }
-
     }
 }
 
@@ -519,53 +518,6 @@ static void SV_BuildClientSnapshot( client_t *client ) {
     }
 }
 
-#ifdef USE_VOIP
-/*
-==================
-SV_WriteVoipToClient
-
-Check to see if there is any VoIP queued for a client, and send if there is.
-==================
-*/
-static void SV_WriteVoipToClient(client_t *cl, msg_t *msg)
-{
-    int totalbytes = 0;
-    int i;
-    voipServerPacket_t *packet;
-
-    if(cl->queuedVoipPackets)
-    {
-        // Write as many VoIP packets as we reasonably can...
-        for(i = 0; i < cl->queuedVoipPackets; i++)
-        {
-            packet = cl->voipPacket[(i + cl->queuedVoipIndex) % ARRAY_LEN(cl->voipPacket)];
-
-            if(!*cl->downloadName)
-            {
-                    totalbytes += packet->len;
-                    if (totalbytes > (msg->maxsize - msg->cursize) / 2)
-                        break;
-
-                    MSG_WriteByte(msg, svc_voipOpus);
-                    MSG_WriteShort(msg, packet->sender);
-                    MSG_WriteByte(msg, (byte) packet->generation);
-                    MSG_WriteLong(msg, packet->sequence);
-                    MSG_WriteByte(msg, packet->frames);
-                    MSG_WriteShort(msg, packet->len);
-                    MSG_WriteBits(msg, packet->flags, VOIP_FLAGCNT);
-                    MSG_WriteData(msg, packet->data, packet->len);
-                        }
-
-            Z_Free(packet);
-        }
-
-        cl->queuedVoipPackets -= i;
-        cl->queuedVoipIndex += i;
-        cl->queuedVoipIndex %= ARRAY_LEN(cl->voipPacket);
-    }
-}
-#endif
-
 /*
 =======================
 SV_SendMessageToClient
@@ -619,10 +571,6 @@ void SV_SendClientSnapshot( client_t *client ) {
     // send over all the relevant entityState_t
     // and the playerState_t
     SV_WriteSnapshotToClient( client, &msg );
-
-#ifdef USE_VOIP
-    SV_WriteVoipToClient( client, &msg );
-#endif
 
     // check for overflow
     if ( msg.overflowed ) {

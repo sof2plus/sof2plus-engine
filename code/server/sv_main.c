@@ -22,11 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 
-#ifdef USE_VOIP
-cvar_t *sv_voip;
-cvar_t *sv_voipProtocol;
-#endif
-
 serverStatic_t  svs;                // persistant server info
 server_t        sv;                 // local server
 vm_t            *gvm = NULL;                // game virtual machine
@@ -650,12 +645,6 @@ void SVC_Info( netadr_t from ) {
     Info_SetValueForKey( infostring, "gametype", va("%i", sv_gametype->integer ) );
     Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->integer ) );
     Info_SetValueForKey(infostring, "g_needpass", va("%d", Cvar_VariableIntegerValue("g_needpass")));
-
-#ifdef USE_VOIP
-    if (sv_voipProtocol->string && *sv_voipProtocol->string) {
-        Info_SetValueForKey( infostring, "voip", sv_voipProtocol->string );
-    }
-#endif
 
     if( sv_minPing->integer ) {
         Info_SetValueForKey( infostring, "minPing", va("%i", sv_minPing->integer) );
