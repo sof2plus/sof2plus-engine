@@ -730,6 +730,11 @@ static void SV_SendClientGameState( client_t *client ) {
     // write the checksum feed
     MSG_WriteLong( &msg, sv.checksumFeed);
 
+    //rwwRMG - send info for the terrain
+    MSG_WriteShort ( &msg, 0 );
+    // BOE FIXME
+    MSG_WriteLong ( &msg, 0 );
+
     // deliver this to the client
     SV_SendMessageToClient( &msg, client );
 }

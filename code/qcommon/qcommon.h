@@ -137,7 +137,7 @@ NET
 
 #define PORT_ANY            -1
 
-#define MAX_RELIABLE_COMMANDS   64          // max string commands buffered for restransmit
+#define MAX_RELIABLE_COMMANDS   128          // max string commands buffered for restransmit
 
 typedef enum {
     NA_BAD = 0,                 // an address lookup failed
@@ -281,7 +281,7 @@ enum svc_ops_e {
     svc_download,               // [short] size [size bytes]
     svc_snapshot,
     svc_mapchange,
-    svc_EOF,
+    svc_EOF
 };
 
 
@@ -294,7 +294,7 @@ enum clc_ops_e {
     clc_move,               // [[usercmd_t]
     clc_moveNoDelta,        // [[usercmd_t]
     clc_clientCommand,      // [string] message
-    clc_EOF,
+    clc_EOF
 };
 
 /*
