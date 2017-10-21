@@ -1218,7 +1218,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
         }
 
         MSG_WriteBits( msg, 1, 1 ); // changed
-//      pcount[i]++;
 
         if ( field->bits == 0 ) {
             // float
@@ -1294,7 +1293,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
         MSG_WriteBits( msg, statsbits, MAX_STATS );
         for (i=0 ; i<MAX_STATS ; i++)
             if (statsbits & (1<<i) )
-                MSG_WriteShort (msg, to->stats[i]);
+                MSG_WriteLong (msg, to->stats[i]);
     } else {
         MSG_WriteBits( msg, 0, 1 ); // no change
     }
@@ -1313,45 +1312,45 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 
     if ( ammobits ) {
         MSG_WriteBits( msg, 1, 1 ); // changed
-        MSG_WriteBits( msg, ammobits, MAX_WEAPONS );
-        for (i=0 ; i<MAX_WEAPONS ; i++)
+        MSG_WriteBits( msg, ammobits, MAX_AMMO );
+        for (i=0 ; i<MAX_AMMO ; i++)
             if (ammobits & (1<<i) )
                 MSG_WriteShort (msg, to->ammo[i]);
     } else {
         MSG_WriteBits( msg, 0, 1 ); // no change
     }
 
-    if(clipbits) {
-        MSG_WriteBits(msg, 1, 1);   // changed
-        MSG_WriteShort(msg, clipbits);
-        for(i = 0; i<MAX_WEAPONS; i++)
-            if(clipbits & (1 << i))
-                MSG_WriteByte(msg, to->clip[ATTACK_NORMAL][i]);
+    if ( clipbits ) {
+        MSG_WriteBits( msg, 1, 1 );   // changed
+        MSG_WriteBits( msg, clipbits, MAX_WEAPONS );
+        for (i = 0; i<MAX_WEAPONS; i++)
+            if (clipbits & (1 << i))
+                MSG_WriteByte (msg, to->clip[ATTACK_NORMAL][i]);
     }
     else {
-        MSG_WriteBits(msg, 0, 1);   // no change
+        MSG_WriteBits( msg, 0, 1 );   // no change
     }
 
-    if(altclipbits) {
-        MSG_WriteBits(msg, 1, 1);   // changed
-        MSG_WriteShort(msg, altclipbits);
-        for(i = 0; i<MAX_WEAPONS; i++)
-            if(altclipbits & (1 << i))
-                MSG_WriteByte(msg, to->clip[ATTACK_ALTERNATE][i]);
+    if ( altclipbits ) {
+        MSG_WriteBits( msg, 1, 1 );   // changed
+        MSG_WriteBits( msg, altclipbits, MAX_WEAPONS );
+        for (i = 0; i<MAX_WEAPONS; i++)
+            if (altclipbits & (1 << i))
+                MSG_WriteByte (msg, to->clip[ATTACK_ALTERNATE][i]);
     }
     else {
-        MSG_WriteBits(msg, 0, 1);   // no change
+        MSG_WriteBits( msg, 0, 1 );   // no change
     }
 
-    if(firemodebits) {
-        MSG_WriteBits(msg, 1, 1);   // changed
-        MSG_WriteShort(msg, firemodebits);
-        for(i = 0; i<MAX_WEAPONS; i++)
-            if(firemodebits & (1 << i))
-                MSG_WriteBits(msg, to->firemode[i], WP_FIREMODE_MAX);
+    if ( firemodebits ) {
+        MSG_WriteBits( msg, 1, 1 );   // changed
+        MSG_WriteBits( msg, firemodebits, MAX_WEAPONS );
+        for (i = 0; i<MAX_WEAPONS; i++)
+            if (firemodebits & (1 << i))
+                MSG_WriteBits (msg, to->firemode[i], WP_FIREMODE_MAX);
     }
     else {
-        MSG_WriteBits(msg, 0, 1);   // no change
+        MSG_WriteBits( msg, 0, 1 );   // no change
     }
 }
 
@@ -1470,8 +1469,8 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
         // parse ammo
         if ( MSG_ReadBits( msg, 1 ) ) {
             LOG("PS_AMMO");
-            bits = MSG_ReadBits (msg, MAX_WEAPONS);
-            for (i=0 ; i<MAX_WEAPONS ; i++) {
+            bits = MSG_ReadBits (msg, MAX_AMMO);
+            for (i=0 ; i<MAX_AMMO ; i++) {
                 if (bits & (1<<i) ) {
                     to->ammo[i] = MSG_ReadShort(msg);
                 }

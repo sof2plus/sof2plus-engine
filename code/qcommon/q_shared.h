@@ -1032,7 +1032,6 @@ typedef struct {
 #define MAX_STATS               16
 #define MAX_PERSISTANT          16
 #define MAX_AMMO                16
-#define MAX_POWERUPS            16
 #define MAX_WEAPONS             32
 #define MAX_GAMETYPE_ITEMS      5
 
