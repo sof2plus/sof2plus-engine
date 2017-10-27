@@ -732,7 +732,7 @@ static void SV_SendClientGameState( client_t *client ) {
 
     //rwwRMG - send info for the terrain
     MSG_WriteShort ( &msg, 0 );
-    // BOE FIXME
+    // FIXME BOE
     MSG_WriteLong ( &msg, 0 );
 
     // deliver this to the client

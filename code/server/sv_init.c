@@ -431,6 +431,9 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 
     SV_SendMapChange();
 
+    // FIXME BOE: Is this used?
+    RE_RegisterMedia_LevelLoadBegin(server);
+
     // shut down the existing game if it is running
     SV_ShutdownGameProgs();
 
@@ -464,12 +467,10 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 
     SV_SendMapChange();
 
-    // FIXME BOE: Review.
-    /*
-    re.SVModelInit();
+    // clear models
+    R_ModelInit();
 
     SV_SendMapChange();
-    */
 
     // clear pak references
     FS_ClearPakReferences(0);
