@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qfiles.h"
 #include "../qcommon/qcommon.h"
+#include "mdx_format.h"
 
 //=============================================
 
@@ -58,16 +59,19 @@ typedef struct modelHash_s {
 
 typedef enum {
     MOD_BAD,
-    MOD_BRUSH,
-    MOD_MESH,
-    MOD_MDR,
-    MOD_IQM
+    MOD_BRUSH,// FIXME BOE REVIEW
+    MOD_MESH, // FIXME BOE REVIEW
+    MOD_MDXM,
+    MOD_MDXA
 } modtype_t;
 
 typedef struct {
     char                    name[MAX_QPATH];
     modtype_t               type;
     int                     index;              // model = tr.models[model->index]
+
+    int                     dataSize;           // just for listing purposes
+    void                    *modelData;         // Only if type == MOD_GL2A (Ghoul II animation file) or type == MOD_GL2M (Ghoul II mesh file).
 
     int                     numLods;
 } model_t;

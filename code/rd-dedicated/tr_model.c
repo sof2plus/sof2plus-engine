@@ -20,78 +20,19 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
-// tr_model.c - Model loading and caching.
+// tr_model.c - Server-side model routines.
 
 #include "tr_local.h"
 
-static char             sPrevMapName[MAX_QPATH]         = { 0 };
-static int              giRegisterMedia_CurrentLevel    = 0;
+// Local function definitions.
+static qboolean     R_LoadMDXA              ( model_t *mod, void *buffer, int bufferSize, const char *modName );
+static qboolean     R_LoadMDXM              ( model_t *mod, void *buffer, int bufferSize, const char *modName );
 
-static cachedModels_t   cachedModels                    = { 0 };
-static modelHash_t      *mhHashTable[FILE_HASH_SIZE]    = { 0 };
+// Local variable definitions.
+static char         sPrevMapName[MAX_QPATH]         = { 0 };
+static int          giRegisterMedia_CurrentLevel    = 0;
 
 //=============================================================================
-
-/*
-==================
-R_GenerateHashValue
-
-Returns a hash value for the filename.
-==================
-*/
-
-static long RE_GenerateHashValue(const char *fname, const int size)
-{
-    int     i;
-    long    hash;
-    char    letter;
-
-    hash = 0;
-    i = 0;
-
-    // Iterate through filename.
-    while(fname[i] != '\0'){
-        letter = tolower((unsigned char)fname[i]);
-
-        // Don't include extension.
-        if(letter =='.'){
-            break;
-        }
-
-        // Ensure directories are always divided with a forward slash.
-        if(letter =='\\'){
-            letter = '/';
-        }
-
-        hash += (long)(letter)*(i+119);
-        i++;
-    }
-
-    hash &= (size-1);
-    return hash;
-}
-
-/*
-==================
-RE_RegisterModels_GetDiskFile
-
-Returns qtrue if loaded, and sets the supplied boolean to true if it was from cache (instead of disk).
-==================
-*/
-
-static qboolean RE_RegisterModels_GetDiskFile(const char *psModelFileName, void **ppvBuffer, qboolean *pqbAlreadyCached)
-{
-    char            sModelName[MAX_QPATH];
-    cachedModel_t   *modelBin;
-
-    assert(cachedModels.models != NULL);
-
-    Q_strncpyz(sModelName,psModelFileName,sizeof(sModelName));
-    Q_strlwr(sModelName);
-
-    // FIXME BOE
-    return qfalse;
-}
 
 /*
 ==================
@@ -114,86 +55,6 @@ void RE_RegisterMedia_LevelLoadBegin(const char *psMapName)
 
 /*
 ==================
-RE_RegisterServerModel
-
-Routine is used by the server to handle ghoul2 instance models.
-==================
-*/
-
-qhandle_t RE_RegisterServerModel(const char *name)
-{
-    model_t         *mod;
-    unsigned int    *buf;
-    int             lod;
-    int             ident;
-    qboolean        loaded;
-    int             hash;
-    modelHash_t     *mh;
-    int             numLoaded = 0;
-    int             iLODStart = 0;
-
-    // Must be a valid name.
-    if(!name || !name[0]){
-        return 0;
-    }
-    if(strlen(name) >= MAX_QPATH){
-        return 0;
-    }
-
-    // Generate a hash based on file name.
-    hash = RE_GenerateHashValue(name, FILE_HASH_SIZE);
-
-    //
-    // See if the model is already loaded.
-    //
-    for(mh = mhHashTable[hash]; mh; mh=mh->next){
-        if(Q_stricmp(mh->name, name) == 0){
-            return mh->handle;
-        }
-    }
-
-    // Only continue if we have free slots left.
-    if((mod = R_AllocModel()) == NULL){
-        return 0;
-    }
-
-    // Set the name after the model has been successfully loaded.
-    Q_strncpyz(mod->name, name, sizeof(mod->name));
-    if(FS_IsExt(name, ".md3", strlen(name))){
-        // This loads the md3s in reverse so they can be biased.
-        iLODStart = MD3_MAX_LODS - 1;
-    }
-    mod->numLods = 0;
-
-    //
-    // Load the files.
-    //
-    for(lod = iLODStart; lod >= 0; lod--){
-        char        filename[1024];
-        qboolean    bAlreadyCached;
-
-        memset(filename, 0, sizeof(filename));
-        strncpy(filename, name, sizeof(filename));
-
-        if(lod != 0){
-            char namebuf[80];
-
-            if(strrchr(filename, '.')){
-                *strrchr(filename, '.') = 0;
-            }
-            snprintf(namebuf, sizeof(namebuf), "_%d.md3", lod);
-            strncat(filename, namebuf, sizeof(filename) - strlen(filename) - 1);
-        }
-
-        bAlreadyCached = qfalse;
-        if(!RE_RegisterModels_GetDiskFile(filename, (void **)&buf, &bAlreadyCached)){
-            continue;
-        }
-    }
-}
-
-/*
-==================
 R_ModelInit
 
 Clears models and (re-)initializes the main NULL model.
@@ -206,11 +67,12 @@ void R_ModelInit()
 
     // Leave a space for NULL model.
     tr.numModels = 0;
-    memset(mhHashTable, 0, sizeof(mhHashTable));
 
     mod = R_AllocModel();
     mod->type = MOD_BAD;
 }
+
+//=============================================
 
 /*
 ==================
@@ -235,4 +97,258 @@ model_t *R_AllocModel()
     tr.numModels++;
 
     return mod;
+}
+
+/*
+==================
+RE_RegisterServerModel
+
+Loads in a model for the given name.
+
+Zero will be returned if the model fails to load.
+An entry will be retained for failed models as an
+optimization to prevent disk rescanning if they are
+asked for again.
+==================
+*/
+
+qhandle_t RE_RegisterServerModel(const char *name)
+{
+    model_t     *mod;
+    qhandle_t   hModel;
+    int         ident;
+    int         filesize;
+    char        localName[MAX_QPATH];
+    qboolean    loaded = qfalse;
+    union {
+        unsigned int    *u;
+        void            *v;
+    } buf;
+
+    // Must be a valid name.
+    if(!name || !name[0]){
+        Com_Printf(S_COLOR_RED "RE_RegisterServerModel: NULL name\n");
+        return 0;
+    }
+    if(strlen(name) >= MAX_QPATH){
+        Com_Printf(S_COLOR_RED "RE_RegisterServerModel: Model name exceeds MAX_QPATH\n");
+        return 0;
+    }
+
+    //
+    // Search the currently loaded models.
+    //
+   for(hModel = 1 ; hModel < tr.numModels; hModel++){
+        mod = tr.models[hModel];
+        if(!strcmp( mod->name, name)){
+            if(mod->type == MOD_BAD){
+                return 0;
+            }
+            return hModel;
+        }
+    }
+
+    // Allocate a new model_t.
+    if((mod = R_AllocModel()) == NULL){
+        Com_Printf(S_COLOR_YELLOW "RE_RegisterServerModel: R_AllocModel() failed for \"%s\".\n", name);
+        return 0;
+    }
+
+    // Only set the name after the model has been successfully loaded.
+    Q_strncpyz(mod->name, name, sizeof(mod->name));
+
+    mod->type = MOD_BAD;
+    mod->numLods = 0;
+
+    //
+    // Load the files.
+    //
+    Q_strncpyz(localName, name, MAX_QPATH);
+
+    // Try to load the file.
+    filesize = FS_ReadFile(name, (void **)&buf.v);
+    if(!buf.u){
+        // Not loaded, try again but without extension.
+        COM_StripExtension(name, localName, MAX_QPATH);
+        filesize = FS_ReadFile(name, (void **)&buf.v);
+
+        if(!buf.u){
+            // No way to load the file.
+            Com_Printf(S_COLOR_YELLOW "RE_RegisterServerModel: \"%s\" not present.\n", name);
+            return hModel;
+        }else{
+            // Loaded, but not ideal.
+            Com_Printf(S_COLOR_YELLOW "RE_RegisterServerModel: WARNING: \"%s\" not present, using \"%s\" instead.", name, localName);
+        }
+    }
+
+    // Determine file type.
+    ident = LittleLong(*(unsigned int*)buf.u);
+    if(ident == MDXA_IDENT){
+        loaded = R_LoadMDXA(mod, buf.u, filesize, name);
+    }else if(ident == MDXM_IDENT){
+        loaded = R_LoadMDXM(mod, buf.u, filesize, name);
+    }
+
+    if(!loaded){
+        Com_Printf(S_COLOR_YELLOW "RE_RegisterServerModel: Couldn't load file \"%s\".\n", name);
+    }
+
+    FS_FreeFile(buf.v);
+
+    return mod->index;
+}
+
+//=============================================
+// Actual model file load routines.
+//=============================================
+
+/*
+==================
+R_LoadMDXA
+
+Load a Ghoul II animation file.
+==================
+*/
+
+static qboolean R_LoadMDXA(model_t *mod, void *buffer, int bufferSize, const char *modName)
+{
+    mdxaHeader_t        *mdxaHeader, *mdxa;
+    int                 version;
+    int                 size;
+
+    mdxaHeader = (mdxaHeader_t *)buffer;
+
+    //
+    // Read some fields from the binary.
+    //
+    version = LittleLong(mdxaHeader->version);
+    if(version != MDXA_VERSION){
+        Com_Printf(S_COLOR_YELLOW "R_LoadMDXA: \"%s\" has wrong version (%d should be %d).\n", modName, version, MDXA_VERSION);
+        return qfalse;
+    }
+    size = LittleLong(mdxaHeader->ofsEnd);
+    if(size > bufferSize){
+        Com_Printf(S_COLOR_YELLOW "R_LoadMDXA: Header of \"%s\" is broken. Wrong filesize declared (%d should be %d).\n", modName, size, bufferSize);
+    }
+
+    mod->type = MOD_MDXA;
+    mod->dataSize += size;
+    mod->modelData = mdxa = Hunk_Alloc(size, h_low);
+
+    // Copy all the values over from the file.
+    Com_Memcpy(mdxa, mdxaHeader, sizeof(mdxaHeader_t));
+    LittleLong(mdxa->ident);
+    LittleLong(mdxa->version);
+    LittleLong(mdxa->numFrames);
+    LittleLong(mdxa->numBones);
+    LittleLong(mdxa->ofsFrames);
+    LittleLong(mdxa->ofsEnd);
+
+    if(mdxa->numFrames < 1){
+        Com_Printf(S_COLOR_YELLOW "R_LoadMDXA: \"%s\" has no frames.\n", modName);
+        return qfalse;
+    }
+
+    return qtrue;
+}
+
+/*
+==================
+R_LoadMDXM
+
+Load a Ghoul II mesh file.
+==================
+*/
+
+static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const char *modName)
+{
+    mdxmHeader_t        *mdxmHeader, *mdxm;
+    mdxmLOD_t           *lod;
+    mdxmSurface_t       *surf;
+    int                 version;
+    int                 size;
+    int                 i, l;
+
+    mdxmHeader = (mdxmHeader_t *)buffer;
+
+    //
+    // Read some fields from the binary.
+    //
+    version = LittleLong(mdxmHeader->version);
+    if(version != MDXM_VERSION){
+        Com_Printf(S_COLOR_YELLOW "R_LoadMDXM: \"%s\" has wrong version (%d should be %d).\n", modName, version, MDXM_VERSION);
+        return qfalse;
+    }
+    size = LittleLong(mdxmHeader->ofsEnd);
+    if(size > bufferSize){
+        Com_Printf(S_COLOR_YELLOW "R_LoadMDXM: Header of \"%s\" is broken. Wrong filesize declared (%d should be %d).\n", modName, size, bufferSize);
+    }
+
+    mod->type = MOD_MDXM;
+    mod->dataSize += size;
+    mod->modelData = mdxm = Hunk_Alloc(size, h_low);
+
+    // Copy the buffer contents.
+    Com_Memcpy(mod->modelData, buffer, size);
+    LittleLong(mdxm->ident);
+    LittleLong(mdxm->version);
+    LittleLong(mdxm->numLODs);
+    LittleLong(mdxm->ofsLODs);
+    LittleLong(mdxm->numSurfaces);
+    LittleLong(mdxm->ofsSurfHierarchy);
+    LittleLong(mdxm->ofsEnd);
+
+    // First up, go load in the animation file we need that has the skeletal animation info for this model.
+    mdxm->animIndex = RE_RegisterServerModel(va("%s.gla", mdxm->animName));
+    if(!mdxm->animIndex){
+        Com_Printf(S_COLOR_YELLOW "R_LoadMDXM: \"%s\" has no skeletal animation info.\n", modName);
+        return qfalse;
+    }
+
+    //
+    // Swap all the LOD's.
+    //
+    lod = (mdxmLOD_t *)((byte *)mdxm + mdxm->ofsLODs);
+    for(l = 0 ; l < mdxm->numLODs ; l++){
+        int triCount = 0;
+
+        LittleLong(lod->ofsEnd);
+
+        // Swap all the surfaces.
+        surf = (mdxmSurface_t *)((byte *)lod + sizeof (mdxmLOD_t) + (mdxm->numSurfaces * sizeof(mdxmLODSurfOffset_t)));
+        for(i = 0 ; i < mdxm->numSurfaces ; i++){
+            LittleLong(surf->numTriangles);
+            LittleLong(surf->ofsTriangles);
+            LittleLong(surf->numVerts);
+            LittleLong(surf->ofsVerts);
+            LittleLong(surf->ofsEnd);
+            LittleLong(surf->ofsHeader);
+            LittleLong(surf->numBoneReferences);
+            LittleLong(surf->ofsBoneReferences);
+
+            triCount += surf->numTriangles;
+
+            if(surf->numVerts > SHADER_MAX_VERTEXES){
+                Com_Printf(S_COLOR_YELLOW "R_LoadMDXM: \"%s\" has more than %d verts on a surface (%d).\n",
+                    modName, SHADER_MAX_VERTEXES - 1, surf->numVerts);
+
+                return qfalse;
+            }
+            if(surf->numTriangles*3 > SHADER_MAX_INDEXES){
+                Com_Printf(S_COLOR_YELLOW "R_LoadMDXM: \"%s\" has more than %d triangles on a surface (%d).\n",
+                    modName, (SHADER_MAX_INDEXES / 3) - 1, surf->numTriangles);
+
+                return qfalse;
+            }
+
+            // Find the next surface.
+            surf = (mdxmSurface_t *)((byte *)surf + surf->ofsEnd);
+        }
+
+        // Find the next LOD.
+        lod = (mdxmLOD_t *)((byte *)lod + lod->ofsEnd);
+    }
+
+    return qtrue;
 }
