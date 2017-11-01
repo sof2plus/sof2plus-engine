@@ -26,3 +26,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 trGlobals_t     tr;
 
+// CVAR definitions.
+cvar_t	*r_verbose;
+
+// Local function definitions.
+static void          R_Register                      ( void );
+
+/*
+==================
+R_Register
+
+Registers renderer CVARs.
+==================
+*/
+
+static void R_Register()
+{
+    #ifdef _DEBUG
+    r_verbose = Cvar_Get("r_verbose", "1", CVAR_CHEAT);
+    #else
+    r_verbose = Cvar_Get("r_verbose", "0", CVAR_CHEAT);
+    #endif // _DEBUG
+}
+
+/*
+==================
+R_Init
+
+Main routine to initialize renderer.
+==================
+*/
+
+void R_Init()
+{
+    // Clear all our internal state.
+    memset(&tr, 0, sizeof(tr));
+
+    // Register CVARs.
+    R_Register();
+
+    // Initialize main NULL model.
+    R_ModelInit();
+}

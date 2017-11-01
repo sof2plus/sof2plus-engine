@@ -467,8 +467,8 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 
     SV_SendMapChange();
 
-    // clear models
-    R_ModelInit();
+    // (Re-)initialize renderer.
+    R_Init();
 
     SV_SendMapChange();
 
