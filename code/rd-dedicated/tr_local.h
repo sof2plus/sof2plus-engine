@@ -102,8 +102,10 @@ extern      trGlobals_t                     tr;
 // tr_model.c
 //
 
-qhandle_t           RE_RegisterServerModel  ( const char *name );
-void                R_ModelInit             ( void );
-model_t             *R_AllocModel           ( void );
+void                RE_RegisterMedia_LevelLoadBegin ( const char *psMapName );
+qhandle_t           RE_RegisterServerModel          ( const char *name );
+void                R_ModelInit                     ( void );
+model_t             *R_GetModelByHandle             ( qhandle_t index );
+model_t             *R_AllocModel                   ( void );
 
 #endif // __TR_LOCAL_H

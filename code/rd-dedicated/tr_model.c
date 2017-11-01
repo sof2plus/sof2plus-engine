@@ -24,6 +24,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "tr_local.h"
 
+#define LL(x) x=LittleLong(x)
+
 // Local function definitions.
 static qboolean     R_LoadMDXA              ( model_t *mod, void *buffer, int bufferSize, const char *modName );
 static qboolean     R_LoadMDXM              ( model_t *mod, void *buffer, int bufferSize, const char *modName );
@@ -73,6 +75,28 @@ void R_ModelInit()
 }
 
 //=============================================
+
+/*
+==================
+R_GetModelByHandle
+
+Returns existing model in the list,
+or the default model if out of range.
+==================
+*/
+
+model_t *R_GetModelByHandle(qhandle_t index)
+{
+    model_t     *mod;
+
+    // Out of range returns the default model.
+    if(index < 1 || index >= tr.numModels){
+        return tr.models[0];
+    }
+
+    mod = tr.models[index];
+    return mod;
+}
 
 /*
 ==================
@@ -238,12 +262,12 @@ static qboolean R_LoadMDXA(model_t *mod, void *buffer, int bufferSize, const cha
 
     // Copy all the values over from the file.
     Com_Memcpy(mdxa, mdxaHeader, sizeof(mdxaHeader_t));
-    LittleLong(mdxa->ident);
-    LittleLong(mdxa->version);
-    LittleLong(mdxa->numFrames);
-    LittleLong(mdxa->numBones);
-    LittleLong(mdxa->ofsFrames);
-    LittleLong(mdxa->ofsEnd);
+    LL(mdxa->ident);
+    LL(mdxa->version);
+    LL(mdxa->numFrames);
+    LL(mdxa->numBones);
+    LL(mdxa->ofsFrames);
+    LL(mdxa->ofsEnd);
 
     if(mdxa->numFrames < 1){
         Com_Printf(S_COLOR_YELLOW "R_LoadMDXA: \"%s\" has no frames.\n", modName);
@@ -291,13 +315,13 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
 
     // Copy the buffer contents.
     Com_Memcpy(mod->modelData, buffer, size);
-    LittleLong(mdxm->ident);
-    LittleLong(mdxm->version);
-    LittleLong(mdxm->numLODs);
-    LittleLong(mdxm->ofsLODs);
-    LittleLong(mdxm->numSurfaces);
-    LittleLong(mdxm->ofsSurfHierarchy);
-    LittleLong(mdxm->ofsEnd);
+    LL(mdxm->ident);
+    LL(mdxm->version);
+    LL(mdxm->numLODs);
+    LL(mdxm->ofsLODs);
+    LL(mdxm->numSurfaces);
+    LL(mdxm->ofsSurfHierarchy);
+    LL(mdxm->ofsEnd);
 
     // First up, go load in the animation file we need that has the skeletal animation info for this model.
     mdxm->animIndex = RE_RegisterServerModel(va("%s.gla", mdxm->animName));
@@ -313,19 +337,19 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
     for(l = 0 ; l < mdxm->numLODs ; l++){
         int triCount = 0;
 
-        LittleLong(lod->ofsEnd);
+        LL(lod->ofsEnd);
 
         // Swap all the surfaces.
         surf = (mdxmSurface_t *)((byte *)lod + sizeof (mdxmLOD_t) + (mdxm->numSurfaces * sizeof(mdxmLODSurfOffset_t)));
         for(i = 0 ; i < mdxm->numSurfaces ; i++){
-            LittleLong(surf->numTriangles);
-            LittleLong(surf->ofsTriangles);
-            LittleLong(surf->numVerts);
-            LittleLong(surf->ofsVerts);
-            LittleLong(surf->ofsEnd);
-            LittleLong(surf->ofsHeader);
-            LittleLong(surf->numBoneReferences);
-            LittleLong(surf->ofsBoneReferences);
+            LL(surf->numTriangles);
+            LL(surf->ofsTriangles);
+            LL(surf->numVerts);
+            LL(surf->ofsVerts);
+            LL(surf->ofsEnd);
+            LL(surf->ofsHeader);
+            LL(surf->numBoneReferences);
+            LL(surf->ofsBoneReferences);
 
             triCount += surf->numTriangles;
 
