@@ -29,37 +29,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define     G2_VERT_SPACE_SIZE              256
 
-typedef     struct      CGhoul2Info_s       CGhoul2Info_t;
-typedef     struct      CGhoul2InfoArray_s  CGhoul2InfoArray_t;
+typedef     struct      CGhoul2Model_s      CGhoul2Model_t;
+typedef     struct      CGhoul2Array_s      CGhoul2Array_t;
 
 //=============================================
 //
 // Main Ghoul II structures
 //
 
-struct CGhoul2Info_s {
+struct CGhoul2Model_s {
     int                 mModelIndex;
     qhandle_t           mModel;
     char                mFileName[MAX_QPATH];
 
     qboolean            mValid;
-    //const mdxaHeader_t  *aHeader;
+    const model_t       *currentModel;
+    int                 currentModelSize;
+    const model_t       *animModel;
+    int                 currentAnimModelSize;
+    const mdxaHeader_t  *aHeader;
 };
 
-struct CGhoul2InfoArray_s {
-
+struct CGhoul2Array_s {
+    CGhoul2Model_t      *models[MAX_MOD_KNOWN];
+    int                 numModels;
 };
-
-typedef struct CGhoul2Model_s {
-
-} CGhoul2Model_t;
-
-typedef struct CGhoul2ModelHash_s {
-    char        name[MAX_QPATH];
-    qhandle_t   handle;
-    struct      CGhoul2ModelHash_s  *next;
-
-} CGhoul2ModelHash_t;
 
 //=============================================
 
@@ -67,12 +61,12 @@ typedef struct CGhoul2ModelHash_s {
 // g2_api.c
 //
 
-void                G2API_ListBones         ( CGhoul2Info_t *ghlInfo, int frame );
+void                G2API_ListBones         ( CGhoul2Model_t *ghlInfo, int frame );
 
 //
 // g2_misc.c
 //
 
-qboolean            G2_SetupModelPointers   ( CGhoul2Info_t *ghlInfo );
+qboolean            G2_SetupModelPointers   ( CGhoul2Model_t *ghlInfo );
 
 #endif // __G2_LOCAL_H

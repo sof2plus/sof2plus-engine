@@ -27,7 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 trGlobals_t     tr;
 
 // CVAR definitions.
-cvar_t	*r_verbose;
+cvar_t  *r_verbose;
 
 // Local function definitions.
 static void          R_Register                      ( void );

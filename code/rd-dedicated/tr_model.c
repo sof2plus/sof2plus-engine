@@ -340,7 +340,7 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
         LL(lod->ofsEnd);
 
         // Swap all the surfaces.
-        surf = (mdxmSurface_t *)((byte *)lod + sizeof (mdxmLOD_t) + (mdxm->numSurfaces * sizeof(mdxmLODSurfOffset_t)));
+        surf = (mdxmSurface_t *)((byte *)lod + sizeof(mdxmLOD_t) + (mdxm->numSurfaces * sizeof(mdxmLODSurfOffset_t)));
         for(i = 0 ; i < mdxm->numSurfaces ; i++){
             LL(surf->numTriangles);
             LL(surf->ofsTriangles);
@@ -359,7 +359,7 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
 
                 return qfalse;
             }
-            if(surf->numTriangles*3 > SHADER_MAX_INDEXES){
+            if(surf->numTriangles * 3 > SHADER_MAX_INDEXES){
                 Com_Printf(S_COLOR_YELLOW "R_LoadMDXM: \"%s\" has more than %d triangles on a surface (%d).\n",
                     modName, (SHADER_MAX_INDEXES / 3) - 1, surf->numTriangles);
 
