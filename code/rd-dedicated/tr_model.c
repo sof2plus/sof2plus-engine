@@ -261,7 +261,7 @@ static qboolean R_LoadMDXA(model_t *mod, void *buffer, int bufferSize, const cha
     mod->modelData = mdxa = Hunk_Alloc(size, h_low);
 
     // Copy all the values over from the file.
-    Com_Memcpy(mdxa, mdxaHeader, sizeof(mdxaHeader_t));
+    Com_Memcpy(mod->modelData, buffer, size);
     LL(mdxa->ident);
     LL(mdxa->version);
     LL(mdxa->numFrames);

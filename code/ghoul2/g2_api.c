@@ -32,14 +32,71 @@ Lists all model bones.
 ==================
 */
 
-void G2API_ListBones(CGhoul2Model_t *ghlInfo, int frame)
+void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelNumber)
 {
-    if(!G2_SetupModelPointers(ghlInfo)){
+    CGhoul2Model_t      *model;
+    mdxaSkel_t          *skel, *childSkel;
+    mdxaSkelOffsets_t   *offsets;
+    int                 i, x;
+
+    //
+    // Check whether the specified model is valid.
+    //
+    if(!ghlInfo){
+        Com_Printf(S_COLOR_RED "G2API_ListBones: ghlInfo pointer is NULL.\n");
         return;
     }
 
-    // FIXME BOE
-    //G2_List_Model_Bones(ghlInfo->mFileName, frame);
+    if(modelNumber < 0 || modelNumber >= ghlInfo->numModels){
+        Com_Printf(S_COLOR_RED "G2API_ListBones: Model %d is out of bounds (Ghoul II instance has %d models).\n",
+            modelNumber, ghlInfo->numModels);
+        return;
+    }
+
+    model = ghlInfo->models[modelNumber];
+    if(!G2_SetupModelPointers(model)){
+        Com_Printf(S_COLOR_RED "G2API_ListBones: Failed to setup model pointers.\n");
+        return;
+    }
+
+    //
+    // Figure out where the offset list is.
+    //
+    offsets = (mdxaSkelOffsets_t *)((byte *)model->aHeader + sizeof(mdxaHeader_t));
+
+    //
+    // Walk each bone and list its info.
+    //
+    for(i = 0; i < model->aHeader->numBones; i++){
+        skel = (mdxaSkel_t *)((byte *)model->aHeader + sizeof(mdxaHeader_t) + offsets->offsets[i]);
+
+        // Print bone info.
+        Com_Printf("== Bone %d ==\n", i);
+        Com_Printf("Name: %s\n", skel->name);
+        Com_Printf("X pos: %f\n", skel->BasePoseMat.matrix[0][3]);
+        Com_Printf("Y pos: %f\n", skel->BasePoseMat.matrix[1][3]);
+        Com_Printf("Z pos: %f\n", skel->BasePoseMat.matrix[2][3]);
+
+        // If we are in verbose mode, give us more details.
+        if(r_verbose->integer){
+            Com_Printf("Flags: %d\n", skel->flags);
+            Com_Printf("Num descendants: %d\n", skel->numChildren);
+
+            // Print information for each child bone of the referenced bone.
+            // We don't print information of their children, if any.
+            for(x = 0; x < skel->numChildren; x++){
+                childSkel = (mdxaSkel_t *)((byte *)model->aHeader + sizeof(mdxaHeader_t) + offsets->offsets[skel->children[x]]);
+
+                Com_Printf("=== Bone %d, child bone %d ===\n", i, x);
+                Com_Printf("Name: %s\n", childSkel->name);
+                Com_Printf("X pos: %f\n", childSkel->BasePoseMat.matrix[0][3]);
+                Com_Printf("Y pos: %f\n", childSkel->BasePoseMat.matrix[1][3]);
+                Com_Printf("Z pos: %f\n", childSkel->BasePoseMat.matrix[2][3]);
+                Com_Printf("Flags: %d\n", childSkel->flags);
+                Com_Printf("Num descendants: %d\n", childSkel->numChildren);
+            }
+        }
+    }
 }
 
 /*

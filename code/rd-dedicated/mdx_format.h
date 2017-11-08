@@ -89,6 +89,26 @@ typedef struct mdxaHeader_s {
 } mdxaHeader_t;
 
 //
+// mdxaSkel_t
+//
+// Contains hierarchical info for bones.
+//
+
+typedef struct mdxaSkelOffsets_s {
+    int offsets[1];                 // variable sized (mdxaHeader_t->numBones), each offset points to an mdxaSkel_t below
+} mdxaSkelOffsets_t;
+
+typedef struct mdxaSkel_s {
+    char        name[MAX_QPATH];    // name of bone
+    unsigned int flags;
+    int         parent;             // index of bone that is parent to this one, -1 = NULL/root
+    mdxaBone_t  BasePoseMat;        // base pose
+    mdxaBone_t  BasePoseMatInv;     // inverse, to save run-time calc
+    int         numChildren;        // number of children bones
+    int         children[1];        // [mdxaSkel_t->numChildren] (variable sized)
+} mdxaSkel_t;   // struct size = (int)( &((mdxaSkel_t *)0)->children[ mdxaSkel_t->numChildren ] );
+
+//
 // mdxmSurfHierarchy_t
 //
 // Contains hierarchical info for surfaces.

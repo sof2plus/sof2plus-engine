@@ -61,7 +61,7 @@ struct CGhoul2Array_s {
 // g2_api.c
 //
 
-void                G2API_ListBones         ( CGhoul2Model_t *ghlInfo, int frame );
+void                G2API_ListBones         ( CGhoul2Array_t *ghlInfo, int modelNumber );
 
 //
 // g2_misc.c
