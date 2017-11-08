@@ -44,6 +44,7 @@ static void         SortObject              ( void *object, void **unsortedList,
 
 // Local variable definitions.
 static char         token[MAX_TOKEN_SIZE];
+static const char   *topLevelName           = TOP_LEVEL_NAME;
 
 /*
 ==================
@@ -193,7 +194,7 @@ static void GPG_Clean(CGPGroup *gpg)
         gpg->mSubGroups = gpg->mCurrentSubGroup;
     }
 
-    if(gpg->mBase.mName != (void *)TOP_LEVEL_NAME){
+    if(gpg->mBase.mName != topLevelName){
         free(gpg);
     }
 }
@@ -559,7 +560,7 @@ TGenericParser2 GP_Parse(char **dataPtr)
     topPool = topLevel->mTextPool;
 
     // Start parsing groups.
-    topLevel->mTopLevel.mBase.mName = TOP_LEVEL_NAME;
+    topLevel->mTopLevel.mBase.mName = topLevelName;
     if(GPG_Parse(&topLevel->mTopLevel, dataPtr, &topPool)){
          // Successful, return the end result.
         return topLevel;
