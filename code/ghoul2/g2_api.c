@@ -60,6 +60,15 @@ void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelNumber)
     }
 
     //
+    // Print function information.
+    //
+    Com_Printf("-----------------------------------------\n");
+    Com_Printf("Listing Ghoul II model bone info\n");
+    Com_Printf("Index in Ghoul II instance: %d\n", modelNumber);
+    Com_Printf("Filename: %s\n", model->mFileName);
+    Com_Printf("-----------------------------------------\n");
+
+    //
     // Figure out where the offset list is.
     //
     offsets = (mdxaSkelOffsets_t *)((byte *)model->aHeader + sizeof(mdxaHeader_t));
@@ -96,6 +105,82 @@ void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelNumber)
                 Com_Printf("Num descendants: %d\n", childSkel->numChildren);
             }
         }
+    }
+}
+
+/*
+==================
+G2API_ListSurfaces
+
+Lists all surfaces associated with a Ghoul II model.
+==================
+*/
+
+void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelNumber)
+{
+    CGhoul2Model_t      *model;
+    mdxmHeader_t        *mdxmHeader;
+    mdxmSurfHierarchy_t *surf;
+    int                 i, x;
+
+    //
+    // Check whether the specified model is valid.
+    //
+    if(!ghlInfo){
+        Com_Printf(S_COLOR_RED "G2API_ListSurfaces: ghlInfo pointer is NULL.\n");
+        return;
+    }
+
+    if(modelNumber < 0 || modelNumber >= ghlInfo->numModels){
+        Com_Printf(S_COLOR_RED "G2API_ListSurfaces: Model %d is out of bounds (Ghoul II instance has %d models).\n",
+            modelNumber, ghlInfo->numModels);
+        return;
+    }
+
+    model = ghlInfo->models[modelNumber];
+    if(!G2_SetupModelPointers(model)){
+        Com_Printf(S_COLOR_RED "G2API_ListSurfaces: Failed to setup model pointers.\n");
+        return;
+    }
+
+    //
+    // Print function information.
+    //
+    Com_Printf("-----------------------------------------\n");
+    Com_Printf("Listing Ghoul II associated surfaces\n");
+    Com_Printf("Index in Ghoul II instance: %d\n", modelNumber);
+    Com_Printf("Filename: %s\n", model->mFileName);
+    Com_Printf("-----------------------------------------\n");
+
+    //
+    // Find the first surface.
+    //
+    mdxmHeader = model->currentModel->modelData;
+    surf = (mdxmSurfHierarchy_t *)((byte *)mdxmHeader + mdxmHeader->ofsSurfHierarchy);
+
+    //
+    // Walk each surface and list its info.
+    //
+    for(i = 0; i < mdxmHeader->numSurfaces; i++){
+        Com_Printf("== Surface %d ==\n", i);
+        Com_Printf("Name: %s\n", surf->name);
+
+        // If we are in verbose mode, give us more details.
+        if(r_verbose->integer){
+            Com_Printf("Flags: %d\n", surf->flags);
+            Com_Printf("Num descendants: %d\n", surf->numChildren);
+
+            // Print the index for each child surface of the referenced surface.
+            if(surf->numChildren){
+                Com_Printf("=== Descendants ===\n");
+                for(x = 0; x < surf->numChildren; x++){
+                    Com_Printf("Index: %d\n", surf->childIndexes[x]);
+                }
+            }
+        }
+
+        // Find the next surface.
+        surf = (mdxmSurfHierarchy_t *)((byte *)surf + (size_t)(&((mdxmSurfHierarchy_t *)0)->childIndexes[surf->numChildren]));
     }
 }
 
