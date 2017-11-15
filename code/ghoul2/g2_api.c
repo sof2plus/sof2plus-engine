@@ -131,7 +131,7 @@ void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelNumber)
         return;
     }
 
-    if(modelNumber < 0 || modelNumber >= ghlInfo->numModels){
+    if(modelNumber < 0 || modelNumber >= G2_MAX_MODELS_IN_LIST){
         Com_Printf(S_COLOR_RED "G2API_ListSurfaces: Model %d is out of bounds (Ghoul II instance has %d models).\n",
             modelNumber, ghlInfo->numModels);
         return;
@@ -182,6 +182,41 @@ void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelNumber)
         // Find the next surface.
         surf = (mdxmSurfHierarchy_t *)((byte *)surf + (size_t)(&((mdxmSurfHierarchy_t *)0)->childIndexes[surf->numChildren]));
     }
+}
+
+/*
+==================
+G2API_HaveWeGhoul2Models
+
+Returns qtrue if there are valid Ghoul II models present in the Ghoul II instance.
+==================
+*/
+
+qboolean G2API_HaveWeGhoul2Models(CGhoul2Array_t *ghlInfo)
+{
+    int i;
+
+    // Don't continue if there are no models present in the list.
+    if(!ghlInfo->numModels){
+        return qfalse;
+    }
+
+    //
+    // Walk through the list.
+    //
+    for(i = 0; i < G2_MAX_MODELS_IN_LIST; i++){
+        // Continue if this model isn't allocated.
+        if(!ghlInfo->models[i]){
+            continue;
+        }
+
+        // The model is properly setup if the model index isn't -1.
+        if(ghlInfo->models[i]->mModelIndex != -1){
+            return qtrue;
+        }
+    }
+
+    return qfalse;
 }
 
 /*

@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../rd-dedicated/tr_local.h"
 
 #define     G2_VERT_SPACE_SIZE              256
+#define     G2_MAX_MODELS_IN_LIST           1024
 
 typedef     struct      CGhoul2Model_s      CGhoul2Model_t;
 typedef     struct      CGhoul2Array_s      CGhoul2Array_t;
@@ -51,7 +52,7 @@ struct CGhoul2Model_s {
 };
 
 struct CGhoul2Array_s {
-    CGhoul2Model_t      *models[MAX_MOD_KNOWN];
+    CGhoul2Model_t      *models[G2_MAX_MODELS_IN_LIST];
     int                 numModels;
 };
 
