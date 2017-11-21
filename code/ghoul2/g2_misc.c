@@ -128,3 +128,40 @@ qboolean G2_SetupModelPointers(CGhoul2Model_t *ghlInfo)
     // All valid.
     return qtrue;
 }
+
+/*
+==================
+G2_IsModelIndexValid
+
+Checks whether the specified model index
+is valid in our Ghoul II array.
+
+Returns the Ghoul II model if valid,
+NULL otherwise.
+==================
+*/
+
+CGhoul2Model_t *G2_IsModelIndexValid(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *caller)
+{
+    CGhoul2Model_t  *model;
+
+    if(!ghlInfo){
+        Com_Printf(S_COLOR_RED "%s/G2_IsModelIndexValid: ghlInfo pointer is NULL.\n", caller);
+        return NULL;
+    }
+
+    if(modelIndex < 0 || modelIndex >= G2_MAX_MODELS_IN_LIST){
+        Com_Printf(S_COLOR_RED "%s/G2_IsModelIndexValid: Model %d is out of bounds (Ghoul II instance has %d model(s)).\n",
+            caller, modelIndex, ghlInfo->numModels);
+        return NULL;
+    }
+
+    model = ghlInfo->models[modelIndex];
+    if(!G2_SetupModelPointers(model)){
+        Com_Printf(S_COLOR_RED "%s/G2_IsModelIndexValid: Failed to setup model pointers.\n", caller);
+        return NULL;
+    }
+
+    // All valid.
+    return model;
+}

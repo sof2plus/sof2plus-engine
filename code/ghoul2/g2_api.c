@@ -32,7 +32,7 @@ Lists all model bones.
 ==================
 */
 
-void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelNumber)
+void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelIndex)
 {
     CGhoul2Model_t      *model;
     mdxaSkel_t          *skel, *childSkel;
@@ -42,20 +42,8 @@ void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelNumber)
     //
     // Check whether the specified model is valid.
     //
-    if(!ghlInfo){
-        Com_Printf(S_COLOR_RED "G2API_ListBones: ghlInfo pointer is NULL.\n");
-        return;
-    }
-
-    if(modelNumber < 0 || modelNumber >= ghlInfo->numModels){
-        Com_Printf(S_COLOR_RED "G2API_ListBones: Model %d is out of bounds (Ghoul II instance has %d models).\n",
-            modelNumber, ghlInfo->numModels);
-        return;
-    }
-
-    model = ghlInfo->models[modelNumber];
-    if(!G2_SetupModelPointers(model)){
-        Com_Printf(S_COLOR_RED "G2API_ListBones: Failed to setup model pointers.\n");
+    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_ListBones");
+    if(!model){
         return;
     }
 
@@ -64,7 +52,7 @@ void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelNumber)
     //
     Com_Printf("-----------------------------------------\n");
     Com_Printf("Listing Ghoul II model bone info\n");
-    Com_Printf("Index in Ghoul II instance: %d\n", modelNumber);
+    Com_Printf("Index in Ghoul II instance: %d\n", modelIndex);
     Com_Printf("Filename: %s\n", model->mFileName);
     Com_Printf("-----------------------------------------\n");
 
@@ -116,7 +104,7 @@ Lists all surfaces associated with a Ghoul II model.
 ==================
 */
 
-void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelNumber)
+void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelIndex)
 {
     CGhoul2Model_t      *model;
     mdxmHeader_t        *mdxmHeader;
@@ -126,20 +114,8 @@ void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelNumber)
     //
     // Check whether the specified model is valid.
     //
-    if(!ghlInfo){
-        Com_Printf(S_COLOR_RED "G2API_ListSurfaces: ghlInfo pointer is NULL.\n");
-        return;
-    }
-
-    if(modelNumber < 0 || modelNumber >= G2_MAX_MODELS_IN_LIST){
-        Com_Printf(S_COLOR_RED "G2API_ListSurfaces: Model %d is out of bounds (Ghoul II instance has %d models).\n",
-            modelNumber, ghlInfo->numModels);
-        return;
-    }
-
-    model = ghlInfo->models[modelNumber];
-    if(!G2_SetupModelPointers(model)){
-        Com_Printf(S_COLOR_RED "G2API_ListSurfaces: Failed to setup model pointers.\n");
+    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_ListSurfaces");
+    if(!model){
         return;
     }
 
@@ -148,7 +124,7 @@ void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelNumber)
     //
     Com_Printf("-----------------------------------------\n");
     Com_Printf("Listing Ghoul II associated surfaces\n");
-    Com_Printf("Index in Ghoul II instance: %d\n", modelNumber);
+    Com_Printf("Index in Ghoul II instance: %d\n", modelIndex);
     Com_Printf("Filename: %s\n", model->mFileName);
     Com_Printf("-----------------------------------------\n");
 
@@ -217,6 +193,28 @@ qboolean G2API_HaveWeGhoul2Models(CGhoul2Array_t *ghlInfo)
     }
 
     return qfalse;
+}
+
+/*
+==================
+G2API_AddBolt
+
+Adds a bone or surface to the bolt list.
+==================
+*/
+
+int G2API_AddBolt(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName)
+{
+    CGhoul2Model_t      *model;
+
+    // Check whether the specified model is valid.
+    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_AddBolt");
+    if(!model){
+        return -1;
+    }
+
+    // Add the bolt, return the result.
+    return G2_AddBolt(model, boneName);
 }
 
 /*
