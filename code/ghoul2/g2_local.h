@@ -116,6 +116,6 @@ CGhoul2Model_t      *G2_IsModelIndexValid       ( CGhoul2Array_t *ghlInfo, const
 // g2_surfaces.c
 //
 
-int                 G2_IsSurfaceLegal           ( model_t *mod, const char *surfaceName, int *flags );
+int                 G2_IsSurfaceLegal           ( const model_t *mod, const char *surfaceName, int *flags );
 
 #endif // __G2_LOCAL_H

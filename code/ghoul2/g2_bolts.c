@@ -75,7 +75,6 @@ int G2_AddBolt(CGhoul2Model_t *ghlInfo, const char *boneName)
 {
     boltInfo_t          **boltList;
     boltInfo_t          *newBolt;
-    surfaceInfo_t       *surfaceList;
     mdxaSkelOffsets_t   *offsets;
     mdxaSkel_t          *skel;
     int                 surfNum, boneNum;
@@ -84,7 +83,6 @@ int G2_AddBolt(CGhoul2Model_t *ghlInfo, const char *boneName)
     int                 newIndex;
 
     boltList = ghlInfo->mBoltList;
-    surfaceList = ghlInfo->mSurfaceList;
 
     //
     // First up, we'll search for that which this bolt names in all the surfaces.

@@ -36,7 +36,7 @@ Returns the surface index if valid,
 ==================
 */
 
-int G2_IsSurfaceLegal(model_t *mod, const char *surfaceName, int *flags)
+int G2_IsSurfaceLegal(const model_t *mod, const char *surfaceName, int *flags)
 {
     mdxmSurfHierarchy_t *surf;
     mdxmHeader_t        *mdxmHeader;
