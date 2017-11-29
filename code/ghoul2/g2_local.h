@@ -111,6 +111,7 @@ int                 G2_AddBolt                  ( CGhoul2Model_t *ghlInfo, const
 
 qboolean            G2_SetupModelPointers       ( CGhoul2Model_t *ghlInfo );
 CGhoul2Model_t      *G2_IsModelIndexValid       ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *caller );
+void                G2_GenerateWorldMatrix      ( mdxaBone_t *worldMatrix, mdxaBone_t *worldMatrixInv, const vec3_t angles, const vec3_t origin );
 
 //
 // g2_surfaces.c

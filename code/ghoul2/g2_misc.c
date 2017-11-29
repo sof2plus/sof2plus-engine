@@ -165,3 +165,95 @@ CGhoul2Model_t *G2_IsModelIndexValid(CGhoul2Array_t *ghlInfo, const int modelInd
     // All valid.
     return model;
 }
+
+/*
+==================
+G2_CreateMatrix
+
+Create a matrix using a
+set of angles.
+==================
+*/
+
+static void G2_CreateMatrix(mdxaBone_t *matrix, const float *angle)
+{
+    matrix3_t   axis;
+
+    // Convert angles to axis.
+    AnglesToAxis(angle, axis);
+    matrix->matrix[0][0] = axis[0][0];
+    matrix->matrix[1][0] = axis[0][1];
+    matrix->matrix[2][0] = axis[0][2];
+
+    matrix->matrix[0][1] = axis[1][0];
+    matrix->matrix[1][1] = axis[1][1];
+    matrix->matrix[2][1] = axis[1][2];
+
+    matrix->matrix[0][2] = axis[2][0];
+    matrix->matrix[1][2] = axis[2][1];
+    matrix->matrix[2][2] = axis[2][2];
+
+    matrix->matrix[0][3] = 0;
+    matrix->matrix[1][3] = 0;
+    matrix->matrix[2][3] = 0;
+}
+
+/*
+==================
+G2_InverseMatrix
+
+Given a matrix, generate the
+inverse of that matrix.
+==================
+*/
+
+static void G2_InverseMatrix(mdxaBone_t *src, mdxaBone_t *dest)
+{
+    int i, j;
+
+    for(i = 0; i < 3; i++){
+        for(j = 0; j < 3; j++){
+            dest->matrix[i][j]=src->matrix[j][i];
+        }
+    }
+
+    for(i = 0; i < 3; i++){
+        dest->matrix[i][3] = 0;
+        for(j = 0; j < 3; j++){
+            dest->matrix[i][3] -= dest->matrix[i][j] * src->matrix[j][3];
+        }
+    }
+}
+
+/*
+==================
+G2_GenerateWorldMatrix
+
+Generate the world matrix for a
+given set of angles and origin.
+==================
+*/
+
+void G2_GenerateWorldMatrix(mdxaBone_t *worldMatrix, mdxaBone_t *worldMatrixInv, const vec3_t angles, const vec3_t origin)
+{
+    // Check if the supplied pointers are valid.
+    if(!worldMatrix){
+        Com_Printf(S_COLOR_RED "G2_GenerateWorldMatrix: worldMatrix pointer is NULL.\n");
+        return;
+    }
+    if(!worldMatrixInv){
+        Com_Printf(S_COLOR_RED "G2_GenerateWorldMatrix: worldMatrixInv pointer is NULL.\n");
+        return;
+    }
+
+    // Create the initial matrix.
+    G2_CreateMatrix(worldMatrix, angles);
+
+    // Update the world matrix with the supplied origin.
+    worldMatrix->matrix[0][3] = origin[0];
+    worldMatrix->matrix[1][3] = origin[1];
+    worldMatrix->matrix[2][3] = origin[2];
+
+    // Generate the inverse of the world matrix.
+    G2_InverseMatrix(worldMatrix, worldMatrixInv);
+}
