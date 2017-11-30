@@ -266,3 +266,43 @@ int G2_AddBolt(CGhoul2Model_t *ghlInfo, const char *boneName)
 
     return newIndex;
 }
+
+/*
+==================
+G2_IsBoltIndexValid
+
+Checks whether the specified bolt index
+is valid in the bolt list
+in our Ghoul II model.
+
+Returns qtrue if valid.
+==================
+*/
+
+qboolean G2_IsBoltIndexValid(CGhoul2Model_t *ghlInfo, const int boltIndex, const char *caller)
+{
+    if(!ghlInfo){
+        Com_Printf(S_COLOR_RED "%s/G2_IsBoltIndexValid: ghlInfo pointer is NULL.\n", caller);
+        return qfalse;
+    }
+
+    if(ghlInfo->numBolts == 0){
+        Com_Printf(S_COLOR_RED "%s/G2_IsBoltIndexValid: No bolts present in Ghoul II model.\n", caller);
+        return qfalse;
+    }
+
+    if(boltIndex < 0 || boltIndex >= G2_MAX_BOLTS_IN_LIST){
+        Com_Printf(S_COLOR_RED "%s/G2_IsBoltIndexValid: Bolt slot %d is out of bounds (Ghoul II model can hold %d bolt(s)).\n",
+            caller, boltIndex, G2_MAX_BOLTS_IN_LIST);
+        return qfalse;
+    }
+
+    if(ghlInfo->mBoltList[boltIndex] == NULL
+        || (ghlInfo->mBoltList[boltIndex]->boneNumber == -1 && ghlInfo->mBoltList[boltIndex]->surfaceNumber == -1)){
+        Com_Printf(S_COLOR_RED "%s/G2_IsBoltIndexValid: Bolt slot %d is not in use.\n", caller, boltIndex);
+        return qfalse;
+    }
+
+    // All valid.
+    return qtrue;
+}

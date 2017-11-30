@@ -97,6 +97,12 @@ struct CGhoul2Array_s {
 void                G2API_ListBones             ( CGhoul2Array_t *ghlInfo, int modelIndex );
 void                G2API_ListSurfaces          ( CGhoul2Array_t *ghlInfo, int modelIndex );
 qboolean            G2API_HaveWeGhoul2Models    ( CGhoul2Array_t *ghlInfo );
+
+qboolean            G2API_GetBoltMatrix         ( CGhoul2Array_t *ghlInfo, const int modelIndex, const int boltIndex, mdxaBone_t *matrix, const vec3_t angles,
+                                                  const vec3_t position, const int frameNum, qhandle_t *modelList, vec3_t scale);
+int                 G2API_InitGhoul2Model       ( CGhoul2Array_t **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin,
+                                                  qhandle_t customShader, int modelFlags, int lodBias);
+
 int                 G2API_AddBolt               ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName );
 
 //
@@ -104,6 +110,7 @@ int                 G2API_AddBolt               ( CGhoul2Array_t *ghlInfo, const
 //
 
 int                 G2_AddBolt                  ( CGhoul2Model_t *ghlInfo, const char *boneName );
+qboolean            G2_IsBoltIndexValid         ( CGhoul2Model_t *ghlInfo, const int boltIndex, const char *caller );
 
 //
 // g2_misc.c
@@ -111,7 +118,11 @@ int                 G2_AddBolt                  ( CGhoul2Model_t *ghlInfo, const
 
 qboolean            G2_SetupModelPointers       ( CGhoul2Model_t *ghlInfo );
 CGhoul2Model_t      *G2_IsModelIndexValid       ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *caller );
+
 void                G2_GenerateWorldMatrix      ( mdxaBone_t *worldMatrix, mdxaBone_t *worldMatrixInv, const vec3_t angles, const vec3_t origin );
+
+void                G2_SetTime                  ( int currentTime );
+int                 G2_GetTime                  ( void );
 
 //
 // g2_surfaces.c

@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../game/bg_public.h"
 #include "../qcommon/genericparser2.h"
 #include "../rd-dedicated/tr_local.h"
+#include "../ghoul2/g2_local.h" // FIXME BOE
 
 //=============================================================================
 

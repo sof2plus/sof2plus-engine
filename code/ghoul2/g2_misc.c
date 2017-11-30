@@ -166,6 +166,10 @@ CGhoul2Model_t *G2_IsModelIndexValid(CGhoul2Array_t *ghlInfo, const int modelInd
     return model;
 }
 
+//=============================================
+// Ghoul II matrix routines.
+//=============================================
+
 /*
 ==================
 G2_CreateMatrix
@@ -256,4 +260,38 @@ void G2_GenerateWorldMatrix(mdxaBone_t *worldMatrix, mdxaBone_t *worldMatrixInv,
 
     // Generate the inverse of the world matrix.
     G2_InverseMatrix(worldMatrix, worldMatrixInv);
+}
+
+//=============================================
+// Ghoul II time routines.
+//=============================================
+
+static int G2Time;
+
+/*
+==================
+G2_SetTime
+
+Stores a copy of the server time for
+use inside the Ghoul II routines.
+==================
+*/
+
+void G2_SetTime(int currentTime)
+{
+    G2Time = currentTime;
+}
+
+/*
+==================
+G2_GetTime
+
+Retrieves a copy of
+the server time.
+==================
+*/
+
+int G2_GetTime()
+{
+    return G2Time;
 }

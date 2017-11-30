@@ -495,6 +495,9 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
         }
     }
 
+    // set Ghoul II time based off the current server time
+    G2_SetTime(sv.time);
+
     // wipe the entire per-level structure
     SV_ClearServer();
     for ( i = 0 ; i < MAX_CONFIGSTRINGS ; i++ ) {
@@ -540,11 +543,13 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
     // run a few frames to allow everything to settle
     for (i = 0;i < 3; i++)
     {
+        G2_SetTime(sv.time);
         VM_Call (gvm, GAME_RUN_FRAME, sv.time);
         SV_BotFrame (sv.time);
         sv.time += 100;
         svs.time += 100;
     }
+    G2_SetTime(sv.time);
 
     // create a baseline for more efficient communications
     SV_CreateBaseline ();
@@ -601,6 +606,7 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
     SV_BotFrame (sv.time);
     sv.time += 100;
     svs.time += 100;
+    G2_SetTime(sv.time);
 
     if ( sv_pure->integer ) {
         // the server sends these to the clients so they will only
