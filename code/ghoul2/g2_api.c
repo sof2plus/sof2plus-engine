@@ -197,28 +197,6 @@ qboolean G2API_HaveWeGhoul2Models(CGhoul2Array_t *ghlInfo)
 
 /*
 ==================
-G2API_AddBolt
-
-Adds a bone or surface to the bolt list.
-==================
-*/
-
-int G2API_AddBolt(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName)
-{
-    CGhoul2Model_t      *model;
-
-    // Check whether the specified model is valid.
-    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_AddBolt");
-    if(!model){
-        return -1;
-    }
-
-    // Add the bolt, return the result.
-    return G2_AddBolt(model, boneName);
-}
-
-/*
-==================
 G2API_InitGhoul2Model
 
 Initialize all that needs to be on a new Ghoul II model.
@@ -257,13 +235,11 @@ int G2API_InitGhoul2Model(CGhoul2Array_t **ghoul2Ptr, const char *fileName, int 
         // FIXME BOE
         /*
         G2_Init_Bone_List(ghoul2[model].mBlist, ghoul2[model].aHeader->numBones);
-        G2_Init_Bolt_List(ghoul2[model].mBltlist);
         ghoul2->mCustomShader = customShader;
         ghoul2->mCustomSkin = customSkin;
         ghoul2->mLodBias = lodBias;
         ghoul2->mAnimFrameDefault = 0;
         ghoul2->mFlags = 0;
-        ghoul2->mModelBoltLink = -1;
         */
     }
 

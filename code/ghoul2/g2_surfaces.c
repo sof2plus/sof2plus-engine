@@ -36,13 +36,17 @@ Returns the surface index if valid,
 ==================
 */
 
-int G2_IsSurfaceLegal(const model_t *mod, const char *surfaceName, int *flags)
+int G2_IsSurfaceLegal(const model_t *model, const char *surfaceName, int *flags)
 {
     mdxmSurfHierarchy_t *surf;
     mdxmHeader_t        *mdxmHeader;
     int                 i;
 
-    mdxmHeader = mod->modelData;
+    if(!model){
+        Com_Printf(S_COLOR_RED "G2_IsSurfaceLegal: model pointer is NULL.\n");
+    }
+
+    mdxmHeader = model->modelData;
     surf = (mdxmSurfHierarchy_t *) ( (byte *)mdxmHeader + mdxmHeader->ofsSurfHierarchy );
 
     // Iterate through the surfaces of this model.
@@ -59,4 +63,61 @@ int G2_IsSurfaceLegal(const model_t *mod, const char *surfaceName, int *flags)
 
     // The surface wasn't found.
     return -1;
+}
+
+/*
+==================
+G2_FindSurfaceFromModel
+
+Finds the requested surface
+from the supplied model.
+
+Returns a pointer to the
+mdxm surface structure
+or NULL upon failure.
+==================
+*/
+
+mdxmSurface_t *G2_FindSurfaceFromModel(const model_t *model, int surfaceIndex, int lod)
+{
+    int                 i;
+    mdxmLOD_t           *lodData;
+    mdxmHeader_t        *mdxmHeader;
+    mdxmLODSurfOffset_t *indexes;
+
+    if(!model){
+        Com_Printf(S_COLOR_RED "G2_FindSurfaceFromModel: model pointer is NULL.\n");
+        return NULL;
+    }
+
+    if(lod < 0 || lod > model->numLods){
+        Com_Printf(S_COLOR_RED "G2_FindSurfaceFromModel: LOD %d is out of bounds (model has %d LODs).\n", lod, model->numLods);
+        return NULL;
+    }
+
+    mdxmHeader = model->modelData;
+    if(surfaceIndex < 0 || surfaceIndex > mdxmHeader->numSurfaces){
+        Com_Printf(S_COLOR_RED "G2_FindSurfaceFromModel: Surface %d is out of bounds (model has %d surfaces).\n", surfaceIndex, mdxmHeader->numSurfaces);
+        return NULL;
+    }
+
+    // First, point at the first LOD list.
+    lodData = (mdxmLOD_t *)((byte *)mdxmHeader + mdxmHeader->ofsLODs);
+
+    // Walk the LOD's.
+    for(i = 0; i < lod; i++){
+        lodData = (mdxmLOD_t *)((byte *)lodData + lodData->ofsEnd);
+    }
+
+    // Avoid the LOD pointer data structure.
+    lodData += sizeof(mdxmLOD_t);
+
+    // Determine indexes.
+    indexes = (mdxmLODSurfOffset_t *)lodData;
+
+    // We are now looking at the offset array.
+    lodData += indexes->offsets[surfaceIndex];
+
+    // We can now return the surface info.
+    return (mdxmSurface_t *)lodData;
 }
