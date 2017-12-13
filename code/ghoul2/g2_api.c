@@ -249,3 +249,57 @@ int G2API_InitGhoul2Model(CGhoul2Array_t **ghoul2Ptr, const char *fileName, int 
 
     return ghoul2->mModelIndex;
 }
+
+/*
+==================
+G2API_SetBoneAngles
+
+Given a model handle and a bone name, set
+the angles specifically for overriding.
+==================
+*/
+
+qboolean G2API_SetBoneAngles(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const vec3_t angles, const int flags,
+                             const Eorientations up, const Eorientations left, const Eorientations forward,
+                             int blendTime, int currentTime)
+{
+    CGhoul2Model_t      *model;
+    model_t             *modAnim;
+    int                 boneIndex;
+
+    //
+    // Check whether the specified model is valid.
+    //
+    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_SetBoneAngles");
+    if(!model){
+        return qfalse;
+    }
+
+    // Get the Ghoul II animation model from the specified model.
+    modAnim = model->animModel;
+
+    // Find the bone inside Ghoul II animation model.
+    boneIndex = G2_IsBoneInList(modAnim, model->mBoneList, model->numBones, -1, boneName);
+
+    // Did we find it?
+    if(boneIndex == -1){
+        // No, we didn't. Let's try to add this bone in.
+        boneIndex = G2_AddBone(modAnim, model->mBoneList, &model->numBones, boneName);
+
+        // If we couldn't add this bone, don't bother setting angles and flags.
+        if(boneIndex == -1){
+            return qfalse;
+        }
+    }
+
+    // Found or created, set the angles and flags correctly.
+    model->mBoneList[boneIndex]->flags &= ~(BONE_ANGLES_TOTAL);
+    model->mBoneList[boneIndex]->flags |= flags;
+    model->mBoneList[boneIndex]->boneBlendStart = currentTime;
+    model->mBoneList[boneIndex]->boneBlendTime = blendTime;
+
+    // Generate the end matrix.
+    G2_BoneGenerateMatrix(modAnim, model->mBoneList, boneIndex, angles, flags, up, left, forward);
+
+    return qtrue;
+}

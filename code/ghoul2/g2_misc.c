@@ -179,7 +179,7 @@ set of angles.
 ==================
 */
 
-static void G2_CreateMatrix(mdxaBone_t *matrix, const float *angle)
+void G2_CreateMatrix(mdxaBone_t *matrix, const float *angle)
 {
     matrix3_t   axis;
 
