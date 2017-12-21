@@ -25,10 +25,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #ifndef __G2_LOCAL_H
 #define __G2_LOCAL_H
 
+#include "g2.h"
 #include "../rd-dedicated/tr_local.h"
 
 #define     G2_VERT_SPACE_SIZE              256
-#define     G2_MAX_MODELS_IN_LIST           1024
+#define     G2_MAX_MODELS_IN_LIST           256
 #define     G2_MAX_SURFACES_IN_LIST         256
 #define     G2_MAX_BONES_IN_LIST            256
 
@@ -53,10 +54,6 @@ struct surfaceInfo_s {
 };
 
 struct boneInfo_s {
-
-};
-
-struct boneInfo_s {
     int                 boneNumber;                 // what bone are we overriding?
     mdxaBone_t          matrix;                     // details of bone angle overrides - some are pre-done on the server, some in ghoul2
 
@@ -69,12 +66,8 @@ struct boneInfo_s {
     float               animSpeed;                  // speed at which this anim runs. 1.0f means full speed of animation incoming - i.e. if anim is 20hrtz, we run at 20hrts
     float               blendFrame;                 // frame PLUS LERP value to blend from
     int                 flags;                      // flags for override
-    int                 blendLerpFrame;             // frame to lerp the blend frame with
-    int                 blendTime;                  // duration time for blending - used to calc amount each frame of new anim is blended with last frame of the last anim
-    int                 blendStart;                 // time when blending starts - not necessarily the same as startTime since we might start half way through an anim
-    int                 boneBlendTime;              // time for duration of bone angle blend with normal animation
-    int                 boneBlendStart;             // time bone angle blend with normal animation began
 
+    int                 lastTime;                   // this does not go across the network
     mdxaBone_t          newMatrix;                  // this is the lerped matrix that Ghoul2 uses - does not go across the network
 };
 
@@ -127,11 +120,13 @@ qboolean                G2API_SetBoneAngles         ( CGhoul2Array_t *ghlInfo, c
 extern mdxaBone_t       identityMatrix;
 
 int                     G2_FindBoneInModel          ( const model_t *modAnim, const char *boneName );
-int                     G2_IsBoneInList             ( const model_t *modAnim, const boneInfo_t **boneList, const int numBones, int boneNumber, const char *boneName );
+int                     G2_IsBoneInList             ( const model_t *modAnim, boneInfo_t **boneList, const int numBones, int boneNumber, const char *boneName );
 int                     G2_AddBone                  ( const model_t *modAnim, boneInfo_t **boneList, int *numBones, const char *boneName );
 
 void                    G2_BoneGenerateMatrix       ( const model_t *modAnim, boneInfo_t **boneList, int boneIndex, const float *angles, int flags,
                                                       const Eorientations up, const Eorientations left, const Eorientations forward );
+void                    G2_Multiply_3x4Matrix       ( mdxaBone_t *out, mdxaBone_t *in2, mdxaBone_t *in );
+
 //
 // g2_misc.c
 //

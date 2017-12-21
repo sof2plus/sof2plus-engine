@@ -264,7 +264,7 @@ qboolean G2API_SetBoneAngles(CGhoul2Array_t *ghlInfo, const int modelIndex, cons
                              int blendTime, int currentTime)
 {
     CGhoul2Model_t      *model;
-    model_t             *modAnim;
+    const model_t       *modAnim;
     int                 boneIndex;
 
     //
@@ -295,11 +295,140 @@ qboolean G2API_SetBoneAngles(CGhoul2Array_t *ghlInfo, const int modelIndex, cons
     // Found or created, set the angles and flags correctly.
     model->mBoneList[boneIndex]->flags &= ~(BONE_ANGLES_TOTAL);
     model->mBoneList[boneIndex]->flags |= flags;
-    model->mBoneList[boneIndex]->boneBlendStart = currentTime;
-    model->mBoneList[boneIndex]->boneBlendTime = blendTime;
 
     // Generate the end matrix.
     G2_BoneGenerateMatrix(modAnim, model->mBoneList, boneIndex, angles, flags, up, left, forward);
 
     return qtrue;
+}
+
+/*
+==================
+G2API_SetBoneAnim
+
+Set up or modify an existing bone entry
+for a new set of animations.
+==================
+*/
+
+qboolean G2API_SetBoneAnim(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const int AstartFrame, const int AendFrame,
+                           const int flags, const float animSpeed, const int currentTime, const float AsetFrame)
+{
+    CGhoul2Model_t  *model;
+    const model_t   *modAnim;
+    int             startFrame, endFrame;
+    float           setFrame;
+    int             boneNumber, boneIndex;
+
+    startFrame = AstartFrame;
+    endFrame = AendFrame;
+    setFrame = AsetFrame;
+
+    //
+    // Check whether the specified model is valid.
+    //
+    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_SetBoneAnim");
+    if(!model){
+        return qfalse;
+    }
+
+    //
+    // Check if frame counts are out of bounds.
+    //
+    if(startFrame < 0 || startFrame >= 100000){
+        startFrame = 0;
+    }
+
+    if(endFrame <= 0 || endFrame >= 100000){
+        endFrame = 1;
+    }
+
+    if((setFrame < 0.0f && setFrame != -1.0f)
+        || setFrame > 100000.0f)
+    {
+        setFrame = 0.0f;
+    }
+
+    //
+    // Find the bone in the bone list.
+    //
+
+    // Get the Ghoul II animation model from the specified model.
+    modAnim = model->animModel;
+
+    // Get the bone number we need.
+    boneNumber = G2_FindBoneInModel(modAnim, boneName);
+
+    // Is the bone present in our bone list?
+    boneIndex = G2_IsBoneInList(modAnim, model->mBoneList, model->numBones, boneNumber, boneName);
+    if(boneIndex == -1){
+        // No, it is not. Add it to the bone list.
+        boneIndex = G2_AddBone(modAnim, model->mBoneList, &model->numBones, boneName);
+
+        // Is the bone added to the bone list?
+        if(boneIndex == -1){
+            Com_Printf(S_COLOR_RED "G2API_SetBoneAnim: Failed to add bone %d to the specified Ghoul II model.\n", boneNumber);
+            return qfalse;
+        }
+    }
+
+    //
+    // Set the anim data and flags.
+    //
+    model->mBoneList[boneIndex]->startFrame = startFrame;
+    model->mBoneList[boneIndex]->endFrame = endFrame;
+    model->mBoneList[boneIndex]->animSpeed = animSpeed;
+    model->mBoneList[boneIndex]->pauseTime = 0;
+
+    model->mBoneList[boneIndex]->flags &= ~(BONE_ANIM_TOTAL);
+    if(model->mBoneList[boneIndex]->flags < 0){
+        model->mBoneList[boneIndex]->flags = 0;
+    }
+    model->mBoneList[boneIndex]->flags |= flags;
+
+    //
+    // Start the animation.
+    //
+    if(setFrame != -1){
+        model->mBoneList[boneIndex]->lastTime = model->mBoneList[boneIndex]->startTime = (currentTime - (((setFrame - (float)startFrame) * 50.0) / animSpeed));
+    }else{
+        model->mBoneList[boneIndex]->lastTime = model->mBoneList[boneIndex]->startTime = currentTime;
+    }
+
+    return qtrue;
+}
+
+/*
+==================
+G2API_GetGLAName
+
+Gets the name of the Ghoul II
+animation file associated with
+the specified model from the
+Ghoul II array.
+==================
+*/
+
+char *G2API_GetGLAName(CGhoul2Array_t *ghlInfo, int modelIndex)
+{
+    CGhoul2Model_t  *model;
+    mdxmHeader_t    *mdxmHeader;
+
+    //
+    // Check whether the specified model is valid.
+    //
+    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_SetBoneAnim");
+    if(!model){
+        return NULL;
+    }
+
+    //
+    // Get the Ghoul II animation file name.
+    //
+
+    // First, get the Ghoul II mesh file header.
+    mdxmHeader = model->currentModel->modelData;
+
+    // Now return the animation file name from the loaded header.
+    return mdxmHeader->animName;
 }

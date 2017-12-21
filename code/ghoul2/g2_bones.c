@@ -102,7 +102,7 @@ int G2_FindBoneInModel(const model_t *modAnim, const char *boneName)
     // Get the Ghoul II animation file header.
     mdxaHeader = (mdxaHeader_t *)modAnim->modelData;
 
-    // Determine the offsets in the supplemented Ghoul II animation file.
+    // Determine the offsets in the supplied Ghoul II animation file.
     offsets = (mdxaSkelOffsets_t *)((byte *)modAnim->modelData + sizeof(mdxaHeader_t));
 
     // Walk the entire list of bones in the Ghoul II animation file.
@@ -125,13 +125,13 @@ int G2_FindBoneInModel(const model_t *modAnim, const char *boneName)
 ==============
 G2_IsBoneInList
 
-Checks if the bone from the supplemented model
+Checks if the bone from the supplied model
 is already present in our bone list.
 
 If the bone number from the file is already known,
 the boneNumber parameter must be > -1.
 Otherwise the bone number will be determined
-from the supplemented bone name.
+from the supplied bone name.
 
 If the bone is found, this function returns
 the index of this bone in the bone list.
@@ -139,7 +139,7 @@ If not, -1 is returned.
 ==============
 */
 
-int G2_IsBoneInList(const model_t *modAnim, const boneInfo_t **boneList, const int numBones, int boneNumber, const char *boneName)
+int G2_IsBoneInList(const model_t *modAnim, boneInfo_t **boneList, const int numBones, int boneNumber, const char *boneName)
 {
 
     int i, numValid;
@@ -242,7 +242,7 @@ Bone matrix functions
 G2_BoneGenerateMatrix
 
 Generate a matrix for a given bone
-using the supplemented new angles.
+using the supplied new angles.
 ==============
 */
 
