@@ -218,7 +218,7 @@ int AAS_Swimming(vec3_t origin)
 
     VectorCopy(origin, testorg);
     testorg[2] -= 2;
-    if (AAS_PointContents(testorg) & (CONTENTS_LAVA|CONTENTS_SLIME|CONTENTS_WATER)) return qtrue;
+    if (AAS_PointContents(testorg) & (CONTENTS_LAVA|CONTENTS_WATER)) return qtrue;
     return qfalse;
 } //end of the function AAS_Swimming
 //===========================================================================
@@ -875,7 +875,6 @@ int AAS_ClientMovementPrediction(struct aas_clientmove_s *move,
             //get event from pc
             event = SE_NONE;
             if (pc & CONTENTS_LAVA) event |= SE_ENTERLAVA;
-            if (pc & CONTENTS_SLIME) event |= SE_ENTERSLIME;
             if (pc & CONTENTS_WATER) event |= SE_ENTERWATER;
             //
             areanum = AAS_PointAreaNum(org);

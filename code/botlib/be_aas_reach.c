@@ -869,7 +869,7 @@ int AAS_Reachability_Swim(int area1num, int area2num)
             {
                 AAS_FaceCenter(face1num, start);
                 //
-                if (AAS_PointContents(start) & (CONTENTS_LAVA|CONTENTS_SLIME|CONTENTS_WATER))
+                if (AAS_PointContents(start) & (CONTENTS_LAVA|CONTENTS_WATER))
                 {
                     //
                     face1 = &aasworld.faces[face1num];
@@ -2229,8 +2229,8 @@ int AAS_Reachability_Jump(int area1num, int area2num)
             // if the bot can stand on the surface
             if (DotProduct(plane->normal, up) >= 0.7)
             {
-                // if no lava or slime below
-                if (!(AAS_PointContents(trace.endpos) & (CONTENTS_LAVA|CONTENTS_SLIME)))
+                // if no lava below
+                if (!(AAS_PointContents(trace.endpos) & CONTENTS_LAVA))
                 {
                     if (teststart[2] - trace.endpos[2] <= aassettings.phys_maxbarrier)
                         return qfalse;
@@ -2252,8 +2252,8 @@ int AAS_Reachability_Jump(int area1num, int area2num)
             // if the bot can stand on the surface
             if (DotProduct(plane->normal, up) >= 0.7)
             {
-                // if no lava or slime below
-                if (!(AAS_PointContents(trace.endpos) & (CONTENTS_LAVA|CONTENTS_SLIME)))
+                // if no lava below
+                if (!(AAS_PointContents(trace.endpos) & CONTENTS_LAVA))
                 {
                     if (teststart[2] - trace.endpos[2] <= aassettings.phys_maxbarrier)
                         return qfalse;
@@ -3817,7 +3817,7 @@ int AAS_Reachability_Grapple(int area1num, int area2num)
     } //end if
     else
     {
-        if (!(AAS_PointContents(start) & (CONTENTS_LAVA|CONTENTS_SLIME|CONTENTS_WATER))) return qfalse;
+        if (!(AAS_PointContents(start) & (CONTENTS_LAVA|CONTENTS_WATER))) return qfalse;
     } //end else
     //
     //start is now the start point
@@ -3876,7 +3876,7 @@ int AAS_Reachability_Grapple(int area1num, int area2num)
         //area to end in
         areanum = AAS_PointAreaNum(trace.endpos);
         //if not in lava or slime
-        if (aasworld.areasettings[areanum].contents & (AREACONTENTS_SLIME|AREACONTENTS_LAVA))
+        if (aasworld.areasettings[areanum].contents & AREACONTENTS_LAVA)
         {
             continue;
         } //end if

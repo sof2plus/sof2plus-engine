@@ -1349,12 +1349,13 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, vec3_t mi
         }
     }
 
-        // If allsolid is set (was entirely inside something solid), the plane is not valid.
-        // If fraction == 1.0, we never hit anything, and thus the plane is not valid.
-        // Otherwise, the normal on the plane should have unit length
-        assert(tw.trace.allsolid ||
-               tw.trace.fraction == 1.0 ||
-               VectorLengthSquared(tw.trace.plane.normal) > 0.9999);
+    // If allsolid is set (was entirely inside something solid), the plane is not valid.
+    // If fraction == 1.0, we never hit anything, and thus the plane is not valid.
+    // Otherwise, the normal on the plane should have unit length
+    assert(tw.trace.allsolid ||
+           tw.trace.fraction == 1.0 ||
+           VectorLengthSquared(tw.trace.plane.normal) > 0.9999);
+
     *results = tw.trace;
 }
 
