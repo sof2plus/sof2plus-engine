@@ -290,6 +290,42 @@ void G2_Multiply_3x4Matrix(mdxaBone_t *out, mdxaBone_t *in2, mdxaBone_t *in)
     out->matrix[2][3] = (in2->matrix[2][0] * in->matrix[0][3]) + (in2->matrix[2][1] * in->matrix[1][3]) + (in2->matrix[2][2] * in->matrix[2][3]) + in2->matrix[2][3];
 }
 
+/*
+==================
+G2_TransformPoint
+
+Transforms the ray to
+model space.
+==================
+*/
+
+void G2_TransformPoint(const vec3_t in, vec3_t out, mdxaBone_t *mat)
+{
+    int i;
+
+    for(i = 0; i < 3; i++){
+        out[i] = in[0] * mat->matrix[i][0] + in[1] * mat->matrix[i][1] + in[2] * mat->matrix[i][2];
+    }
+}
+
+/*
+==================
+G2_TransformTranslatePoint
+
+Transforms and translates
+the ray to model space.
+==================
+*/
+
+void G2_TransformTranslatePoint(const vec3_t in, vec3_t out, mdxaBone_t *mat)
+{
+    int i;
+
+    for(i = 0; i < 3; i++){
+        out[i] = in[0] * mat->matrix[i][0] + in[1] * mat->matrix[i][1] + in[2] * mat->matrix[i][2] + mat->matrix[i][3];
+    }
+}
+
 //=============================================
 // Ghoul II time routines.
 //=============================================

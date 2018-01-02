@@ -29,9 +29,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define BONE_ANGLES_POSTMULT        0x0002
 #define BONE_ANGLES_REPLACE         0x0004
 #define BONE_ANGLES_REPLACE_TO_ANIM 0x0400
-#define BONE_ANGLES_RAGDOLL         0x0800
 
-#define BONE_ANGLES_TOTAL           (BONE_ANGLES_RAGDOLL | BONE_ANGLES_PREMULT | BONE_ANGLES_POSTMULT | BONE_ANGLES_REPLACE | BONE_ANGLES_REPLACE_TO_ANIM )
+#define BONE_ANGLES_TOTAL           ( BONE_ANGLES_PREMULT | BONE_ANGLES_POSTMULT | BONE_ANGLES_REPLACE | BONE_ANGLES_REPLACE_TO_ANIM )
 #define BONE_ANIM_OVERRIDE          0x0008
 #define BONE_ANIM_OVERRIDE_LOOP     0x0010
 #define BONE_ANIM_OVERRIDE_DEFAULT  ( 0x0020 + BONE_ANIM_OVERRIDE )
@@ -42,11 +41,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // defines to setup the
 #define     ENTITY_WIDTH 12
 #define     MODEL_WIDTH 10
- 
+
 #define     MODEL_AND   ((1<<MODEL_WIDTH)-1)
 #define     ENTITY_AND  ((1<<ENTITY_WIDTH)-1)
 
 #define     BOLT_SHIFT  0
 #define     ENTITY_SHIFT (MODEL_SHIFT + MODEL_WIDTH)
+
+//
+// Collision detection definitions.
+//
+
+// FIXME BOE
+#define     G2_BACKFACE     0
+#define     G2_FRONTFACE    1
+
+// Calling defines for the trace function.
+typedef enum {
+    G2_NOCOLLIDE,
+    G2_COLLIDE,
+    G2_RETURNONHIT
+} EG2_Collision;
 
 #endif // __G2_H

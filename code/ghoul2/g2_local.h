@@ -36,6 +36,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 typedef     struct      surfaceInfo_s       surfaceInfo_t;
 typedef     struct      boneInfo_s          boneInfo_t;
 
+typedef     struct      CBoneCalc_s         CBoneCalc_t;
+typedef     struct      CTransformBone_s    CTransformBone_t;
+typedef     struct      CBoneCache_s        CBoneCache_t;
+typedef     struct      CTraceSurface_s     CTraceSurface_t;
 typedef     struct      CGhoul2Model_s      CGhoul2Model_t;
 typedef     struct      CGhoul2Array_s      CGhoul2Array_t;
 
@@ -71,6 +75,51 @@ struct boneInfo_s {
     mdxaBone_t          newMatrix;                  // this is the lerped matrix that Ghoul2 uses - does not go across the network
 };
 
+struct CBoneCalc_s {
+    int                 newFrame;
+    int                 currentFrame;
+    float               backlerp;
+    float               blendFrame;
+    int                 blendOldFrame;
+    qboolean            blendMode;
+    float               blendLerp;
+};
+
+struct CTransformBone_s {
+    int                 touch;                      // for minimal recalculation
+    int                 touchRender;
+    mdxaBone_t          boneMatrix;                 // final matrix
+    int                 parent;                     // only set once
+};
+
+struct CBoneCache_s {
+    void                *mBones;
+    void                *mFinalBones;
+    int                 numBones;
+
+    CGhoul2Model_t      *parent;
+    mdxaBone_t          rootMatrix;
+    int                 incomingTime;
+
+    int                 mCurrentTouch;
+};
+
+struct CTraceSurface_s {
+    int                 surfaceNum;
+    const model_t       *currentModel;
+    int                 lod;
+    vec3_t              rayStart;
+    vec3_t              rayEnd;
+    mdxaBone_t          *worldMatrix;
+    CollisionRecord_t   *collRecMap;
+    int                 entNum;
+    skin_t              *skin;
+    size_t              *transformedVertsArray;
+    int                 traceFlags;
+
+    qboolean            stopRec;
+};
+
 struct CGhoul2Model_s {
     surfaceInfo_t       *mSurfaceList[G2_MAX_SURFACES_IN_LIST];
     boneInfo_t          *mBoneList[G2_MAX_BONES_IN_LIST];
@@ -83,12 +132,16 @@ struct CGhoul2Model_s {
     qhandle_t           mModel;
     char                mFileName[MAX_QPATH];
 
+    size_t              *mTransformedVertsArray;    // Used to create awn array of pointers to transformed verts per surface.
+
     qboolean            mValid;
     const model_t       *currentModel;
     int                 currentModelSize;
     const model_t       *animModel;
     int                 currentAnimModelSize;
     const mdxaHeader_t  *aHeader;
+
+    CBoneCache_t        *mBoneCache;
 };
 
 struct CGhoul2Array_s {
@@ -112,6 +165,13 @@ int                     G2API_InitGhoul2Model       ( CGhoul2Array_t **ghoul2Ptr
 qboolean                G2API_SetBoneAngles         ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const vec3_t angles, const int flags,
                                                       const Eorientations up, const Eorientations left, const Eorientations forward,
                                                       int blendTime, int currentTime );
+qboolean                G2API_SetBoneAnim           ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const int AstartFrame, const int AendFrame,
+                                                      const int flags, const float animSpeed, const int currentTime, const float AsetFrame );
+
+qboolean                G2API_GetGLAName            ( CGhoul2Array_t *ghlInfo, int modelIndex, char *dest, int destSize );
+
+void                    G2API_CollisionDetect       ( CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2, const vec3_t angles, const vec3_t position,
+                                                      int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod );
 
 //
 // g2_bones.c
@@ -123,9 +183,13 @@ int                     G2_FindBoneInModel          ( const model_t *modAnim, co
 int                     G2_IsBoneInList             ( const model_t *modAnim, boneInfo_t **boneList, const int numBones, int boneNumber, const char *boneName );
 int                     G2_AddBone                  ( const model_t *modAnim, boneInfo_t **boneList, int *numBones, const char *boneName );
 
+qboolean                G2_InitBoneCache            ( CGhoul2Model_t *model );
+mdxaBone_t              *G2_BoneEval                ( CBoneCache_t *mBoneCache, int boneIndex );
+
 void                    G2_BoneGenerateMatrix       ( const model_t *modAnim, boneInfo_t **boneList, int boneIndex, const float *angles, int flags,
                                                       const Eorientations up, const Eorientations left, const Eorientations forward );
-void                    G2_Multiply_3x4Matrix       ( mdxaBone_t *out, mdxaBone_t *in2, mdxaBone_t *in );
+
+void                    G2_ConstructGhoulSkeleton   ( CGhoul2Array_t *ghlInfo, const int frameNum );
 
 //
 // g2_misc.c
@@ -136,6 +200,9 @@ CGhoul2Model_t          *G2_IsModelIndexValid       ( CGhoul2Array_t *ghlInfo, c
 
 void                    G2_CreateMatrix             ( mdxaBone_t *matrix, const float *angle );
 void                    G2_GenerateWorldMatrix      ( mdxaBone_t *worldMatrix, mdxaBone_t *worldMatrixInv, const vec3_t angles, const vec3_t origin );
+void                    G2_Multiply_3x4Matrix       ( mdxaBone_t *out, mdxaBone_t *in2, mdxaBone_t *in );
+void                    G2_TransformPoint           ( const vec3_t in, vec3_t out, mdxaBone_t *mat );
+void                    G2_TransformTranslatePoint  ( const vec3_t in, vec3_t out, mdxaBone_t *mat );
 
 void                    G2_SetTime                  ( int currentTime );
 int                     G2_GetTime                  ( void );
@@ -145,5 +212,6 @@ int                     G2_GetTime                  ( void );
 //
 
 int                     G2_IsSurfaceLegal           ( const model_t *mod, const char *surfaceName, int *flags );
+mdxmSurface_t           *G2_FindSurfaceFromModel    ( const model_t *model, int surfaceIndex, int lod );
 
 #endif // __G2_LOCAL_H

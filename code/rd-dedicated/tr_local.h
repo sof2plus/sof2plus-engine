@@ -40,6 +40,10 @@ typedef struct {
 
 #define     FILE_HASH_SIZE                  1024
 #define     MAX_MOD_KNOWN                   1024
+#define     MAX_SKINS                       1024
+#define     MAX_SHADERS                     16
+#define     MAX_SKIN_SURFACES               128
+#define     MAX_SKIN_HITMAT_ENTRIES         1024
 
 typedef struct {
     int                     key;
@@ -76,6 +80,30 @@ typedef struct {
     int                     numLods;
 } model_t;
 
+typedef struct {
+    char                    name[MAX_QPATH];    // game path
+} shader_t;
+
+typedef struct {
+    char                    name[MAX_QPATH];
+    shader_t                *shader;
+} skinSurface_t;
+
+typedef struct {
+    byte                    *loc;
+    int                     width;
+    int                     height;
+    char                    name[MAX_QPATH];
+} skinHitMatReg_t;
+
+typedef struct {
+    char                    name[MAX_QPATH];
+
+    skinSurface_t           *surfaces[MAX_SKIN_SURFACES];
+    skinHitMatReg_t         *hitMagReg[MAX_SKIN_HITMAT_ENTRIES];
+    int                     numSurfaces;
+} skin_t;
+
 //=============================================
 
 /*
@@ -89,6 +117,12 @@ typedef struct {
 typedef struct {
     model_t                 *models[MAX_MOD_KNOWN];
     int                     numModels;
+
+    skin_t                  *skins[MAX_SKINS];
+    int                     numSkins;
+
+    shader_t                *shaders[MAX_SHADERS];
+    int                     numShaders;
 
     world_t                 bspModels[MAX_SUB_BSP];
     int                     numBSPModels;
@@ -119,5 +153,17 @@ void                R_ModelInit                     ( void );
 model_t             *R_GetModelByHandle             ( qhandle_t index );
 model_t             *R_AllocModel                   ( void );
 
+//
+// tr_shader.c
+//
+
+shader_t            *R_FindServerShader             ( const char *name );
+
+//
+// tr_skin.c
+//
+
+qhandle_t           RE_RegisterServerSkin           ( const char *name, int numPairs, const char *skinPairs );
+skin_t              *R_GetSkinByHandle              ( qhandle_t index );
 
 #endif // __TR_LOCAL_H

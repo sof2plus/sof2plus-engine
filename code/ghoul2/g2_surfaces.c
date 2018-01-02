@@ -110,13 +110,13 @@ mdxmSurface_t *G2_FindSurfaceFromModel(const model_t *model, int surfaceIndex, i
     }
 
     // Avoid the LOD pointer data structure.
-    lodData += sizeof(mdxmLOD_t);
+    lodData = (mdxmLOD_t *)((byte *)lodData + sizeof(mdxmLOD_t));
 
     // Determine indexes.
     indexes = (mdxmLODSurfOffset_t *)lodData;
 
     // We are now looking at the offset array.
-    lodData += indexes->offsets[surfaceIndex];
+    lodData = (mdxmLOD_t *)((byte *)lodData + indexes->offsets[surfaceIndex]);
 
     // We can now return the surface info.
     return (mdxmSurface_t *)lodData;

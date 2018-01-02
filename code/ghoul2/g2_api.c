@@ -228,7 +228,7 @@ int G2API_InitGhoul2Model(CGhoul2Array_t **ghoul2Ptr, const char *fileName, int 
     strncpy(ghoul2->mFileName, fileName, sizeof(ghoul2->mFileName));
     ghoul2->mModelIndex = 0;
 
-    if(!G2_SetupModelPointers(ghoul2)){
+    if(!G2_SetupModelPointers(ghoul2) || !G2_InitBoneCache(ghoul2)){
         ghoul2->mFileName[0] = 0;
         ghoul2->mModelIndex = -1;
     }else{
@@ -409,7 +409,7 @@ Ghoul II array.
 ==================
 */
 
-char *G2API_GetGLAName(CGhoul2Array_t *ghlInfo, int modelIndex)
+qboolean G2API_GetGLAName(CGhoul2Array_t *ghlInfo, int modelIndex, char *dest, int destSize)
 {
     CGhoul2Model_t  *model;
     mdxmHeader_t    *mdxmHeader;
@@ -419,7 +419,7 @@ char *G2API_GetGLAName(CGhoul2Array_t *ghlInfo, int modelIndex)
     //
     model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_SetBoneAnim");
     if(!model){
-        return NULL;
+        return qfalse;
     }
 
     //
@@ -429,6 +429,124 @@ char *G2API_GetGLAName(CGhoul2Array_t *ghlInfo, int modelIndex)
     // First, get the Ghoul II mesh file header.
     mdxmHeader = model->currentModel->modelData;
 
-    // Now return the animation file name from the loaded header.
-    return mdxmHeader->animName;
+    // Copy the animation file name from the loaded header
+    // to the destination buffer.
+    Q_strncpyz(dest, mdxmHeader->animName, destSize);
+
+    return qtrue;
+}
+
+/*
+==================
+G2API_CollisionDetect
+
+Detailed trace of what clients have been hit at
+the given origin. Stores result in the supplied
+collision records.
+
+NOTE: The incoming collision records are reset
+and are sorted on distance at the end of the
+collision detection.
+==================
+*/
+
+static int QDECL G2_CollisionDetectSortDistance(const void *recA, const void *recB)
+{
+    float distA, distB;
+
+    distA = ((CollisionRecord_t *)recA)->mDistance;
+    distB = ((CollisionRecord_t *)recB)->mDistance;
+
+    if(distA < distB){
+        return -1;
+    }
+
+    return 1;
+}
+
+void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2, const vec3_t angles, const vec3_t position,
+                           int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod)
+{
+    vec3_t      transRayStart;
+    vec3_t      transRayEnd;
+    mdxaBone_t  worldMatrix;
+    mdxaBone_t  worldMatrixInv;
+    int         i;
+    qboolean    mValid;
+
+    //
+    // Initialize collision trace records
+    // before anything else.
+    //
+    memset(collRecMap, 0, sizeof(G2Trace_t));
+    for(i = 0; i < MAX_G2_COLLISIONS; i++){
+        collRecMap[i].mEntityNum = -1;
+    }
+
+    //
+    // Don't continue if we cannot properly setup the Ghoul II models
+    // on at least one model in the array.
+    //
+    if(ghoul2 == NULL || ghoul2->numModels == 0){
+        return;
+    }
+
+    // Walk the array.
+    mValid = qfalse;
+    for(i = 0; i < G2_MAX_MODELS_IN_LIST; i++){
+        // Continue if this model isn't allocated.
+        if(!ghoul2->models[i]){
+            continue;
+        }
+
+        // Setup model pointers for this model.
+        if(!G2_SetupModelPointers(ghoul2->models[i])){
+            continue;
+        }
+
+        mValid = qtrue;
+        break;
+    }
+
+    // Did we find *any* valid model?
+    // If not, useless to continue.
+    if(mValid == qfalse){
+        return;
+    }
+
+    //
+    // Build model.
+    //
+
+    // Make sure we have transformed the whole skeletons for each model.
+    G2_ConstructGhoulSkeleton(ghoul2, frameNumber);
+
+    // Pre-generate the world matrix.
+    // We use this to transform the incoming ray.
+    G2_GenerateWorldMatrix(&worldMatrix, &worldMatrixInv, angles, position);
+
+    // Having done that, it's time to build the model.
+    G2_TransformModel(ghoul2, frameNumber, scale, useLod);
+
+    //
+    // Model built.
+    // Check if any triangles are actually hit.
+    //
+
+    // Translate the rays to model space.
+    G2_TransformTranslatePoint(rayStart, transRayStart, &worldMatrixInv);
+    G2_TransformTranslatePoint(rayEnd, transRayEnd, &worldMatrixInv);
+
+    // Now walk each model and check the ray against each poly.
+    G2_TraceModels(ghoul2, transRayStart, transRayEnd, &worldMatrix, collRecMap, entNum, traceFlags, useLod);
+
+    // Check how many collision records we have.
+    for(i = 0; i < MAX_G2_COLLISIONS; i++){
+        if(collRecMap[i].mEntityNum == -1){
+            break;
+        }
+    }
+
+    // Sort the resulting array of collision records so they are distance sorted.
+    qsort(collRecMap, i, sizeof(CollisionRecord_t), G2_CollisionDetectSortDistance);
 }

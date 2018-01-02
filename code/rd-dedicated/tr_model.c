@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
-// tr_model.c - Server-side model routines.
+// tr_model.c - Server-side model functions.
 
 #include "tr_local.h"
 
@@ -159,12 +159,12 @@ qhandle_t RE_RegisterServerModel(const char *name)
         return 0;
     }
 
-    //
-    // Search the currently loaded models.
-    //
-   for(hModel = 1 ; hModel < tr.numModels; hModel++){
+   //
+   // Search the currently loaded models.
+   //
+   for(hModel = 1; hModel < tr.numModels; hModel++){
         mod = tr.models[hModel];
-        if(!strcmp( mod->name, name)){
+        if(!Q_stricmp(mod->name, name)){
             if(mod->type == MOD_BAD){
                 return 0;
             }
@@ -172,7 +172,7 @@ qhandle_t RE_RegisterServerModel(const char *name)
         }
     }
 
-    // Allocate a new model_t.
+    // Allocate a new model.
     if((mod = R_AllocModel()) == NULL){
         Com_Printf(S_COLOR_YELLOW "RE_RegisterServerModel: R_AllocModel() failed for \"%s\".\n", name);
         return 0;
@@ -322,6 +322,9 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
     LL(mdxm->numSurfaces);
     LL(mdxm->ofsSurfHierarchy);
     LL(mdxm->ofsEnd);
+
+    // Store how many LODs this model has.
+    mod->numLods = mdxm->numLODs;
 
     // First up, go load in the animation file we need that has the skeletal animation info for this model.
     mdxm->animIndex = RE_RegisterServerModel(va("%s.gla", mdxm->animName));
