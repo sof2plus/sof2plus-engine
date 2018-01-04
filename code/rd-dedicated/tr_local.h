@@ -114,6 +114,7 @@ typedef struct {
 ** but may read fields that aren't dynamically modified
 ** by the frontend.
 */
+
 typedef struct {
     model_t                 *models[MAX_MOD_KNOWN];
     int                     numModels;
@@ -133,6 +134,12 @@ extern      trGlobals_t                     tr;
 //=============================================
 
 //
+// tr_image_png.c
+//
+
+void                R_LoadPNG                       ( const char *name, byte **pic, int *width, int *height );
+
+//
 // tr_main.c
 //
 
@@ -141,7 +148,6 @@ extern cvar_t       *r_verbose;                     // Used for verbose debug sp
 
 // Functions.
 void                R_Init                          ( void );
-
 
 //
 // tr_model.c
