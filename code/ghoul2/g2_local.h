@@ -128,6 +128,7 @@ struct CGhoul2Model_s {
     int                 numBones;                   // Allocated slots in mBoneList
 
     int                 mModelIndex;
+    qhandle_t           mCustomSkin;
 
     qhandle_t           mModel;
     char                mFileName[MAX_QPATH];
@@ -172,6 +173,9 @@ qboolean                G2API_GetGLAName            ( CGhoul2Array_t *ghlInfo, i
 
 void                    G2API_CollisionDetect       ( CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2, const vec3_t angles, const vec3_t position,
                                                       int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod );
+
+qhandle_t               G2API_RegisterSkin          ( const char *skinName, int numPairs, const char *skinPairs );
+qboolean                G2API_SetSkin               ( CGhoul2Array_t *ghlInfo, int modelIndex, qhandle_t customSkin );
 
 //
 // g2_bones.c

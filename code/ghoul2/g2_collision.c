@@ -505,6 +505,7 @@ static qboolean G2_TracePolys(mdxmSurface_t *surface, mdxmSurfHierarchy_t *surfI
     vec3_t              hitPoint, normal, distVect;
     CollisionRecord_t   *newCol;
     shader_t            *shader;
+    hitRegData_t        *hitRegData;
 
     tris    = (mdxmTriangle_t *)((byte *)surface + surface->ofsTriangles);
     verts   = (float *)TS->transformedVertsArray[surface->thisSurfaceIndex];
@@ -562,6 +563,42 @@ static qboolean G2_TracePolys(mdxmSurface_t *surface, mdxmSurfHierarchy_t *surfI
                                    hitPoint, &xPos, &yPos,
                                    &newCol->mBarycentricI,
                                    &newCol->mBarycentricJ);
+
+                // Now we know what surface this hit belongs to,
+                // we need to go get the correct hit location
+                // and hit material.
+                if(TS->skin){
+                    shader = NULL;
+
+                    // Match the the defined shader to a surface name in the skin surfaces.
+                    for(j = 0; j < TS->skin->numSurfaces; j++){
+                        if(strcmp(TS->skin->surfaces[j]->name, surfInfo->shader) == 0){
+                            shader = TS->skin->surfaces[j]->shader;
+                        }
+                    }
+
+                    // Do we have a valid shader file, and hit
+                    // location and material info in it?
+                    if(shader && (shader->hitLocation || (shader->hitMaterial))){
+                        // We have a floating point position.
+                        // Determine location in data we need to look at.
+                        if(shader->hitLocation != -1){
+                            hitRegData = &tr.hitRegData[shader->hitLocation];
+
+                            newCol->mLocation = *(hitRegData->loc +
+                                                ((int)(yPos * hitRegData->height) * hitRegData->width) +
+                                                ((int)(xPos * hitRegData->width)));
+                        }
+
+                        if(shader->hitMaterial != -1){
+                            hitRegData = &tr.hitRegData[shader->hitMaterial];
+
+                            newCol->mMaterial = *(hitRegData->loc +
+                                                ((int)(yPos * hitRegData->height) * hitRegData->width) +
+                                                ((int)(xPos * hitRegData->width)));
+                        }
+                    }
+                }
 
                 // Exit now if we should.
                 if(TS->traceFlags == G2_RETURNONHIT){
@@ -674,6 +711,13 @@ void G2_TraceModels(CGhoul2Array_t *ghlInfo, vec3_t rayStart, vec3_t rayEnd, mdx
             if(model->mValid){
                 // Decide the LOD.
                 lod = G2_DecideTraceLod(model->currentModel->modelData, useLod);
+
+                // Is a custom skin set to be used?
+                if(model->mCustomSkin != -1 && model->mCustomSkin < tr.numSkins){
+                    skin = R_GetSkinByHandle(model->mCustomSkin);
+                }else{
+                    skin = NULL;
+                }
 
                 // Initialize our trace surface structure.
                 G2_InitTraceSurf(&TS, model, lod, rayStart, rayEnd, worldMatrix, collRecMap, entNum, skin, traceFlags);

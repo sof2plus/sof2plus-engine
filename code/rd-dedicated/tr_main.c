@@ -67,4 +67,7 @@ void R_Init()
 
     // Initialize main NULL model.
     R_ModelInit();
+
+    // Initialize shaders.
+    R_ShaderInit();
 }

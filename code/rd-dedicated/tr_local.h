@@ -40,10 +40,14 @@ typedef struct {
 
 #define     FILE_HASH_SIZE                  1024
 #define     MAX_MOD_KNOWN                   1024
+
+#define     SHADERNUM_BITS                  14
+#define     MAX_SHADERS                     (1<<SHADERNUM_BITS)
+#define     MAX_SHADER_FILES                4096
+#define     MAX_HITDATA_ENTRIES             128
+
 #define     MAX_SKINS                       1024
-#define     MAX_SHADERS                     16
 #define     MAX_SKIN_SURFACES               128
-#define     MAX_SKIN_HITMAT_ENTRIES         1024
 
 typedef struct {
     int                     key;
@@ -81,7 +85,9 @@ typedef struct {
 } model_t;
 
 typedef struct {
-    char                    name[MAX_QPATH];    // game path
+    char                    name[MAX_QPATH];
+    int                     hitMaterial;
+    int                     hitLocation;
 } shader_t;
 
 typedef struct {
@@ -90,19 +96,18 @@ typedef struct {
 } skinSurface_t;
 
 typedef struct {
+    char                    name[MAX_QPATH];
+
+    skinSurface_t           *surfaces[MAX_SKIN_SURFACES];
+    int                     numSurfaces;
+} skin_t;
+
+typedef struct {
     byte                    *loc;
     int                     width;
     int                     height;
     char                    name[MAX_QPATH];
-} skinHitMatReg_t;
-
-typedef struct {
-    char                    name[MAX_QPATH];
-
-    skinSurface_t           *surfaces[MAX_SKIN_SURFACES];
-    skinHitMatReg_t         *hitMagReg[MAX_SKIN_HITMAT_ENTRIES];
-    int                     numSurfaces;
-} skin_t;
+} hitRegData_t;
 
 //=============================================
 
@@ -127,6 +132,9 @@ typedef struct {
 
     world_t                 bspModels[MAX_SUB_BSP];
     int                     numBSPModels;
+
+    hitRegData_t            hitRegData[MAX_HITDATA_ENTRIES];
+    int                     hitRegDataCount;
 } trGlobals_t;
 
 extern      trGlobals_t                     tr;

@@ -232,15 +232,12 @@ int G2API_InitGhoul2Model(CGhoul2Array_t **ghoul2Ptr, const char *fileName, int 
         ghoul2->mFileName[0] = 0;
         ghoul2->mModelIndex = -1;
     }else{
-        // FIXME BOE
-        /*
-        G2_Init_Bone_List(ghoul2[model].mBlist, ghoul2[model].aHeader->numBones);
-        ghoul2->mCustomShader = customShader;
-        ghoul2->mCustomSkin = customSkin;
-        ghoul2->mLodBias = lodBias;
-        ghoul2->mAnimFrameDefault = 0;
-        ghoul2->mFlags = 0;
-        */
+        // Is a custom skin set to be used?
+        if(R_GetSkinByHandle(customSkin) != NULL){
+            ghoul2->mCustomSkin = customSkin;
+        }else{
+            ghoul2->mCustomSkin = -1;
+        }
     }
 
     // Update our new Ghoul II model array object.
@@ -549,4 +546,60 @@ void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2
 
     // Sort the resulting array of collision records so they are distance sorted.
     qsort(collRecMap, i, sizeof(CollisionRecord_t), G2_CollisionDetectSortDistance);
+}
+
+/*
+==================
+G2API_RegisterSkin
+
+Registers the specified skin
+based on the skin pairs.
+==================
+*/
+
+qhandle_t G2API_RegisterSkin(const char *skinName, int numPairs, const char *skinPairs)
+{
+    //
+    // Let the server renderer handle the parsing of the skin.
+    // Return the handle to the skin upon completion.
+    //
+    return RE_RegisterServerSkin(skinName, numPairs, skinPairs);
+}
+
+/*
+==================
+G2API_SetSkin
+
+Sets a custom skin on a Ghoul II model
+from the array.
+
+Returns qtrue if the model and skin are
+both found valid.
+==================
+*/
+
+qboolean G2API_SetSkin(CGhoul2Array_t *ghlInfo, int modelIndex, qhandle_t customSkin)
+{
+    CGhoul2Model_t  *model;
+
+    //
+    // Check whether the specified model is valid.
+    //
+    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_SetSkin");
+    if(!model){
+        return qfalse;
+    }
+
+    //
+    // Check if the specified skin is valid.
+    //
+    if(customSkin < 0 || customSkin >= tr.numSkins){
+        return qfalse;
+    }
+
+    // Set the custom skin.
+    model->mCustomSkin = customSkin;
+
+    // All valid.
+    return qtrue;
 }
