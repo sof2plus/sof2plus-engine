@@ -327,10 +327,16 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
     mod->numLods = mdxm->numLODs;
 
     // First up, go load in the animation file we need that has the skeletal animation info for this model.
-    mdxm->animIndex = RE_RegisterServerModel(va("%s.gla", mdxm->animName));
+    // Try the MP animation file variant first.
+    mdxm->animIndex = RE_RegisterServerModel(va("%s_mp.gla", mdxm->animName));
     if(!mdxm->animIndex){
-        Com_Printf(S_COLOR_YELLOW "R_LoadMDXM: \"%s\" has no skeletal animation info.\n", modName);
-        return qfalse;
+        // Not found, is the regular animation file present?
+        mdxm->animIndex = RE_RegisterServerModel(va("%s.gla", mdxm->animName));
+
+        if(!mdxm->animIndex){
+            Com_Printf(S_COLOR_YELLOW "R_LoadMDXM: \"%s\" has no skeletal animation info.\n", modName);
+            return qfalse;
+        }
     }
 
     //

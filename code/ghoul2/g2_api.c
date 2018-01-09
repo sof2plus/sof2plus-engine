@@ -397,7 +397,7 @@ qboolean G2API_SetBoneAnim(CGhoul2Array_t *ghlInfo, const int modelIndex, const 
 
 /*
 ==================
-G2API_GetGLAName
+G2API_GetAnimFileName
 
 Gets the name of the Ghoul II
 animation file associated with
@@ -406,7 +406,7 @@ Ghoul II array.
 ==================
 */
 
-qboolean G2API_GetGLAName(CGhoul2Array_t *ghlInfo, int modelIndex, char *dest, int destSize)
+qboolean G2API_GetAnimFileName(CGhoul2Array_t *ghlInfo, int modelIndex, char *dest, int destSize)
 {
     CGhoul2Model_t  *model;
     mdxmHeader_t    *mdxmHeader;

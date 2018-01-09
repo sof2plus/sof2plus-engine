@@ -169,7 +169,7 @@ qboolean                G2API_SetBoneAngles         ( CGhoul2Array_t *ghlInfo, c
 qboolean                G2API_SetBoneAnim           ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const int AstartFrame, const int AendFrame,
                                                       const int flags, const float animSpeed, const int currentTime, const float AsetFrame );
 
-qboolean                G2API_GetGLAName            ( CGhoul2Array_t *ghlInfo, int modelIndex, char *dest, int destSize );
+qboolean                G2API_GetAnimFileName       ( CGhoul2Array_t *ghlInfo, int modelIndex, char *dest, int destSize );
 
 void                    G2API_CollisionDetect       ( CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2, const vec3_t angles, const vec3_t position,
                                                       int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod );

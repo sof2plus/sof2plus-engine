@@ -363,8 +363,7 @@ whether or not it hits a poly.
 */
 
 static qboolean G2_SegmentTriangleTest(vec3_t start, vec3_t end, vec3_t A, vec3_t B, vec3_t C,
-                                       qboolean backFaces, qboolean frontFaces, vec3_t returnedPoint,
-                                       vec3_t returnedNormal, float *denom)
+                                       vec3_t returnedPoint, vec3_t returnedNormal, float *denom)
 {
     vec3_t              returnedNormalT;
     vec3_t              edgeAC, edgePA, edgePB, edgePC;
@@ -381,27 +380,23 @@ static qboolean G2_SegmentTriangleTest(vec3_t start, vec3_t end, vec3_t A, vec3_
     VectorSubtract(end, start, ray);
     *denom = DotProduct(ray, returnedNormal);
 
-    if(fabs(*denom) < tiny // Triangle parallel to ray.
-        || (!backFaces && *denom > 0) // Not accepting back faces.
-        || (!frontFaces && *denom < 0)) // Not accepting front faces.
-    {
+    if(fabs(*denom) < tiny){
+        // Triangle parallel to ray.
         return qfalse;
     }
 
     VectorSubtract(A, start, toPlane);
     t = DotProduct(toPlane, returnedNormal) / *denom;
 
-    if(t <  0.0f || t > 1.0f){
+    if(t < 0.0f || t > 1.0f){
         // This is an off segment.
         return qfalse;
     }
 
-    VectorScale(ray, t, ray);
-    VectorAdd(ray, start, returnedPoint);
+    VectorMA(start, t, ray, returnedPoint);
 
     VectorSubtract(A, returnedPoint, edgePA);
     VectorSubtract(B, returnedPoint, edgePB);
-    VectorSubtract(C, returnedPoint, edgePC);
 
     CrossProduct(edgePA, edgePB, temp);
     if(DotProduct(temp, returnedNormal) < 0.0f){
@@ -409,6 +404,7 @@ static qboolean G2_SegmentTriangleTest(vec3_t start, vec3_t end, vec3_t A, vec3_
         return qfalse;
     }
 
+    VectorSubtract(C, returnedPoint, edgePC);
     CrossProduct(edgePC, edgePA, temp);
     if(DotProduct(temp,returnedNormal) < 0.0f){
         // This is an off triangle.
@@ -520,7 +516,7 @@ static qboolean G2_TracePolys(mdxmSurface_t *surface, mdxmSurfHierarchy_t *surfI
         pointC = &verts[(tris[i].indexes[2] * 5)];
 
         // Did we hit it?
-        if(G2_SegmentTriangleTest(TS->rayStart, TS->rayEnd, pointA, pointB, pointC, qtrue, qtrue, hitPoint, normal, &face)){
+        if(G2_SegmentTriangleTest(TS->rayStart, TS->rayEnd, pointA, pointB, pointC, hitPoint, normal, &face)){
             // We did. Find space in the collision records for this record.
             for(x = 0; x < MAX_G2_COLLISIONS; x++){
                 if(TS->collRecMap[x].mEntityNum != -1){
@@ -655,7 +651,6 @@ static void G2_TraceSurfaces_r(CTraceSurface_t *TS)
         if(TS->collRecMap){
             // This is always a point trace.
             // So trace the polys in this surface.
-            // FIXME BOE, IS IT?!!?!?!
             if(G2_TracePolys(surface, surfInfo, TS) && (TS->traceFlags == G2_RETURNONHIT)){
                 // We hit one, and we want to return instantly
                 // because the G2_RETURNONHIT flag is set.
