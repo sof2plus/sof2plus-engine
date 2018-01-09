@@ -803,6 +803,26 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION:
         return botlib_export->ai.GeneticParentsAndChildSelection(args[1], VMA(2), VMA(3), VMA(4), VMA(5));
 
+    case G_G2_LISTBONES:
+        G2API_ListBones(VMA(1), args[2]);
+        return 0;
+    case G_G2_LISTSURFACES:
+        G2API_ListSurfaces(VMA(1), args[2]);
+        return 0;
+    case G_G2_HAVEWEGHOULMODELS:
+        return (intptr_t)G2API_HaveWeGhoul2Models(VMA(1));
+    case G_G2_INITGHOUL2MODEL:
+        return G2API_InitGhoul2Model(VMA(1), (const char *)VMA(2), args[3], (qhandle_t)args[4],
+                                    (qhandle_t)args[5], args[6], args[7]);
+    case G_G2_ANGLEOVERRIDE:
+        return G2API_SetBoneAngles(VMA(1), args[2], (const char *)VMA(3), (float *)VMA(4), args[5],
+                                  (const Eorientations) args[6], (const Eorientations) args[7], (const Eorientations) args[8],
+                                  args[9], args[10]);
+    case G_G2_PLAYANIM:
+        return G2API_SetBoneAnim(VMA(1), args[2], (const char *)VMA(3), args[4], args[5], args[6], VMF(7), args[8], VMF(9));
+    case G_G2_GETANIMFILENAME:
+        return (intptr_t)G2API_GetAnimFileName(VMA(1), args[2], VMA(3), args[4]);
+
     case G_GP_PARSE:
         return (intptr_t)GP_Parse(VMA(1));
     case G_GP_PARSE_FILE:
@@ -872,6 +892,15 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
         return GPV_GetTopValue((TGPValue)args[1], VMA(2), args[3]);
     case G_GPV_GET_LIST:
         return (intptr_t)GPV_GetList((TGPValue)args[1]);
+
+    case G_G2_COLLISIONDETECT:
+        G2API_CollisionDetect(VMA(1), VMA(2), (const float *)VMA(3), (const float *)VMA(4), args[5], args[6],
+                             (float *)VMA(7), (float *)VMA(8), (float *)VMA(9), args[10], args[11]);
+        return 0;
+    case G_G2_REGISTERSKIN:
+        return G2API_RegisterSkin((const char *)VMA(1), args[2], (const char *)VMA(3));
+    case G_G2_SETSKIN:
+        return (intptr_t)G2API_SetSkin(VMA(1), args[2], args[3]);
 
     case TRAP_MEMSET:
         Com_Memset( VMA(1), args[2], args[3] );
