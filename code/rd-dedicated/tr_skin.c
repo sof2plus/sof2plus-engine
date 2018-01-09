@@ -33,7 +33,7 @@ Returns pointer to new member.
 ==================
 */
 
-static skin_t *R_AllocSkin()
+static skin_t *R_AllocSkin(void)
 {
     skin_t  *skin;
 

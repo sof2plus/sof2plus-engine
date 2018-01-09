@@ -67,8 +67,6 @@ typedef struct modelHash_s {
 
 typedef enum {
     MOD_BAD,
-    MOD_BRUSH,// FIXME BOE REVIEW
-    MOD_MESH, // FIXME BOE REVIEW
     MOD_MDXM,
     MOD_MDXA
 } modtype_t;
@@ -172,6 +170,7 @@ model_t             *R_AllocModel                   ( void );
 //
 
 shader_t            *R_FindServerShader             ( const char *name );
+void                R_ShaderInit                    ( void );
 
 //
 // tr_skin.c

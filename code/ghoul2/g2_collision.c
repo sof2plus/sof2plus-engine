@@ -288,6 +288,7 @@ void G2_TransformModel(CGhoul2Array_t *ghlInfo, const int frameNum, vec3_t scale
     // Walk through each possible model for this entity
     // and try rendering it out.
     //
+    numValid = 0;
     for(i = 0; i < G2_MAX_MODELS_IN_LIST; i++){
         model = ghlInfo->models[i];
 
@@ -531,7 +532,6 @@ static qboolean G2_TracePolys(mdxmSurface_t *surface, mdxmSurfHierarchy_t *surfI
                 newCol->mPolyIndex = i;
                 newCol->mEntityNum = TS->entNum;
                 newCol->mSurfaceIndex = surface->thisSurfaceIndex;
-                newCol->mModelIndex = 0; // FIXME BOE
 
                 if(face > 0){
                     newCol->mFlags = G2_FRONTFACE;

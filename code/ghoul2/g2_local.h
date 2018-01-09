@@ -196,6 +196,15 @@ void                    G2_BoneGenerateMatrix       ( const model_t *modAnim, bo
 void                    G2_ConstructGhoulSkeleton   ( CGhoul2Array_t *ghlInfo, const int frameNum );
 
 //
+// g2_collision.c
+//
+
+void                    G2_TransformModel           ( CGhoul2Array_t *ghlInfo, const int frameNum, vec3_t scale, int useLod );
+
+void                    G2_TraceModels              ( CGhoul2Array_t *ghlInfo, vec3_t rayStart, vec3_t rayEnd, mdxaBone_t *worldMatrix,
+                                                      CollisionRecord_t *collRecMap, int entNum, int traceFlags, int useLod );
+
+//
 // g2_misc.c
 //
 

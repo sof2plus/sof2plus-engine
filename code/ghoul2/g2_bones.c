@@ -482,9 +482,6 @@ static void G2_TimingModel(boneInfo_t *bone, int currentTime, int numFramesInFil
     float   endFrame;
     int     animSize;
 
-    // FIXME BOE
-    Com_DPrintf(S_COLOR_MAGENTA "G2_TimingModel: Timing a model.\n");
-
     // Only continue once the animation parameters are validated.
     if(bone->startFrame < 0 || bone->endFrame < 0){
         return;
@@ -765,7 +762,7 @@ static void G2_TransformBone(CBoneCache_t *mBoneCache, int boneIndex)
         newMatrixTemp.matrix[1][3] = temp.matrix[1][3];
         newMatrixTemp.matrix[2][3] = temp.matrix[2][3];
 
-        G2_Multiply_3x4Matrix(&bone, &newMatrixTemp, &skel->BasePoseMatInv);
+        G2_Multiply_3x4Matrix(bone, &newMatrixTemp, &skel->BasePoseMatInv);
 
     }else if(angleOverride & BONE_ANGLES_PREMULT){
         if(!boneIndex){
@@ -1072,11 +1069,7 @@ in a Ghoul II array, using LOD 0.
 void G2_ConstructGhoulSkeleton(CGhoul2Array_t *ghlInfo, const int frameNum)
 {
     CGhoul2Model_t  *model;
-    mdxaBone_t      rootMatrix;
     int             i, numValid;
-
-    // The root matrix is a copy of the default identity matrix.
-    rootMatrix = identityMatrix;
 
     // Walk through all the models in our array.
     numValid = 0;

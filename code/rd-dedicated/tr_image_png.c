@@ -2065,7 +2065,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
     {
         CloseBufferedFile(ThePNG);
 
-        Com_Printf(S_COLOR_YELLOW, "R_LoadPNG: WARNING: %s: invalid image size\n", name );
+        Com_Printf(S_COLOR_YELLOW "R_LoadPNG: WARNING: %s: invalid image size\n", name );
 
         return;
     }

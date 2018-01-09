@@ -33,7 +33,7 @@ Returns pointer to new member.
 ==================
 */
 
-static shader_t *R_AllocShader()
+static shader_t *R_AllocShader(void)
 {
     shader_t    *shader;
 
@@ -206,7 +206,7 @@ server.
 ==================
 */
 
-static void R_ParseShader(char *text, char *shaderName)
+static void R_ParseShader(char **text, const char *shaderName)
 {
     char        *token;
     shader_t    *shader;
@@ -316,7 +316,7 @@ static void R_ParseShaderFile(char **text)
         // Continue parsing the shader.
         genericToken = COM_ParseExt(text, qtrue);
         if(genericToken[0] == '{'){
-            R_ParseShader(text, &shaderName);
+            R_ParseShader(text, (const char *)&shaderName);
         }
     }
 }
