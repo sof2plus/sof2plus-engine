@@ -129,6 +129,7 @@ struct CGhoul2Model_s {
 
     int                 mModelIndex;
     qhandle_t           mCustomSkin;
+    int                 mLodBias;
 
     qhandle_t           mModel;
     char                mFileName[MAX_QPATH];

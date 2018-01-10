@@ -238,6 +238,9 @@ int G2API_InitGhoul2Model(CGhoul2Array_t **ghoul2Ptr, const char *fileName, int 
         }else{
             ghoul2->mCustomSkin = -1;
         }
+
+        // Are we overriding the LOD at top level?
+        ghoul2->mLodBias = lodBias;
     }
 
     // Update our new Ghoul II model array object.

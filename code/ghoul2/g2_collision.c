@@ -86,16 +86,30 @@ same if it is valid.
 ==================
 */
 
-static int G2_DecideTraceLod(mdxmHeader_t *mdxmHeader, int useLod)
+static int G2_DecideTraceLod(CGhoul2Model_t *model, int useLod)
 {
+    int             returnLod;
+    mdxmHeader_t    *mdxmHeader;
+
+    // First, get the Ghoul II mesh file header.
+    mdxmHeader = model->currentModel->modelData;
+
+    // Are we overriding the LOD at the top level? If so, we can
+    // afford to only check this level of the model.
+    if(model->mLodBias != -1){
+        returnLod = model->mLodBias;
+    }else{
+        returnLod = useLod;
+    }
+
     // Ensure that we haven't selected a LOD
     // that doesn't exist for this model.
-    if(useLod >= mdxmHeader->numLODs){
+    if(returnLod >= mdxmHeader->numLODs){
         return mdxmHeader->numLODs - 1;
     }
 
     // LOD to use is valid.
-    return useLod;
+    return returnLod;
 }
 
 /*
@@ -300,7 +314,7 @@ void G2_TransformModel(CGhoul2Array_t *ghlInfo, const int frameNum, vec3_t scale
                 mdxmHeader = model->currentModel->modelData;
 
                 // Decide the LOD.
-                lod = G2_DecideTraceLod(mdxmHeader, useLod);
+                lod = G2_DecideTraceLod(model, useLod);
 
                 // Give us space for the transformed vertex array to be put in.
                 // If it is not allocated already that is.
@@ -705,7 +719,7 @@ void G2_TraceModels(CGhoul2Array_t *ghlInfo, vec3_t rayStart, vec3_t rayEnd, mdx
             // Only work with valid models.
             if(model->mValid){
                 // Decide the LOD.
-                lod = G2_DecideTraceLod(model->currentModel->modelData, useLod);
+                lod = G2_DecideTraceLod(model, useLod);
 
                 // Is a custom skin set to be used?
                 if(model->mCustomSkin != -1 && model->mCustomSkin < tr.numSkins){
