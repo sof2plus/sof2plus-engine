@@ -693,14 +693,6 @@ static void G2_TransformBone(CBoneCache_t *mBoneCache, int boneIndex)
         boneCalc->currentFrame = 0;
     }
 
-    // Figure out where the location of the blended animation data is.
-    if(boneCalc->blendFrame < 0.0f || boneCalc->blendFrame >= (mBoneCache->parent->aHeader->numFrames + 1)){
-        boneCalc->blendFrame = 0;
-    }
-    if(!(boneCalc->blendOldFrame >= 0 && boneCalc->blendOldFrame < mBoneCache->parent->aHeader->numFrames)){
-        boneCalc->blendOldFrame = 0;
-    }
-
     //
     // Lerp this bone - use the temp space on the ref entity to put the bone transforms into.
     //

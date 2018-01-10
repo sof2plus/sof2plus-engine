@@ -812,14 +812,12 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case G_G2_HAVEWEGHOULMODELS:
         return (intptr_t)G2API_HaveWeGhoul2Models(VMA(1));
     case G_G2_INITGHOUL2MODEL:
-        return G2API_InitGhoul2Model(VMA(1), (const char *)VMA(2), args[3], (qhandle_t)args[4],
-                                    (qhandle_t)args[5], args[6], args[7]);
+        return G2API_InitGhoul2Model(VMA(1), (const char *)VMA(2), args[3], (qhandle_t)args[4], args[5]);
     case G_G2_ANGLEOVERRIDE:
         return G2API_SetBoneAngles(VMA(1), args[2], (const char *)VMA(3), (float *)VMA(4), args[5],
-                                  (const Eorientations) args[6], (const Eorientations) args[7], (const Eorientations) args[8],
-                                  args[9], args[10]);
+                                  (const Eorientations) args[6], (const Eorientations) args[7], (const Eorientations) args[8]);
     case G_G2_PLAYANIM:
-        return G2API_SetBoneAnim(VMA(1), args[2], (const char *)VMA(3), args[4], args[5], args[6], VMF(7), args[8], VMF(9));
+        return G2API_SetBoneAnim(VMA(1), args[2], (const char *)VMA(3), args[4], args[5], args[6], VMF(7), VMF(8));
     case G_G2_GETANIMFILENAME:
         return (intptr_t)G2API_GetAnimFileName(VMA(1), args[2], VMA(3), args[4]);
 

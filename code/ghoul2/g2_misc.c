@@ -325,37 +325,3 @@ void G2_TransformTranslatePoint(const vec3_t in, vec3_t out, mdxaBone_t *mat)
         out[i] = in[0] * mat->matrix[i][0] + in[1] * mat->matrix[i][1] + in[2] * mat->matrix[i][2] + mat->matrix[i][3];
     }
 }
-
-//=============================================
-// Ghoul II time routines.
-//=============================================
-
-static int G2Time;
-
-/*
-==================
-G2_SetTime
-
-Stores a copy of the server time for
-use inside the Ghoul II routines.
-==================
-*/
-
-void G2_SetTime(int currentTime)
-{
-    G2Time = currentTime;
-}
-
-/*
-==================
-G2_GetTime
-
-Retrieves a copy of
-the server time.
-==================
-*/
-
-int G2_GetTime()
-{
-    return G2Time;
-}

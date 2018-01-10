@@ -1122,9 +1122,6 @@ void SV_Frame( int msec ) {
         VM_Call (gvm, GAME_RUN_FRAME, sv.time);
     }
 
-    // update Ghoul II time based off the current server time
-    G2_SetTime(sv.time);
-
     if ( com_speeds->integer ) {
         time_game = Sys_Milliseconds () - startTime;
     }

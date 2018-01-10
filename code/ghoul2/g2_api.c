@@ -203,8 +203,7 @@ Initialize all that needs to be on a new Ghoul II model.
 ==================
 */
 
-int G2API_InitGhoul2Model(CGhoul2Array_t **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin,
-                          qhandle_t customShader, int modelFlags, int lodBias)
+int G2API_InitGhoul2Model(CGhoul2Array_t **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin, int lodBias)
 {
     CGhoul2Model_t  *ghoul2;
 
@@ -260,8 +259,7 @@ the angles specifically for overriding.
 */
 
 qboolean G2API_SetBoneAngles(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const vec3_t angles, const int flags,
-                             const Eorientations up, const Eorientations left, const Eorientations forward,
-                             int blendTime, int currentTime)
+                             const Eorientations up, const Eorientations left, const Eorientations forward)
 {
     CGhoul2Model_t      *model;
     const model_t       *modAnim;
@@ -312,7 +310,7 @@ for a new set of animations.
 */
 
 qboolean G2API_SetBoneAnim(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const int AstartFrame, const int AendFrame,
-                           const int flags, const float animSpeed, const int currentTime, const float AsetFrame)
+                           const int flags, const float animSpeed, const float AsetFrame)
 {
     CGhoul2Model_t  *model;
     const model_t   *modAnim;
@@ -385,15 +383,6 @@ qboolean G2API_SetBoneAnim(CGhoul2Array_t *ghlInfo, const int modelIndex, const 
         model->mBoneList[boneIndex]->flags = 0;
     }
     model->mBoneList[boneIndex]->flags |= flags;
-
-    //
-    // Start the animation.
-    //
-    if(setFrame != -1){
-        model->mBoneList[boneIndex]->lastTime = model->mBoneList[boneIndex]->startTime = (currentTime - (((setFrame - (float)startFrame) * 50.0) / animSpeed));
-    }else{
-        model->mBoneList[boneIndex]->lastTime = model->mBoneList[boneIndex]->startTime = currentTime;
-    }
 
     return qtrue;
 }

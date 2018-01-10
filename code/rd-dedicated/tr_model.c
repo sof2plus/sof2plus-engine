@@ -30,30 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 static qboolean     R_LoadMDXA              ( model_t *mod, void *buffer, int bufferSize, const char *modName );
 static qboolean     R_LoadMDXM              ( model_t *mod, void *buffer, int bufferSize, const char *modName );
 
-// Local variable definitions.
-static char         sPrevMapName[MAX_QPATH]         = { 0 };
-static int          giRegisterMedia_CurrentLevel    = 0;
-
 //=============================================================================
-
-/*
-==================
-RE_RegisterMedia_LevelLoadBegin
-
-
-==================
-*/
-
-void RE_RegisterMedia_LevelLoadBegin(const char *psMapName)
-{
-    tr.numBSPModels = 0;
-
-    // Only bump level number if we're not on the same level.
-    if(Q_stricmp(psMapName,sPrevMapName)){
-        Q_strncpyz(sPrevMapName, psMapName, sizeof(sPrevMapName));
-        giRegisterMedia_CurrentLevel++;
-    }
-}
 
 /*
 ==================
@@ -223,9 +200,13 @@ qhandle_t RE_RegisterServerModel(const char *name)
     return mod->index;
 }
 
-//=============================================
-// Actual model file load routines.
-//=============================================
+/*
+=============================================
+--------------------------
+Model file load functions.
+--------------------------
+=============================================
+*/
 
 /*
 ==================
@@ -257,7 +238,6 @@ static qboolean R_LoadMDXA(model_t *mod, void *buffer, int bufferSize, const cha
     }
 
     mod->type = MOD_MDXA;
-    mod->dataSize += size;
     mod->modelData = mdxa = Hunk_Alloc(size, h_low);
 
     // Copy all the values over from the file.
@@ -310,7 +290,6 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
     }
 
     mod->type = MOD_MDXM;
-    mod->dataSize += size;
     mod->modelData = mdxm = Hunk_Alloc(size, h_low);
 
     // Copy the buffer contents.

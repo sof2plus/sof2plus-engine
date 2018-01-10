@@ -28,18 +28,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g2.h"
 #include "../rd-dedicated/tr_local.h"
 
-#define     G2_VERT_SPACE_SIZE              256
 #define     G2_MAX_MODELS_IN_LIST           256
-#define     G2_MAX_SURFACES_IN_LIST         256
 #define     G2_MAX_BONES_IN_LIST            256
 
-typedef     struct      surfaceInfo_s       surfaceInfo_t;
 typedef     struct      boneInfo_s          boneInfo_t;
-
 typedef     struct      CBoneCalc_s         CBoneCalc_t;
 typedef     struct      CTransformBone_s    CTransformBone_t;
 typedef     struct      CBoneCache_s        CBoneCache_t;
 typedef     struct      CTraceSurface_s     CTraceSurface_t;
+
 typedef     struct      CGhoul2Model_s      CGhoul2Model_t;
 typedef     struct      CGhoul2Array_s      CGhoul2Array_t;
 
@@ -47,15 +44,6 @@ typedef     struct      CGhoul2Array_s      CGhoul2Array_t;
 //
 // Main Ghoul II structures
 //
-
-struct surfaceInfo_s {
-    int                 offFlags;                   // what the flags are for this model
-    int                 surface;                    // index into array held inside the model definition of pointers to the actual surface data loaded in - used by both client and game
-    float               genBarycentricJ;            // point 0 barycentric coors
-    float               genBarycentricI;            // point 1 barycentric coors - point 2 is 1 - point0 - point1
-    int                 genPolySurfaceIndex;        // used to point back to the original surface and poly if this is a generated surface
-    int                 genLod;                     // used to determine original lod of original surface and poly hit location
-};
 
 struct boneInfo_s {
     int                 boneNumber;                 // what bone are we overriding?
@@ -68,10 +56,8 @@ struct boneInfo_s {
     int                 pauseTime;                  // time we paused this animation - 0 if not paused
 
     float               animSpeed;                  // speed at which this anim runs. 1.0f means full speed of animation incoming - i.e. if anim is 20hrtz, we run at 20hrts
-    float               blendFrame;                 // frame PLUS LERP value to blend from
     int                 flags;                      // flags for override
 
-    int                 lastTime;                   // this does not go across the network
     mdxaBone_t          newMatrix;                  // this is the lerped matrix that Ghoul2 uses - does not go across the network
 };
 
@@ -79,15 +65,10 @@ struct CBoneCalc_s {
     int                 newFrame;
     int                 currentFrame;
     float               backlerp;
-    float               blendFrame;
-    int                 blendOldFrame;
-    qboolean            blendMode;
-    float               blendLerp;
 };
 
 struct CTransformBone_s {
     int                 touch;                      // for minimal recalculation
-    int                 touchRender;
     mdxaBone_t          boneMatrix;                 // final matrix
     int                 parent;                     // only set once
 };
@@ -121,11 +102,8 @@ struct CTraceSurface_s {
 };
 
 struct CGhoul2Model_s {
-    surfaceInfo_t       *mSurfaceList[G2_MAX_SURFACES_IN_LIST];
     boneInfo_t          *mBoneList[G2_MAX_BONES_IN_LIST];
-
-    int                 numSurfaces;                // Allocated slots in mSurfaceList
-    int                 numBones;                   // Allocated slots in mBoneList
+    int                 numBones;
 
     int                 mModelIndex;
     qhandle_t           mCustomSkin;
@@ -161,14 +139,12 @@ void                    G2API_ListBones             ( CGhoul2Array_t *ghlInfo, i
 void                    G2API_ListSurfaces          ( CGhoul2Array_t *ghlInfo, int modelIndex );
 qboolean                G2API_HaveWeGhoul2Models    ( CGhoul2Array_t *ghlInfo );
 
-int                     G2API_InitGhoul2Model       ( CGhoul2Array_t **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin,
-                                                      qhandle_t customShader, int modelFlags, int lodBias );
+int                     G2API_InitGhoul2Model       ( CGhoul2Array_t **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin, int lodBias );
 
 qboolean                G2API_SetBoneAngles         ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const vec3_t angles, const int flags,
-                                                      const Eorientations up, const Eorientations left, const Eorientations forward,
-                                                      int blendTime, int currentTime );
+                                                      const Eorientations up, const Eorientations left, const Eorientations forward );
 qboolean                G2API_SetBoneAnim           ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const int AstartFrame, const int AendFrame,
-                                                      const int flags, const float animSpeed, const int currentTime, const float AsetFrame );
+                                                      const int flags, const float animSpeed, const float AsetFrame );
 
 qboolean                G2API_GetAnimFileName       ( CGhoul2Array_t *ghlInfo, int modelIndex, char *dest, int destSize );
 
@@ -217,9 +193,6 @@ void                    G2_GenerateWorldMatrix      ( mdxaBone_t *worldMatrix, m
 void                    G2_Multiply_3x4Matrix       ( mdxaBone_t *out, mdxaBone_t *in2, mdxaBone_t *in );
 void                    G2_TransformPoint           ( const vec3_t in, vec3_t out, mdxaBone_t *mat );
 void                    G2_TransformTranslatePoint  ( const vec3_t in, vec3_t out, mdxaBone_t *mat );
-
-void                    G2_SetTime                  ( int currentTime );
-int                     G2_GetTime                  ( void );
 
 //
 // g2_surfaces.c

@@ -32,12 +32,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 //=============================================
 
-typedef struct {
-
-} world_t;
-
-//=============================================
-
 #define     FILE_HASH_SIZE                  1024
 #define     MAX_MOD_KNOWN                   1024
 
@@ -48,22 +42,6 @@ typedef struct {
 
 #define     MAX_SKINS                       1024
 #define     MAX_SKIN_SURFACES               128
-
-typedef struct {
-    int                     key;
-    char                    *value;
-} cachedModel_t;
-
-typedef struct {
-    cachedModel_t           **models;
-    int                     numModels;
-} cachedModels_t;
-
-typedef struct modelHash_s {
-    char                    name[MAX_QPATH];
-    qhandle_t               handle;
-    struct                  modelHash_s *next;
-} modelHash_t;
 
 typedef enum {
     MOD_BAD,
@@ -76,7 +54,6 @@ typedef struct {
     modtype_t               type;
     int                     index;              // model = tr.models[model->index]
 
-    int                     dataSize;           // just for listing purposes
     void                    *modelData;         // Only if type == MOD_GL2A (Ghoul II animation file) or type == MOD_GL2M (Ghoul II mesh file).
 
     int                     numLods;
@@ -128,14 +105,12 @@ typedef struct {
     shader_t                *shaders[MAX_SHADERS];
     int                     numShaders;
 
-    world_t                 bspModels[MAX_SUB_BSP];
-    int                     numBSPModels;
-
     hitRegData_t            hitRegData[MAX_HITDATA_ENTRIES];
     int                     hitRegDataCount;
 } trGlobals_t;
 
-extern      trGlobals_t                     tr;
+
+extern trGlobals_t          tr;
 
 //=============================================
 
@@ -159,7 +134,6 @@ void                R_Init                          ( void );
 // tr_model.c
 //
 
-void                RE_RegisterMedia_LevelLoadBegin ( const char *psMapName );
 qhandle_t           RE_RegisterServerModel          ( const char *name );
 void                R_ModelInit                     ( void );
 model_t             *R_GetModelByHandle             ( qhandle_t index );
