@@ -1051,37 +1051,18 @@ void G2_BoneGenerateMatrix(const model_t *modAnim, boneInfo_t **boneList, int bo
 
 /*
 ==============
-G2_ConstructGhoulSkeleton
+G2_TransformSkeleton
 
-Builds a complete skeleton for all Ghoul II models
-in a Ghoul II array, using LOD 0.
+Sets the Ghoul II model skeleton
+to be re-rendered.
 ==============
 */
 
-void G2_ConstructGhoulSkeleton(CGhoul2Array_t *ghlInfo, const int frameNum)
+void G2_TransformSkeleton(CGhoul2Model_t *model, const int frameNum)
 {
-    CGhoul2Model_t  *model;
-    int             i, numValid;
+    // Make sure the the bone is re-rendered.
+    model->mBoneCache->mCurrentTouch++;
 
-    // Walk through all the models in our array.
-    numValid = 0;
-    for(i = 0; i < G2_MAX_MODELS_IN_LIST; i++){
-        model = ghlInfo->models[i];
-
-        // Check if this slot is allocated.
-        if(model != NULL){
-            // Make sure the the bone is re-rendered.
-            model->mBoneCache->mCurrentTouch++;
-
-            // Set the incoming time based on the frame number.
-            model->mBoneCache->incomingTime = frameNum;
-
-            numValid++;
-            if(numValid == ghlInfo->numModels){
-                // Don't continue if we've iterated
-                // through all allocated slots.
-                break;
-            }
-        }
-    }
+    // Set the incoming time based on the frame number.
+    model->mBoneCache->incomingTime = frameNum;
 }

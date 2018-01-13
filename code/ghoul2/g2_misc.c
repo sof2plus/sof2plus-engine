@@ -33,65 +33,65 @@ Returns true if the model is properly setup.
 ==================
 */
 
-static qboolean G2_SetModelInfo(CGhoul2Model_t *ghlInfo)
+static qboolean G2_SetModelInfo(CGhoul2Model_t *model)
 {
     mdxmHeader_t    *mdxmHeader;
     mdxaHeader_t    *mdxaHeader;
 
     // First off, check if the model is properly registered on the server.
-    if(ghlInfo->mModelIndex != -1){
+    if(model->mModelIndex != -1){
         // Check whether the model is valid, and if not, re-register it.
-        if(!ghlInfo->mModel){
-            ghlInfo->mModel = RE_RegisterServerModel(ghlInfo->mFileName);
+        if(!model->mModel){
+            model->mModel = RE_RegisterServerModel(model->mFileName);
         }
-        ghlInfo->currentModel = R_GetModelByHandle(ghlInfo->mModel);
+        model->currentModel = R_GetModelByHandle(model->mModel);
     }
 
     // Check whether the model data is valid.
-    if(!ghlInfo->currentModel){
-        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: NULL Ghoul II model (%s).\n", ghlInfo->mFileName);
+    if(!model->currentModel){
+        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: NULL Ghoul II model (%s).\n", model->mFileName);
         return qfalse;
     }
 
     // Start checking the model data and set info along the way.
     // Check if the mesh file header is valid.
-    mdxmHeader = (mdxmHeader_t *)ghlInfo->currentModel->modelData;
+    mdxmHeader = (mdxmHeader_t *)model->currentModel->modelData;
     if(!mdxmHeader){
-        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model associated Ghoul II mesh file has no valid header (%s).\n", ghlInfo->mFileName);
+        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model associated Ghoul II mesh file has no valid header (%s).\n", model->mFileName);
         return qfalse;
     }
 
     // Check if the mesh file contains data.
     if(!mdxmHeader->ofsEnd){
-        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model associated Ghoul II mesh file is zero-sized (%s).\n", ghlInfo->mFileName);
+        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model associated Ghoul II mesh file is zero-sized (%s).\n", model->mFileName);
         return qfalse;
     }
-    ghlInfo->currentModelSize = mdxmHeader->ofsEnd;
+    model->currentModelSize = mdxmHeader->ofsEnd;
 
     // Check if the Ghoul II animation file is properly loaded.
     if(!mdxmHeader->animIndex){
-        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model has no associated Ghoul II animation file (%s).\n", ghlInfo->mFileName);
+        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model has no associated Ghoul II animation file (%s).\n", model->mFileName);
         return qfalse;
     }
-    ghlInfo->animModel = R_GetModelByHandle(mdxmHeader->animIndex);
+    model->animModel = R_GetModelByHandle(mdxmHeader->animIndex);
 
     // Check if the animation file header is valid.
-    mdxaHeader = (mdxaHeader_t *)ghlInfo->animModel->modelData;
+    mdxaHeader = (mdxaHeader_t *)model->animModel->modelData;
     if(!mdxaHeader){
-        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model associated Ghoul II animation file has no valid header (%s).\n", ghlInfo->mFileName);
+        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model associated Ghoul II animation file has no valid header (%s).\n", model->mFileName);
         return qfalse;
     }
-    ghlInfo->aHeader = mdxaHeader;
+    model->aHeader = mdxaHeader;
 
     // Check if the animation file contains data.
-    if(!ghlInfo->aHeader->ofsEnd){
-        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model associated Ghoul II animation file is zero-sized (%s).\n", ghlInfo->mFileName);
+    if(!model->aHeader->ofsEnd){
+        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model associated Ghoul II animation file is zero-sized (%s).\n", model->mFileName);
         return qfalse;
     }
-    ghlInfo->currentAnimModelSize = ghlInfo->aHeader->ofsEnd;
+    model->currentAnimModelSize = model->aHeader->ofsEnd;
 
     // Everything checks out.
-    ghlInfo->mValid = qtrue;
+    model->mValid = qtrue;
     return qtrue;
 }
 
@@ -104,24 +104,24 @@ Returns true if the model is properly setup.
 ==================
 */
 
-qboolean G2_SetupModelPointers(CGhoul2Model_t *ghlInfo)
+qboolean G2_SetupModelPointers(CGhoul2Model_t *model)
 {
-    if(!ghlInfo){
-        Com_Printf(S_COLOR_RED "G2_SetupModelPointers: NULL ghlInfo.\n");
+    if(!model){
+        Com_Printf(S_COLOR_RED "G2_SetupModelPointers: NULL model pointer.\n");
         return qfalse;
     }
 
     // Invalidate Ghoul II model.
-    ghlInfo->mValid = qfalse;
+    model->mValid = qfalse;
 
     // Setup the model, see if everything checks out.
-    if(!G2_SetModelInfo(ghlInfo)){
+    if(!G2_SetModelInfo(model)){
         // Info isn't valid, invalidate all Ghoul II specifics.
-        ghlInfo->currentModel = 0;
-        ghlInfo->currentModelSize = 0;
-        ghlInfo->animModel = 0;
-        ghlInfo->currentAnimModelSize = 0;
-        ghlInfo->aHeader = 0;
+        model->currentModel = 0;
+        model->currentModelSize = 0;
+        model->animModel = 0;
+        model->currentAnimModelSize = 0;
+        model->aHeader = 0;
         return qfalse;
     }
 
@@ -133,37 +133,28 @@ qboolean G2_SetupModelPointers(CGhoul2Model_t *ghlInfo)
 ==================
 G2_IsModelIndexValid
 
-Checks whether the specified model index
-is valid in our Ghoul II array.
+Returns qtrue if the specified
+model is valid.
 
-Returns the Ghoul II model if valid,
-NULL otherwise.
+Returns qfalse and prints what
+went wrong otherwise.
 ==================
 */
 
-CGhoul2Model_t *G2_IsModelIndexValid(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *caller)
+qboolean G2_IsModelValid(CGhoul2Model_t *model, const char *caller)
 {
-    CGhoul2Model_t  *model;
-
-    if(!ghlInfo){
-        Com_Printf(S_COLOR_RED "%s/G2_IsModelIndexValid: ghlInfo pointer is NULL.\n", caller);
-        return NULL;
+    if(!model){
+        Com_Printf(S_COLOR_RED "%s/G2_IsModelIndexValid: model pointer is NULL.\n", caller);
+        return qfalse;
     }
 
-    if(modelIndex < 0 || modelIndex >= G2_MAX_MODELS_IN_LIST){
-        Com_Printf(S_COLOR_RED "%s/G2_IsModelIndexValid: Model %d is out of bounds (Ghoul II instance has %d model(s)).\n",
-            caller, modelIndex, ghlInfo->numModels);
-        return NULL;
-    }
-
-    model = ghlInfo->models[modelIndex];
     if(!G2_SetupModelPointers(model)){
         Com_Printf(S_COLOR_RED "%s/G2_IsModelIndexValid: Failed to setup model pointers.\n", caller);
-        return NULL;
+        return qfalse;
     }
 
     // All valid.
-    return model;
+    return qtrue;
 }
 
 //=============================================

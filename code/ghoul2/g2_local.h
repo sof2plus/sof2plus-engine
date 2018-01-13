@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g2.h"
 #include "../rd-dedicated/tr_local.h"
 
-#define     G2_MAX_MODELS_IN_LIST           256
 #define     G2_MAX_BONES_IN_LIST            256
 
 typedef     struct      boneInfo_s          boneInfo_t;
@@ -38,7 +37,6 @@ typedef     struct      CBoneCache_s        CBoneCache_t;
 typedef     struct      CTraceSurface_s     CTraceSurface_t;
 
 typedef     struct      CGhoul2Model_s      CGhoul2Model_t;
-typedef     struct      CGhoul2Array_s      CGhoul2Array_t;
 
 //=============================================
 //
@@ -124,35 +122,29 @@ struct CGhoul2Model_s {
     CBoneCache_t        *mBoneCache;
 };
 
-struct CGhoul2Array_s {
-    CGhoul2Model_t      *models[G2_MAX_MODELS_IN_LIST];
-    int                 numModels;
-};
-
 //=============================================
 
 //
 // g2_api.c
 //
 
-void                    G2API_ListBones             ( CGhoul2Array_t *ghlInfo, int modelIndex );
-void                    G2API_ListSurfaces          ( CGhoul2Array_t *ghlInfo, int modelIndex );
-qboolean                G2API_HaveWeGhoul2Models    ( CGhoul2Array_t *ghlInfo );
+void                    G2API_ListBones             ( CGhoul2Model_t *model );
+void                    G2API_ListSurfaces          ( CGhoul2Model_t *model );
 
-int                     G2API_InitGhoul2Model       ( CGhoul2Array_t **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin, int lodBias );
+qboolean                G2API_InitGhoul2Model       ( CGhoul2Model_t **modelPtr, const char *fileName, qhandle_t customSkin, int lodBias );
 
-qboolean                G2API_SetBoneAngles         ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const vec3_t angles, const int flags,
+qboolean                G2API_SetBoneAngles         ( CGhoul2Model_t *model, const char *boneName, const vec3_t angles, const int flags,
                                                       const Eorientations up, const Eorientations left, const Eorientations forward );
-qboolean                G2API_SetBoneAnim           ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const int AstartFrame, const int AendFrame,
+qboolean                G2API_SetBoneAnim           ( CGhoul2Model_t *model, const char *boneName, const int AstartFrame, const int AendFrame,
                                                       const int flags, const float animSpeed, const float AsetFrame );
 
-qboolean                G2API_GetAnimFileName       ( CGhoul2Array_t *ghlInfo, int modelIndex, char *dest, int destSize );
+qboolean                G2API_GetAnimFileName       ( CGhoul2Model_t *model, char *dest, int destSize );
 
-void                    G2API_CollisionDetect       ( CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2, const vec3_t angles, const vec3_t position,
+void                    G2API_CollisionDetect       ( CollisionRecord_t *collRecMap, CGhoul2Model_t *model, const vec3_t angles, const vec3_t position,
                                                       int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod );
 
 qhandle_t               G2API_RegisterSkin          ( const char *skinName, int numPairs, const char *skinPairs );
-qboolean                G2API_SetSkin               ( CGhoul2Array_t *ghlInfo, int modelIndex, qhandle_t customSkin );
+qboolean                G2API_SetSkin               ( CGhoul2Model_t *model, qhandle_t customSkin );
 
 //
 // g2_bones.c
@@ -170,23 +162,23 @@ mdxaBone_t              *G2_BoneEval                ( CBoneCache_t *mBoneCache, 
 void                    G2_BoneGenerateMatrix       ( const model_t *modAnim, boneInfo_t **boneList, int boneIndex, const float *angles, int flags,
                                                       const Eorientations up, const Eorientations left, const Eorientations forward );
 
-void                    G2_ConstructGhoulSkeleton   ( CGhoul2Array_t *ghlInfo, const int frameNum );
+void                    G2_TransformSkeleton        ( CGhoul2Model_t *model, const int frameNum );
 
 //
 // g2_collision.c
 //
 
-void                    G2_TransformModel           ( CGhoul2Array_t *ghlInfo, const int frameNum, vec3_t scale, int useLod );
+void                    G2_TransformModel           ( CGhoul2Model_t *model, vec3_t scale, int useLod );
 
-void                    G2_TraceModels              ( CGhoul2Array_t *ghlInfo, vec3_t rayStart, vec3_t rayEnd, mdxaBone_t *worldMatrix,
+void                    G2_TraceModel               ( CGhoul2Model_t *model, vec3_t rayStart, vec3_t rayEnd, mdxaBone_t *worldMatrix,
                                                       CollisionRecord_t *collRecMap, int entNum, int traceFlags, int useLod );
 
 //
 // g2_misc.c
 //
 
-qboolean                G2_SetupModelPointers       ( CGhoul2Model_t *ghlInfo );
-CGhoul2Model_t          *G2_IsModelIndexValid       ( CGhoul2Array_t *ghlInfo, const int modelIndex, const char *caller );
+qboolean                G2_SetupModelPointers       ( CGhoul2Model_t *model );
+qboolean                G2_IsModelValid             ( CGhoul2Model_t *model, const char *caller );
 
 void                    G2_CreateMatrix             ( mdxaBone_t *matrix, const float *angle );
 void                    G2_GenerateWorldMatrix      ( mdxaBone_t *worldMatrix, mdxaBone_t *worldMatrixInv, const vec3_t angles, const vec3_t origin );

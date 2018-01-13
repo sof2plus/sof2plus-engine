@@ -28,13 +28,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 ==================
 G2API_ListBones
 
-Lists all model bones.
+Lists all Ghoul II model bones.
 ==================
 */
 
-void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelIndex)
+void G2API_ListBones(CGhoul2Model_t *model)
 {
-    CGhoul2Model_t      *model;
     mdxaSkel_t          *skel, *childSkel;
     mdxaSkelOffsets_t   *offsets;
     int                 i, x;
@@ -42,8 +41,7 @@ void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelIndex)
     //
     // Check whether the specified model is valid.
     //
-    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_ListBones");
-    if(!model){
+    if(!G2_IsModelValid(model, "G2API_ListSurfaces")){
         return;
     }
 
@@ -52,7 +50,6 @@ void G2API_ListBones(CGhoul2Array_t *ghlInfo, int modelIndex)
     //
     Com_Printf("-----------------------------------------\n");
     Com_Printf("Listing Ghoul II model bone info\n");
-    Com_Printf("Index in Ghoul II instance: %d\n", modelIndex);
     Com_Printf("Filename: %s\n", model->mFileName);
     Com_Printf("-----------------------------------------\n");
 
@@ -104,9 +101,8 @@ Lists all surfaces associated with a Ghoul II model.
 ==================
 */
 
-void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelIndex)
+void G2API_ListSurfaces(CGhoul2Model_t *model)
 {
-    CGhoul2Model_t      *model;
     mdxmHeader_t        *mdxmHeader;
     mdxmSurfHierarchy_t *surf;
     int                 i, x;
@@ -114,8 +110,7 @@ void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelIndex)
     //
     // Check whether the specified model is valid.
     //
-    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_ListSurfaces");
-    if(!model){
+    if(!G2_IsModelValid(model, "G2API_ListSurfaces")){
         return;
     }
 
@@ -124,7 +119,6 @@ void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelIndex)
     //
     Com_Printf("-----------------------------------------\n");
     Com_Printf("Listing Ghoul II associated surfaces\n");
-    Com_Printf("Index in Ghoul II instance: %d\n", modelIndex);
     Com_Printf("Filename: %s\n", model->mFileName);
     Com_Printf("-----------------------------------------\n");
 
@@ -162,91 +156,52 @@ void G2API_ListSurfaces(CGhoul2Array_t *ghlInfo, int modelIndex)
 
 /*
 ==================
-G2API_HaveWeGhoul2Models
-
-Returns qtrue if there are valid Ghoul II models present in the Ghoul II instance.
-==================
-*/
-
-qboolean G2API_HaveWeGhoul2Models(CGhoul2Array_t *ghlInfo)
-{
-    int i;
-
-    // Don't continue if there are no models present in the list.
-    if(!ghlInfo->numModels){
-        return qfalse;
-    }
-
-    //
-    // Walk through the list.
-    //
-    for(i = 0; i < G2_MAX_MODELS_IN_LIST; i++){
-        // Continue if this model isn't allocated.
-        if(!ghlInfo->models[i]){
-            continue;
-        }
-
-        // The model is properly setup if the model index isn't -1.
-        if(ghlInfo->models[i]->mModelIndex != -1){
-            return qtrue;
-        }
-    }
-
-    return qfalse;
-}
-
-/*
-==================
 G2API_InitGhoul2Model
 
 Initialize all that needs to be on a new Ghoul II model.
 ==================
 */
 
-int G2API_InitGhoul2Model(CGhoul2Array_t **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin, int lodBias)
+qboolean G2API_InitGhoul2Model(CGhoul2Model_t **modelPtr, const char *fileName, qhandle_t customSkin, int lodBias)
 {
-    CGhoul2Model_t  *ghoul2;
+    CGhoul2Model_t  *model;
 
     // Are we actually asking for a model to be loaded?
     if(!fileName || !fileName[0]){
-        return -1;
+        return qfalse;
     }
 
-    if(*ghoul2Ptr){
-        Com_Printf(S_COLOR_RED "G2API_InitGhoul2Model: ghoul2Ptr already initialized. This function should not be used to create additional models.\n");
-        return -1;
+    // Check if the model is already initialized.
+    if(*modelPtr){
+        Com_Printf(S_COLOR_RED "G2API_InitGhoul2Model: model pointer already initialized.\n");
+        return qfalse;
     }
 
-    // New Ghoul II model. Allocate main memory of our array object on the hunk.
-    *ghoul2Ptr = Hunk_Alloc(sizeof(CGhoul2Array_t), h_low);
-
-    // Now allocate memory for the actual Ghoul II model.
-    ghoul2 = Hunk_Alloc(sizeof(CGhoul2Model_t), h_low);
+    // Allocate memory for the actual Ghoul II model on the hunk.
+    model = Hunk_Alloc(sizeof(CGhoul2Model_t), h_low);
 
     // Set new Ghoul II model info.
-    strncpy(ghoul2->mFileName, fileName, sizeof(ghoul2->mFileName));
-    ghoul2->mModelIndex = 0;
+    strncpy(model->mFileName, fileName, sizeof(model->mFileName));
+    model->mModelIndex = 0;
 
-    if(!G2_SetupModelPointers(ghoul2) || !G2_InitBoneCache(ghoul2)){
-        ghoul2->mFileName[0] = 0;
-        ghoul2->mModelIndex = -1;
+    if(!G2_SetupModelPointers(model) || !G2_InitBoneCache(model)){
+        model->mFileName[0] = 0;
+        model->mModelIndex = -1;
     }else{
         // Is a custom skin set to be used?
         if(R_GetSkinByHandle(customSkin) != NULL){
-            ghoul2->mCustomSkin = customSkin;
+            model->mCustomSkin = customSkin;
         }else{
-            ghoul2->mCustomSkin = -1;
+            model->mCustomSkin = -1;
         }
 
         // Are we overriding the LOD at top level?
-        ghoul2->mLodBias = lodBias;
+        model->mLodBias = lodBias;
     }
 
-    // Update our new Ghoul II model array object.
-    (*ghoul2Ptr)->models[0] = ghoul2;
-    (*ghoul2Ptr)->numModels = 1;
-
-    return ghoul2->mModelIndex;
+    // Model successfully created.
+    *modelPtr = model;
+    return qtrue;
 }
 
 /*
@@ -258,18 +213,16 @@ the angles specifically for overriding.
 ==================
 */
 
-qboolean G2API_SetBoneAngles(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const vec3_t angles, const int flags,
+qboolean G2API_SetBoneAngles(CGhoul2Model_t *model, const char *boneName, const vec3_t angles, const int flags,
                              const Eorientations up, const Eorientations left, const Eorientations forward)
 {
-    CGhoul2Model_t      *model;
     const model_t       *modAnim;
     int                 boneIndex;
 
     //
     // Check whether the specified model is valid.
     //
-    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_SetBoneAngles");
-    if(!model){
+    if(!G2_IsModelValid(model, "G2API_SetBoneAngles")){
         return qfalse;
     }
 
@@ -309,10 +262,9 @@ for a new set of animations.
 ==================
 */
 
-qboolean G2API_SetBoneAnim(CGhoul2Array_t *ghlInfo, const int modelIndex, const char *boneName, const int AstartFrame, const int AendFrame,
+qboolean G2API_SetBoneAnim(CGhoul2Model_t *model, const char *boneName, const int AstartFrame, const int AendFrame,
                            const int flags, const float animSpeed, const float AsetFrame)
 {
-    CGhoul2Model_t  *model;
     const model_t   *modAnim;
     int             startFrame, endFrame;
     float           setFrame;
@@ -325,8 +277,7 @@ qboolean G2API_SetBoneAnim(CGhoul2Array_t *ghlInfo, const int modelIndex, const 
     //
     // Check whether the specified model is valid.
     //
-    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_SetBoneAnim");
-    if(!model){
+    if(!G2_IsModelValid(model, "G2API_SetBoneAnim")){
         return qfalse;
     }
 
@@ -393,21 +344,18 @@ G2API_GetAnimFileName
 
 Gets the name of the Ghoul II
 animation file associated with
-the specified model from the
-Ghoul II array.
+the specified model.
 ==================
 */
 
-qboolean G2API_GetAnimFileName(CGhoul2Array_t *ghlInfo, int modelIndex, char *dest, int destSize)
+qboolean G2API_GetAnimFileName(CGhoul2Model_t *model, char *dest, int destSize)
 {
-    CGhoul2Model_t  *model;
     mdxmHeader_t    *mdxmHeader;
 
     //
     // Check whether the specified model is valid.
     //
-    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_SetBoneAnim");
-    if(!model){
+    if(!G2_IsModelValid(model, "G2API_GetAnimFileName")){
         return qfalse;
     }
 
@@ -453,7 +401,7 @@ static int QDECL G2_CollisionDetectSortDistance(const void *recA, const void *re
     return 1;
 }
 
-void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2, const vec3_t angles, const vec3_t position,
+void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Model_t *model, const vec3_t angles, const vec3_t position,
                            int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod)
 {
     vec3_t      transRayStart;
@@ -461,7 +409,6 @@ void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2
     mdxaBone_t  worldMatrix;
     mdxaBone_t  worldMatrixInv;
     int         i;
-    qboolean    mValid;
 
     //
     // Initialize collision trace records
@@ -473,33 +420,9 @@ void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2
     }
 
     //
-    // Don't continue if we cannot properly setup the Ghoul II models
-    // on at least one model in the array.
+    // Check whether the specified model is valid.
     //
-    if(ghoul2 == NULL || ghoul2->numModels == 0){
-        return;
-    }
-
-    // Walk the array.
-    mValid = qfalse;
-    for(i = 0; i < G2_MAX_MODELS_IN_LIST; i++){
-        // Continue if this model isn't allocated.
-        if(!ghoul2->models[i]){
-            continue;
-        }
-
-        // Setup model pointers for this model.
-        if(!G2_SetupModelPointers(ghoul2->models[i])){
-            continue;
-        }
-
-        mValid = qtrue;
-        break;
-    }
-
-    // Did we find *any* valid model?
-    // If not, useless to continue.
-    if(mValid == qfalse){
+    if(!G2_IsModelValid(model, "G2API_CollisionDetect")){
         return;
     }
 
@@ -507,15 +430,16 @@ void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2
     // Build model.
     //
 
-    // Make sure we have transformed the whole skeletons for each model.
-    G2_ConstructGhoulSkeleton(ghoul2, frameNumber);
+    // Make sure we have transformed the whole skeleton for
+    // this Ghoul II model.
+    G2_TransformSkeleton(model, frameNumber);
 
     // Pre-generate the world matrix.
     // We use this to transform the incoming ray.
     G2_GenerateWorldMatrix(&worldMatrix, &worldMatrixInv, angles, position);
 
     // Having done that, it's time to build the model.
-    G2_TransformModel(ghoul2, frameNumber, scale, useLod);
+    G2_TransformModel(model, scale, useLod);
 
     //
     // Model built.
@@ -526,8 +450,8 @@ void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Array_t *ghoul2
     G2_TransformTranslatePoint(rayStart, transRayStart, &worldMatrixInv);
     G2_TransformTranslatePoint(rayEnd, transRayEnd, &worldMatrixInv);
 
-    // Now walk each model and check the ray against each poly.
-    G2_TraceModels(ghoul2, transRayStart, transRayEnd, &worldMatrix, collRecMap, entNum, traceFlags, useLod);
+    // Now check the ray against each poly.
+    G2_TraceModel(model, transRayStart, transRayEnd, &worldMatrix, collRecMap, entNum, traceFlags, useLod);
 
     // Check how many collision records we have.
     for(i = 0; i < MAX_G2_COLLISIONS; i++){
@@ -570,15 +494,12 @@ both found valid.
 ==================
 */
 
-qboolean G2API_SetSkin(CGhoul2Array_t *ghlInfo, int modelIndex, qhandle_t customSkin)
+qboolean G2API_SetSkin(CGhoul2Model_t *model, qhandle_t customSkin)
 {
-    CGhoul2Model_t  *model;
-
     //
     // Check whether the specified model is valid.
     //
-    model = G2_IsModelIndexValid(ghlInfo, modelIndex, "G2API_SetSkin");
-    if(!model){
+    if(!G2_IsModelValid(model, "G2API_SetSkin")){
         return qfalse;
     }
 

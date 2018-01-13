@@ -280,12 +280,11 @@ of the skeleton has been transformed.
 ==============
 */
 
-void G2_TransformModel(CGhoul2Array_t *ghlInfo, const int frameNum, vec3_t scale, int useLod)
+void G2_TransformModel(CGhoul2Model_t *model, vec3_t scale, int useLod)
 {
-    CGhoul2Model_t  *model;
     mdxmHeader_t    *mdxmHeader;
     vec3_t          correctScale;
-    int             i, numValid;
+    int             i;
     int             lod;
 
     //
@@ -299,42 +298,24 @@ void G2_TransformModel(CGhoul2Array_t *ghlInfo, const int frameNum, vec3_t scale
     }
 
     //
-    // Walk through each possible model for this entity
-    // and try rendering it out.
+    // Try rendering out this Ghoul II model.
     //
-    numValid = 0;
-    for(i = 0; i < G2_MAX_MODELS_IN_LIST; i++){
-        model = ghlInfo->models[i];
 
-        // Check if this slot is allocated.
-        if(model != NULL){
-            // Only work with valid models.
-            if(model->mValid){
-                // Get the Ghoul II mesh file header for this model.
-                mdxmHeader = model->currentModel->modelData;
+    // Get the Ghoul II mesh file header for this model.
+    mdxmHeader = model->currentModel->modelData;
 
-                // Decide the LOD.
-                lod = G2_DecideTraceLod(model, useLod);
+    // Decide the LOD.
+    lod = G2_DecideTraceLod(model, useLod);
 
-                // Give us space for the transformed vertex array to be put in.
-                // If it is not allocated already that is.
-                if(model->mTransformedVertsArray == NULL){
-                    model->mTransformedVertsArray = Z_TagMalloc(mdxmHeader->numSurfaces * sizeof(size_t), TAG_GHOUL2);
-                }
-                memset(model->mTransformedVertsArray, 0, mdxmHeader->numSurfaces * sizeof(size_t));
-
-                // Recursively transform the model surfaces.
-                G2_TransformSurfaces_r(model, 0, lod, correctScale);
-            }
-
-            numValid++;
-            if(numValid == ghlInfo->numModels){
-                // Don't continue if we've iterated
-                // through all allocated slots.
-                break;
-            }
-        }
+    // Give us space for the transformed vertex array to be put in.
+    // If it is not allocated already that is.
+    if(model->mTransformedVertsArray == NULL){
+        model->mTransformedVertsArray = Z_TagMalloc(mdxmHeader->numSurfaces * sizeof(size_t), TAG_GHOUL2);
     }
+    memset(model->mTransformedVertsArray, 0, mdxmHeader->numSurfaces * sizeof(size_t));
+
+    // Recursively transform the model surfaces.
+    G2_TransformSurfaces_r(model, 0, lod, correctScale);
 }
 
 /*
@@ -689,58 +670,37 @@ static void G2_TraceSurfaces_r(CTraceSurface_t *TS)
 
 /*
 ==============
-G2_TraceModels
+G2_TraceModel
 
-Trace against all Ghoul II models
-in the given Ghoul II array.
+Trace against this
+Ghoul II model.
 ==============
 */
 
-void G2_TraceModels(CGhoul2Array_t *ghlInfo, vec3_t rayStart, vec3_t rayEnd, mdxaBone_t *worldMatrix, CollisionRecord_t *collRecMap, int entNum, int traceFlags, int useLod)
+void G2_TraceModel(CGhoul2Model_t *model, vec3_t rayStart, vec3_t rayEnd, mdxaBone_t *worldMatrix, CollisionRecord_t *collRecMap, int entNum, int traceFlags, int useLod)
 {
-    CGhoul2Model_t  *model;
     skin_t          *skin;
     CTraceSurface_t TS;
-    int             i;
-    int             numValid;
     int             lod;
 
     //
-    // Walk each possible model for this entity
-    // and try tracing against it.
+    // Try tracing against this
+    // Ghoul II model.
     //
-    numValid = 0;
 
-    for(i = 0; i < G2_MAX_MODELS_IN_LIST; i++){
-        model = ghlInfo->models[i];
+    // Decide the LOD.
+    lod = G2_DecideTraceLod(model, useLod);
 
-        // Check if this slot is allocated.
-        if(model != NULL){
-            // Only work with valid models.
-            if(model->mValid){
-                // Decide the LOD.
-                lod = G2_DecideTraceLod(model, useLod);
-
-                // Is a custom skin set to be used?
-                if(model->mCustomSkin != -1 && model->mCustomSkin < tr.numSkins){
-                    skin = R_GetSkinByHandle(model->mCustomSkin);
-                }else{
-                    skin = NULL;
-                }
-
-                // Initialize our trace surface structure.
-                G2_InitTraceSurf(&TS, model, lod, rayStart, rayEnd, worldMatrix, collRecMap, entNum, skin, traceFlags);
-
-                // Start the surface recursion loop.
-                G2_TraceSurfaces_r(&TS);
-            }
-
-            numValid++;
-            if(numValid == ghlInfo->numModels){
-                // Don't continue if we've iterated
-                // through all allocated slots.
-                break;
-            }
-        }
+    // Is a custom skin set to be used?
+    if(model->mCustomSkin != -1 && model->mCustomSkin < tr.numSkins){
+        skin = R_GetSkinByHandle(model->mCustomSkin);
+    }else{
+        skin = NULL;
     }
+
+    // Initialize our trace surface structure.
+    G2_InitTraceSurf(&TS, model, lod, rayStart, rayEnd, worldMatrix, collRecMap, entNum, skin, traceFlags);
+
+    // Start the surface recursion loop.
+    G2_TraceSurfaces_r(&TS);
 }
