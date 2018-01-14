@@ -177,8 +177,9 @@ qboolean G2API_InitGhoul2Model(CGhoul2Model_t **modelPtr, const char *fileName, 
         return qfalse;
     }
 
-    // Allocate memory for the actual Ghoul II model on the hunk.
-    model = Hunk_Alloc(sizeof(CGhoul2Model_t), h_low);
+    // Allocate memory for the actual Ghoul II model.
+    model = Z_TagMalloc(sizeof(CGhoul2Model_t), TAG_GHOUL2);
+    Com_Memset(model, 0, sizeof(CGhoul2Model_t));
 
     // Set new Ghoul II model info.
     strncpy(model->mFileName, fileName, sizeof(model->mFileName));
@@ -201,6 +202,72 @@ qboolean G2API_InitGhoul2Model(CGhoul2Model_t **modelPtr, const char *fileName, 
 
     // Model successfully created.
     *modelPtr = model;
+    return qtrue;
+}
+
+/*
+==================
+G2API_RemoveGhoul2Model
+
+Frees all memory allocated for
+this Ghoul II model.
+
+Returns qtrue if successful,
+qfalse upon error.
+==================
+*/
+
+qboolean G2API_RemoveGhoul2Model(CGhoul2Model_t **modelPtr)
+{
+    CGhoul2Model_t  *model;
+    int             i;
+
+    //
+    // Check whether the specified model is valid.
+    //
+    model = *modelPtr;
+    if(!model){
+        Com_Printf(S_COLOR_RED "G2API_RemoveGhoul2Model: model pointer is NULL.\n");
+        return qfalse;
+    }
+
+    //
+    // Free all allocated memory from this model.
+    //
+
+    // Free the entire bone cache.
+    if(model->mBoneCache){
+        if(model->mBoneCache->mBones){
+            Z_Free(model->mBoneCache->mBones);
+        }
+        if(model->mBoneCache->mFinalBones){
+            Z_Free(model->mBoneCache->mFinalBones);
+        }
+
+        Z_Free(model->mBoneCache);
+    }
+
+    // Free bones from the bone list.
+    for(i = 0; i < model->numBones; i++){
+        Z_Free(model->mBoneList[i]);
+    }
+
+    // Free transformed verts array.
+    if(model->mTransformedVertsArray){
+        for(i = 0; i < model->numTransformedVerts; i++){
+            if(model->mTransformedVertsArray[i]){
+                Z_Free(model->mTransformedVertsArray[i]);
+            }
+        }
+
+        Z_Free(model->mTransformedVertsArray);
+    }
+
+    // Finally, free the actual Ghoul II model.
+    Z_Free(model);
+
+    // All done.
+    *modelPtr = NULL;
     return qtrue;
 }
 
@@ -414,7 +481,7 @@ void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Model_t *model,
     // Initialize collision trace records
     // before anything else.
     //
-    memset(collRecMap, 0, sizeof(G2Trace_t));
+    Com_Memset(collRecMap, 0, sizeof(G2Trace_t));
     for(i = 0; i < MAX_G2_COLLISIONS; i++){
         collRecMap[i].mEntityNum = -1;
     }

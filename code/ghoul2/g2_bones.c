@@ -218,7 +218,8 @@ int G2_AddBone(const model_t *modAnim, boneInfo_t **boneList, int *numBones, con
     // Do we need to allocate this slot?
     if(boneList[boneIndex] == NULL){
         // Allocate this slot.
-        boneList[boneIndex] = Hunk_Alloc(sizeof(boneInfo_t), h_low);
+        boneList[boneIndex] = Z_TagMalloc(sizeof(boneInfo_t), TAG_GHOUL2);
+        Com_Memset(boneList[boneIndex], 0, sizeof(boneInfo_t));
         (*numBones)++;
     }
 
@@ -289,14 +290,19 @@ qboolean G2_InitBoneCache(CGhoul2Model_t *model)
     }
 
     // The bone cache doesn't exist yet, allocate memory for it now.
-    boneCache = model->mBoneCache = Hunk_Alloc(sizeof(CBoneCache_t), h_high);
+    boneCache = model->mBoneCache = Z_TagMalloc(sizeof(CBoneCache_t), TAG_GHOUL2);
+    Com_Memset(boneCache, 0, sizeof(CBoneCache_t));
 
     // Set the number of bones.
     boneCache->numBones = model->aHeader->numBones;
 
     // Allocate memory for our internal bone lists.
-    boneCache->mBones = Hunk_Alloc(sizeof(CBoneCalc_t) * boneCache->numBones, h_high);
-    boneCache->mFinalBones = Hunk_Alloc(sizeof(CTransformBone_t) * boneCache->numBones, h_high);
+    boneCache->mBones = Z_TagMalloc(boneCache->numBones * sizeof(CBoneCalc_t), TAG_GHOUL2);
+    boneCache->mFinalBones = Z_TagMalloc(boneCache->numBones * sizeof(CTransformBone_t), TAG_GHOUL2);
+
+    // Clear the memory.
+    Com_Memset(boneCache->mBones, 0, boneCache->numBones * sizeof(CBoneCalc_t));
+    Com_Memset(boneCache->mFinalBones, 0, boneCache->numBones * sizeof(CTransformBone_t));
 
     // Determine the skeleton offsets.
     offsets = (mdxaSkelOffsets_t *)((byte *)model->aHeader + sizeof(mdxaHeader_t));

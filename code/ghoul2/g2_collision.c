@@ -26,9 +26,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 /*
 =============================================
------------------------------
-Vertex convenience functions.
------------------------------
+----------------------------
+Vertex convenience functions
+----------------------------
 =============================================
 */
 
@@ -130,7 +130,7 @@ static void G2_TransformEachSurface(CGhoul2Model_t *model, const mdxmSurface_t *
     mdxaBone_t              *bone;
     mdxmVertex_t            *v;
     mdxmVertexTexCoord_t    *pTexCoords;
-    vec3_t                  tempVert, tempNormal;
+    vec3_t                  tempVert;
     int                     iNumWeights, iBoneIndex;
     float                   fTotalWeight, fBoneWeight;
 
@@ -140,9 +140,15 @@ static void G2_TransformEachSurface(CGhoul2Model_t *model, const mdxmSurface_t *
     piBoneReferences = (int *)((byte *)surface + surface->ofsBoneReferences);
     numVerts = surface->numVerts;
 
-    // Allocate some space for the transformed verts to get put in.
-    transformedVerts = Hunk_Alloc(numVerts * 5 * 4, h_low);
-    model->mTransformedVertsArray[surface->thisSurfaceIndex] = (size_t)transformedVerts;
+    // Allocate some space for the transformed verts to get put in,
+    // if it isn't allocated yet.
+    transformedVerts = model->mTransformedVertsArray[surface->thisSurfaceIndex];
+    if(transformedVerts == NULL){
+        transformedVerts
+            = model->mTransformedVertsArray[surface->thisSurfaceIndex]
+            = Z_TagMalloc(numVerts * 5 * sizeof(float), TAG_GHOUL2);
+    }
+    Com_Memset(transformedVerts, 0, numVerts * 5 * sizeof(float));
 
     //
     // Whip through and actually transform each vertex.
@@ -150,10 +156,9 @@ static void G2_TransformEachSurface(CGhoul2Model_t *model, const mdxmSurface_t *
     v = (mdxmVertex_t *)((byte *)surface + surface->ofsVerts);
     pTexCoords = (mdxmVertexTexCoord_t *)&v[numVerts];
 
-    if ((scale[0] != 1.0) || (scale[1] != 1.0) || (scale[2] != 1.0)){
+    if((scale[0] != 1.0) || (scale[1] != 1.0) || (scale[2] != 1.0)){
         for(i = 0; i < numVerts; i++){
             VectorClear(tempVert);
-            VectorClear(tempNormal);
 
             iNumWeights = G2_GetVertWeights(v);
             fTotalWeight = 0.0f;
@@ -167,15 +172,11 @@ static void G2_TransformEachSurface(CGhoul2Model_t *model, const mdxmSurface_t *
                 tempVert[0] += fBoneWeight * (DotProduct(bone->matrix[0], v->vertCoords) + bone->matrix[0][3]);
                 tempVert[1] += fBoneWeight * (DotProduct(bone->matrix[1], v->vertCoords) + bone->matrix[1][3]);
                 tempVert[2] += fBoneWeight * (DotProduct(bone->matrix[2], v->vertCoords) + bone->matrix[2][3]);
-
-                tempNormal[0] += fBoneWeight * DotProduct(bone->matrix[0], v->normal);
-                tempNormal[1] += fBoneWeight * DotProduct(bone->matrix[1], v->normal);
-                tempNormal[2] += fBoneWeight * DotProduct(bone->matrix[2], v->normal);
             }
 
             pos = i * 5;
 
-            // Copy transformed verts into temporary space.
+            // Copy transformed verts into allocated space.
             transformedVerts[pos++] = tempVert[0] * scale[0];
             transformedVerts[pos++] = tempVert[1] * scale[1];
             transformedVerts[pos++] = tempVert[2] * scale[2];
@@ -192,7 +193,6 @@ static void G2_TransformEachSurface(CGhoul2Model_t *model, const mdxmSurface_t *
 
         for(i = 0; i < numVerts; i++){
             VectorClear(tempVert);
-            VectorClear(tempNormal);
 
             iNumWeights = G2_GetVertWeights(v);
             fTotalWeight = 0.0f;
@@ -207,13 +207,9 @@ static void G2_TransformEachSurface(CGhoul2Model_t *model, const mdxmSurface_t *
                 tempVert[0] += fBoneWeight * (DotProduct(bone->matrix[0], v->vertCoords) + bone->matrix[0][3]);
                 tempVert[1] += fBoneWeight * (DotProduct(bone->matrix[1], v->vertCoords) + bone->matrix[1][3]);
                 tempVert[2] += fBoneWeight * (DotProduct(bone->matrix[2], v->vertCoords) + bone->matrix[2][3]);
-
-                tempNormal[0] += fBoneWeight * DotProduct(bone->matrix[0], v->normal);
-                tempNormal[1] += fBoneWeight * DotProduct(bone->matrix[1], v->normal);
-                tempNormal[2] += fBoneWeight * DotProduct(bone->matrix[2], v->normal);
             }
 
-            // Copy transformed verts into temporary space.
+            // Copy transformed verts into allocated space.
             transformedVerts[pos++] = tempVert[0];
             transformedVerts[pos++] = tempVert[1];
             transformedVerts[pos++] = tempVert[2];
@@ -225,7 +221,6 @@ static void G2_TransformEachSurface(CGhoul2Model_t *model, const mdxmSurface_t *
 
             v++;
         }
-
     }
 }
 
@@ -282,7 +277,6 @@ of the skeleton has been transformed.
 
 void G2_TransformModel(CGhoul2Model_t *model, vec3_t scale, int useLod)
 {
-    mdxmHeader_t    *mdxmHeader;
     vec3_t          correctScale;
     int             i;
     int             lod;
@@ -301,18 +295,15 @@ void G2_TransformModel(CGhoul2Model_t *model, vec3_t scale, int useLod)
     // Try rendering out this Ghoul II model.
     //
 
-    // Get the Ghoul II mesh file header for this model.
-    mdxmHeader = model->currentModel->modelData;
-
     // Decide the LOD.
     lod = G2_DecideTraceLod(model, useLod);
 
     // Give us space for the transformed vertex array to be put in.
     // If it is not allocated already that is.
     if(model->mTransformedVertsArray == NULL){
-        model->mTransformedVertsArray = Z_TagMalloc(mdxmHeader->numSurfaces * sizeof(size_t), TAG_GHOUL2);
+        model->mTransformedVertsArray = Z_TagMalloc(model->numTransformedVerts * sizeof(void *), TAG_GHOUL2);
+        Com_Memset(model->mTransformedVertsArray, 0, model->numTransformedVerts * sizeof(void *));
     }
-    memset(model->mTransformedVertsArray, 0, mdxmHeader->numSurfaces * sizeof(size_t));
 
     // Recursively transform the model surfaces.
     G2_TransformSurfaces_r(model, 0, lod, correctScale);
@@ -500,7 +491,7 @@ static qboolean G2_TracePolys(mdxmSurface_t *surface, mdxmSurfHierarchy_t *surfI
     hitRegData_t        *hitRegData;
 
     tris    = (mdxmTriangle_t *)((byte *)surface + surface->ofsTriangles);
-    verts   = (float *)TS->transformedVertsArray[surface->thisSurfaceIndex];
+    verts   = TS->transformedVertsArray[surface->thisSurfaceIndex];
     numTris = surface->numTriangles;
 
     // Iterate through the tris and

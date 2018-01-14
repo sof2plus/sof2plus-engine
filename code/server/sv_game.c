@@ -811,6 +811,8 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
         return 0;
     case G_G2_INITGHOUL2MODEL:
         return G2API_InitGhoul2Model(VMA(1), (const char *)VMA(2), args[3], args[4]);
+    case G_G2_REMOVEGHOUL2MODEL:
+        return G2API_RemoveGhoul2Model(VMA(1));
     case G_G2_ANGLEOVERRIDE:
         return G2API_SetBoneAngles(VMA(1), (const char *)VMA(2), (float *)VMA(3), args[4],
                                   (const Eorientations)args[5], (const Eorientations)args[6], (const Eorientations)args[7]);

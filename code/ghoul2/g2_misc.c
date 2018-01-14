@@ -60,6 +60,7 @@ static qboolean G2_SetModelInfo(CGhoul2Model_t *model)
         Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: Model associated Ghoul II mesh file has no valid header (%s).\n", model->mFileName);
         return qfalse;
     }
+    model->numTransformedVerts = mdxmHeader->numSurfaces;
 
     // Check if the mesh file contains data.
     if(!mdxmHeader->ofsEnd){
@@ -119,6 +120,7 @@ qboolean G2_SetupModelPointers(CGhoul2Model_t *model)
         // Info isn't valid, invalidate all Ghoul II specifics.
         model->currentModel = 0;
         model->currentModelSize = 0;
+        model->numTransformedVerts = 0;
         model->animModel = 0;
         model->currentAnimModelSize = 0;
         model->aHeader = 0;

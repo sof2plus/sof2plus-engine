@@ -93,7 +93,7 @@ struct CTraceSurface_s {
     CollisionRecord_t   *collRecMap;
     int                 entNum;
     skin_t              *skin;
-    size_t              *transformedVertsArray;
+    void                **transformedVertsArray;
     int                 traceFlags;
 
     qboolean            stopRec;
@@ -110,7 +110,8 @@ struct CGhoul2Model_s {
     qhandle_t           mModel;
     char                mFileName[MAX_QPATH];
 
-    size_t              *mTransformedVertsArray;    // Used to create awn array of pointers to transformed verts per surface.
+    void                **mTransformedVertsArray;
+    int                 numTransformedVerts;
 
     qboolean            mValid;
     const model_t       *currentModel;
@@ -132,6 +133,7 @@ void                    G2API_ListBones             ( CGhoul2Model_t *model );
 void                    G2API_ListSurfaces          ( CGhoul2Model_t *model );
 
 qboolean                G2API_InitGhoul2Model       ( CGhoul2Model_t **modelPtr, const char *fileName, qhandle_t customSkin, int lodBias );
+qboolean                G2API_RemoveGhoul2Model     ( CGhoul2Model_t **modelPtr );
 
 qboolean                G2API_SetBoneAngles         ( CGhoul2Model_t *model, const char *boneName, const vec3_t angles, const int flags,
                                                       const Eorientations up, const Eorientations left, const Eorientations forward );
