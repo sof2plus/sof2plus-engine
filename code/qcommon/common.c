@@ -790,6 +790,24 @@ typedef struct {
     memblock_t  *rover;
 } memzone_t;
 
+typedef struct {
+    const char  *tagName;
+    const char  *description;
+} memtagInfo_t;
+
+static memtagInfo_t memtags[] = {
+    { "TAG_FREE",       ""                                  },
+    { "TAG_GENERAL",    "generic dynamic memory"            },
+    { "TAG_BOTLIB",     "botlib interface memory"           },
+    { "TAG_RENDERER",   "rd-dedicated renderer memory"      },
+    { "TAG_GHOUL2",     "Ghoul II system memory"            },
+    { "TAG_TEXTPOOL",   "GP2 text pool system memory"       },
+    { "TAG_SMALL",      "small temporary operation memory"  },
+    { "TAG_STATIC",     "static memory blocks"              }
+};
+
+#define TAG_MAX         (ARRAY_LEN(memtags))
+
 // main zone for all "dynamic" memory allocation
 memzone_t   *mainzone;
 // we also have a small zone for small allocations that would only
@@ -1282,13 +1300,14 @@ void Com_Meminfo_f( void ) {
     memblock_t  *block;
     int         zoneBytes, zoneBlocks;
     int         smallZoneBytes;
-    int         botlibBytes, rendererBytes;
+    int         tagBytes[TAG_MAX];
     int         unused;
+    int         i;
 
     zoneBytes = 0;
-    botlibBytes = 0;
-    rendererBytes = 0;
     zoneBlocks = 0;
+    Com_Memset(tagBytes, 0, sizeof(tagBytes));
+
     for (block = mainzone->blocklist.next ; ; block = block->next) {
         if ( Cmd_Argc() != 1 ) {
             Com_Printf ("block:%p    size:%7i    tag:%3i\n",
@@ -1297,11 +1316,7 @@ void Com_Meminfo_f( void ) {
         if ( block->tag ) {
             zoneBytes += block->size;
             zoneBlocks++;
-            if ( block->tag == TAG_BOTLIB ) {
-                botlibBytes += block->size;
-            } else if ( block->tag == TAG_RENDERER ) {
-                rendererBytes += block->size;
-            }
+            tagBytes[block->tag] += block->size;
         }
 
         if (block->next == &mainzone->blocklist) {
@@ -1355,12 +1370,26 @@ void Com_Meminfo_f( void ) {
         unused += hunk_high.tempHighwater - hunk_high.permanent;
     }
     Com_Printf( "%8i unused highwater\n", unused );
-    Com_Printf( "\n" );
-    Com_Printf( "%8i bytes in %i zone blocks\n", zoneBytes, zoneBlocks  );
-    Com_Printf( "        %8i bytes in dynamic botlib\n", botlibBytes );
-    Com_Printf( "        %8i bytes in dynamic renderer\n", rendererBytes );
-    Com_Printf( "        %8i bytes in dynamic other\n", zoneBytes - ( botlibBytes + rendererBytes ) );
-    Com_Printf( "        %8i bytes in small Zone memory\n", smallZoneBytes );
+    Com_Printf("\n");
+
+    // List zone memory.
+    // Main zone.
+    Com_Printf("Main zone\n");
+    Com_Printf("==========\n");
+    Com_Printf("%8i bytes in %i zone blocks\n", zoneBytes, zoneBlocks);
+    for(i = 1; i < TAG_MAX; i++){
+        if(tagBytes[i] > 0){
+            Com_Printf("        %8i bytes in %-12s : %s\n", tagBytes[i], memtags[i].tagName, memtags[i].description);
+        }
+    }
+
+    // Small zone.
+    Com_Printf("\n");
+    Com_Printf("Small zone\n");
+    Com_Printf("==========\n");
+    Com_Printf("%8i bytes in small zone memory\n", smallZoneBytes);
+
+    Com_Printf("\n");
 }
 
 /*

@@ -1317,15 +1317,7 @@ typedef struct qtime_s {
 #define SAY_TEAM    1
 #define SAY_TELL    2
 
-// define the new memory tags for the zone, used by all modules now
-//
-#define TAGDEF(blah) TAG_ ## blah
-typedef enum {
-#include "../qcommon/tags.h"
-} memtag_t;
-
-typedef struct
-{
+typedef struct {
     int     isValid;
     void    *ghoul2;
     int     modelNum;
