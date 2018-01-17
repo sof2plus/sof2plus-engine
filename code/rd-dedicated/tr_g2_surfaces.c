@@ -20,9 +20,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
-// g2_surfaces.c - Surface list handling Ghoul II routines.
+// tr_g2_surfaces.c - Surface list handling Ghoul II routines.
 
-#include "g2_local.h"
+#include "tr_g2_local.h"
 
 /*
 ==================

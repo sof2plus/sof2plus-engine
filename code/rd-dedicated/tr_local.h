@@ -28,7 +28,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qfiles.h"
 #include "../qcommon/qcommon.h"
-#include "mdx_format.h"
+
+#include "tr_mdx_format.h"
 
 //=============================================
 

@@ -20,9 +20,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
-// g2_bones.c - Bone and skeleton handling Ghoul II routines.
+// tr_g2_bones.c - Bone and skeleton handling Ghoul II routines.
 
-#include "g2_local.h"
+#include "tr_g2_local.h"
 
 // The identity matrix is used across Ghoul II files.
 mdxaBone_t identityMatrix =
@@ -782,7 +782,7 @@ static void G2_TransformBone(CBoneCache_t *mBoneCache, int boneIndex)
     if(angleOverride & BONE_ANGLES_POSTMULT){
         mdxaBone_t  tempMatrix;
 
-        memcpy(&tempMatrix,&transformBone->boneMatrix, sizeof(mdxaBone_t));
+        Com_Memcpy(&tempMatrix, &transformBone->boneMatrix, sizeof(mdxaBone_t));
         G2_Multiply_3x4Matrix(&transformBone->boneMatrix, &tempMatrix, &boneFound->matrix);
     }
 }
@@ -1052,7 +1052,7 @@ void G2_BoneGenerateMatrix(const model_t *modAnim, boneInfo_t **boneList, int bo
     }
 
     // Keep a copy of the matrix in the newMatrix variable.
-    memcpy(&boneList[boneIndex]->newMatrix, &boneList[boneIndex]->matrix, sizeof(mdxaBone_t));
+    Com_Memcpy(&boneList[boneIndex]->newMatrix, &boneList[boneIndex]->matrix, sizeof(mdxaBone_t));
 }
 
 /*
