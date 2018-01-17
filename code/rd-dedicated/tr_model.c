@@ -92,7 +92,9 @@ model_t *R_AllocModel()
         return NULL;
     }
 
-    mod = Hunk_Alloc(sizeof(*tr.models[tr.numModels]), h_low);
+    mod = Z_TagMalloc(sizeof(model_t), TAG_RENDERER);
+    Com_Memset(mod, 0, sizeof(model_t));
+
     mod->index = tr.numModels;
     tr.models[tr.numModels] = mod;
     tr.numModels++;
@@ -238,7 +240,7 @@ static qboolean R_LoadMDXA(model_t *mod, void *buffer, int bufferSize, const cha
     }
 
     mod->type = MOD_MDXA;
-    mod->modelData = mdxa = Hunk_Alloc(size, h_low);
+    mod->modelData = mdxa = Z_TagMalloc(size, TAG_RENDERER);
 
     // Copy all the values over from the file.
     Com_Memcpy(mod->modelData, buffer, size);
@@ -290,7 +292,7 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
     }
 
     mod->type = MOD_MDXM;
-    mod->modelData = mdxm = Hunk_Alloc(size, h_low);
+    mod->modelData = mdxm = Z_TagMalloc(size, TAG_RENDERER);
 
     // Copy the buffer contents.
     Com_Memcpy(mod->modelData, buffer, size);

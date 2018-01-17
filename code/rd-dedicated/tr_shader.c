@@ -41,7 +41,8 @@ static shader_t *R_AllocShader(void)
         return NULL;
     }
 
-    shader = Hunk_Alloc(sizeof(shader_t), h_low);
+    shader = Z_TagMalloc(sizeof(shader_t), TAG_RENDERER);
+    Com_Memset(shader, 0, sizeof(shader_t));
     tr.shaders[tr.numShaders] = shader;
     tr.numShaders++;
 
@@ -168,10 +169,10 @@ static int R_ParseHitData(char *token, shader_t *shader, qboolean location)
             numPixels = hitRegData->width * hitRegData->height;
 
             // Allocate data on the hunk to store the image.
-            hitRegData->loc = Hunk_Alloc(numPixels, h_low);
+            hitRegData->loc = Z_TagMalloc(numPixels, TAG_RENDERER);
 
             // Copy data into new space.
-            memcpy(hitRegData->loc, buffer, numPixels);
+            Com_Memcpy(hitRegData->loc, buffer, numPixels);
 
             // Also store the name of the image.
             Q_strncpyz(hitRegData->name, token, sizeof(hitRegData->name));

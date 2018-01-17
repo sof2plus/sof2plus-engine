@@ -41,7 +41,8 @@ static skin_t *R_AllocSkin(void)
         return NULL;
     }
 
-    skin = Hunk_Alloc(sizeof(skin_t), h_low);
+    skin = Z_TagMalloc(sizeof(skin_t), TAG_RENDERER);
+    Com_Memset(skin, 0, sizeof(skin_t));
     tr.skins[tr.numSkins] = skin;
     tr.numSkins++;
 
@@ -154,7 +155,7 @@ qhandle_t RE_RegisterServerSkin(const char *name, int numPairs, const char *skin
         Q_strncpyz(surfShader, sShader, len < sizeof(surfShader) ? len : sizeof(surfShader));
 
         // Allocate a new surface.
-        surf = skin->surfaces[skin->numSurfaces] = Hunk_Alloc(sizeof(skinSurface_t), h_low);
+        surf = skin->surfaces[skin->numSurfaces] = Z_TagMalloc(sizeof(skinSurface_t), TAG_RENDERER);
         skin->numSurfaces++;
 
         // Set surface name and shader.

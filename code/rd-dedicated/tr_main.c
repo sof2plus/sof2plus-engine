@@ -60,7 +60,11 @@ Main routine to initialize renderer.
 void R_Init()
 {
     // Clear all our internal state.
-    memset(&tr, 0, sizeof(tr));
+    Com_Memset(&tr, 0, sizeof(tr));
+
+    // Free all memory from the tagged zone
+    // for the renderer, if any allocated.
+    Z_FreeTags(TAG_RENDERER);
 
     // Register CVARs.
     R_Register();
