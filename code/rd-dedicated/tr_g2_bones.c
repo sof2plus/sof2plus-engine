@@ -666,12 +666,10 @@ static void G2_TransformBone(CBoneCache_t *mBoneCache, int boneIndex)
     //
     // Find the bone in the list.
     //
-    if(mBoneCache->parent->mBoneList != NULL){
-        for(i = 0; i < mBoneCache->parent->numBones; i++){
-            if(mBoneCache->parent->mBoneList[i]->boneNumber == boneIndex){
-                boneFound = mBoneCache->parent->mBoneList[i];
-                break;
-            }
+    for(i = 0; i < mBoneCache->parent->numBones; i++){
+        if(mBoneCache->parent->mBoneList[i]->boneNumber == boneIndex){
+            boneFound = mBoneCache->parent->mBoneList[i];
+            break;
         }
     }
 

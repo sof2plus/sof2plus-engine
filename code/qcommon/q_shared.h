@@ -29,9 +29,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // Product information.
 #define PRODUCT_NAME                "SoF2Plus"
 #define BASEGAME                    "base"
-#define CLIENT_WINDOW_TITLE         "SoF2+"
+#define CLIENT_WINDOW_TITLE         PRODUCT_NAME
 #define HOMEPATH_NAME_UNIX          ".sof2plus"
-#define HOMEPATH_NAME_WIN           "SoF2Plus"
+#define HOMEPATH_NAME_WIN           PRODUCT_NAME
 #define HOMEPATH_NAME_MACOSX        HOMEPATH_NAME_WIN
 #define GAMENAME_FOR_MASTER         "sof2mp"
 

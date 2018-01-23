@@ -683,37 +683,6 @@ int main( int argc, char **argv )
     int   i;
     char  commandLine[ MAX_STRING_CHARS ] = { 0 };
 
-    extern void Sys_LaunchAutoupdater(int argc, char **argv);
-    Sys_LaunchAutoupdater(argc, argv);
-
-#ifndef DEDICATED
-    // SDL version check
-
-    // Compile time
-#   if !SDL_VERSION_ATLEAST(MINSDL_MAJOR,MINSDL_MINOR,MINSDL_PATCH)
-#       error A more recent version of SDL is required
-#   endif
-
-    // Run time
-    SDL_version ver;
-    SDL_GetVersion( &ver );
-
-#define MINSDL_VERSION \
-    XSTRING(MINSDL_MAJOR) "." \
-    XSTRING(MINSDL_MINOR) "." \
-    XSTRING(MINSDL_PATCH)
-
-    if( SDL_VERSIONNUM( ver.major, ver.minor, ver.patch ) <
-            SDL_VERSIONNUM( MINSDL_MAJOR, MINSDL_MINOR, MINSDL_PATCH ) )
-    {
-        Sys_Dialog( DT_ERROR, va( "SDL version " MINSDL_VERSION " or greater is required, "
-            "but only version %d.%d.%d was found. You may be able to obtain a more recent copy "
-            "from http://www.libsdl.org/.", ver.major, ver.minor, ver.patch ), "SDL Library Too Old" );
-
-        Sys_Exit( 1 );
-    }
-#endif
-
     Sys_PlatformInit( );
 
     // Set the initial time base
