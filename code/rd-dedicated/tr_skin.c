@@ -58,7 +58,7 @@ The function expects a space separated
 skin pair list, with the number of pairs
 defined up-front.
 
-Zero will be returned if the skin fails to load.
+-1 will be returned if the skin fails to load.
 ==================
 */
 
@@ -76,17 +76,17 @@ qhandle_t RE_RegisterServerSkin(const char *name, int numPairs, const char *skin
     // Must be a valid name.
     if(!name || !name[0]){
         Com_Printf(S_COLOR_RED "RE_RegisterServerSkin: NULL name.\n");
-        return 0;
+        return -1;
     }
     if(strlen(name) >= MAX_QPATH){
         Com_Printf(S_COLOR_RED "RE_RegisterServerSkin: Model name exceeds MAX_QPATH.\n");
-        return 0;
+        return -1;
     }
 
     // Do we have a valid skin pair list?
     if(numPairs == 0 || skinPairs == NULL || !strlen(skinPairs) || !strstr(skinPairs, " ")){
         Com_Printf(S_COLOR_RED "RE_RegisterServerSkin: Invalid skin pair list.\n");
-        return 0;
+        return -1;
     }
 
     //
@@ -98,7 +98,7 @@ qhandle_t RE_RegisterServerSkin(const char *name, int numPairs, const char *skin
             // Skin found. Does this skin contain surfaces?
             if(skin->numSurfaces == 0){
                 // It doesn't, return the default skin.
-                return 0;
+                return -1;
             }
 
             // Found the skin we're trying to load.
@@ -111,7 +111,7 @@ qhandle_t RE_RegisterServerSkin(const char *name, int numPairs, const char *skin
     //
     if((skin = R_AllocSkin()) == NULL){
         Com_Printf(S_COLOR_YELLOW "RE_RegisterServerSkin: R_AllocSkin() failed for \"%s\".\n", name);
-        return 0;
+        return -1;
     }
 
     // Set info after the skin has been successfully initialized.

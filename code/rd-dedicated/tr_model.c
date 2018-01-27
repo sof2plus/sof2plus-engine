@@ -34,27 +34,6 @@ static qboolean     R_LoadMDXM              ( model_t *mod, void *buffer, int bu
 
 /*
 ==================
-R_ModelInit
-
-Clears models and (re-)initializes the main NULL model.
-==================
-*/
-
-void R_ModelInit()
-{
-    model_t     *mod;
-
-    // Leave a space for NULL model.
-    tr.numModels = 0;
-
-    mod = R_AllocModel();
-    mod->type = MOD_BAD;
-}
-
-//=============================================
-
-/*
-==================
 R_GetModelByHandle
 
 Returns existing model in the list,
@@ -67,8 +46,8 @@ model_t *R_GetModelByHandle(qhandle_t index)
     model_t     *mod;
 
     // Out of range returns the default model.
-    if(index < 1 || index >= tr.numModels){
-        return tr.models[0];
+    if(index < 0 || index >= tr.numModels){
+        return NULL;
     }
 
     mod = tr.models[index];
@@ -108,7 +87,8 @@ RE_RegisterServerModel
 
 Loads in a model for the given name.
 
-Zero will be returned if the model fails to load.
+-1 will be returned if the model fails to load,
+to indicate an error has occurred.
 An entry will be retained for failed models as an
 optimization to prevent disk rescanning if they are
 asked for again.
@@ -131,21 +111,21 @@ qhandle_t RE_RegisterServerModel(const char *name)
     // Must be a valid name.
     if(!name || !name[0]){
         Com_Printf(S_COLOR_RED "RE_RegisterServerModel: NULL name\n");
-        return 0;
+        return -1;
     }
     if(strlen(name) >= MAX_QPATH){
         Com_Printf(S_COLOR_RED "RE_RegisterServerModel: Model name exceeds MAX_QPATH\n");
-        return 0;
+        return -1;
     }
 
    //
    // Search the currently loaded models.
    //
-   for(hModel = 1; hModel < tr.numModels; hModel++){
+   for(hModel = 0; hModel < tr.numModels; hModel++){
         mod = tr.models[hModel];
         if(!Q_stricmp(mod->name, name)){
             if(mod->type == MOD_BAD){
-                return 0;
+                return -1;
             }
             return hModel;
         }
@@ -154,7 +134,7 @@ qhandle_t RE_RegisterServerModel(const char *name)
     // Allocate a new model.
     if((mod = R_AllocModel()) == NULL){
         Com_Printf(S_COLOR_YELLOW "RE_RegisterServerModel: R_AllocModel() failed for \"%s\".\n", name);
-        return 0;
+        return -1;
     }
 
     // Only set the name after the model has been successfully loaded.
@@ -310,11 +290,11 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
     // First up, go load in the animation file we need that has the skeletal animation info for this model.
     // Try the MP animation file variant first.
     mdxm->animIndex = RE_RegisterServerModel(va("%s_mp.gla", mdxm->animName));
-    if(!mdxm->animIndex){
+    if(mdxm->animIndex < 0){
         // Not found, is the regular animation file present?
         mdxm->animIndex = RE_RegisterServerModel(va("%s.gla", mdxm->animName));
 
-        if(!mdxm->animIndex){
+        if(mdxm->animIndex < 0){
             Com_Printf(S_COLOR_YELLOW "R_LoadMDXM: \"%s\" has no skeletal animation info.\n", modName);
             return qfalse;
         }

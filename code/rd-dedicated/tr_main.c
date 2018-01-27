@@ -69,9 +69,6 @@ void R_Init()
     // Register CVARs.
     R_Register();
 
-    // Initialize main NULL model.
-    R_ModelInit();
-
     // Initialize shaders.
     R_ShaderInit();
 }

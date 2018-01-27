@@ -136,7 +136,6 @@ void                R_Init                          ( void );
 //
 
 qhandle_t           RE_RegisterServerModel          ( const char *name );
-void                R_ModelInit                     ( void );
 model_t             *R_GetModelByHandle             ( qhandle_t index );
 model_t             *R_AllocModel                   ( void );
 

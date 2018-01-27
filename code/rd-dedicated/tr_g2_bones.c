@@ -249,7 +249,7 @@ from the mBones array.
 
 static ID_INLINE CBoneCalc_t *G2_GetCalcBone(void *mBones, int index)
 {
-    return (CBoneCalc_t *)(mBones + index * sizeof(CBoneCalc_t));
+    return (CBoneCalc_t *)((char *)mBones + index * sizeof(CBoneCalc_t));
 }
 
 /*
@@ -263,7 +263,7 @@ from the mFinalBones array.
 
 static ID_INLINE CTransformBone_t *G2_GetTransformBone(void *mFinalBones, int index)
 {
-    return (CTransformBone_t *)(mFinalBones + index * sizeof(CTransformBone_t));
+    return (CTransformBone_t *)((char *)mFinalBones + index * sizeof(CTransformBone_t));
 }
 
 /*

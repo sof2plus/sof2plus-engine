@@ -76,6 +76,12 @@ static qboolean G2_SetModelInfo(CGhoul2Model_t *model)
     }
     model->animModel = R_GetModelByHandle(mdxmHeader->animIndex);
 
+    // Check whether the animation model data is valid.
+    if(!model->animModel){
+        Com_Printf(S_COLOR_YELLOW "G2_SetModelInfo: NULL Ghoul II animation model (%s).\n", model->mFileName);
+        return qfalse;
+    }
+
     // Check if the animation file header is valid.
     mdxaHeader = (mdxaHeader_t *)model->animModel->modelData;
     if(!mdxaHeader){
