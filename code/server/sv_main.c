@@ -580,7 +580,7 @@ if a user is interested in a server to do a full status
 ================
 */
 void SVC_Info( netadr_t from ) {
-    int     i, count, humans;
+    int     i, count;
     char    *gamedir;
     char    infostring[MAX_INFO_STRING];
 
@@ -608,13 +608,10 @@ void SVC_Info( netadr_t from ) {
         return;
 
     // don't count privateclients
-    count = humans = 0;
+    count = 0;
     for ( i = sv_privateClients->integer ; i < sv_maxclients->integer ; i++ ) {
         if ( svs.clients[i].state >= CS_CONNECTED ) {
             count++;
-            if (svs.clients[i].netchan.remoteAddress.type != NA_BOT) {
-                humans++;
-            }
         }
     }
 
@@ -623,8 +620,6 @@ void SVC_Info( netadr_t from ) {
     // echo back the parameter to status. so servers can use it as a challenge
     // to prevent timed spoofed reply packets that add ghost servers
     Info_SetValueForKey( infostring, "challenge", Cmd_Argv(1) );
-
-    Info_SetValueForKey( infostring, "gamename", com_gamename->string );
 
 #ifdef LEGACY_PROTOCOL
     if(com_legacyprotocol->integer > 0)
@@ -636,12 +631,11 @@ void SVC_Info( netadr_t from ) {
     Info_SetValueForKey( infostring, "hostname", sv_hostname->string );
     Info_SetValueForKey( infostring, "mapname", sv_mapname->string );
     Info_SetValueForKey( infostring, "clients", va("%i", count) );
-    Info_SetValueForKey(infostring, "g_humanplayers", va("%i", humans));
     Info_SetValueForKey( infostring, "sv_maxclients",
         va("%i", sv_maxclients->integer - sv_privateClients->integer ) );
-    Info_SetValueForKey( infostring, "gametype", va("%i", sv_gametype->integer ) );
+    Info_SetValueForKey( infostring, "gametype", sv_gametype->string );
     Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->integer ) );
-    Info_SetValueForKey(infostring, "g_needpass", va("%d", Cvar_VariableIntegerValue("g_needpass")));
+    Info_SetValueForKey( infostring, "needpass", va("%d", Cvar_VariableIntegerValue("g_needpass") ) );
 
     if( sv_minPing->integer ) {
         Info_SetValueForKey( infostring, "minPing", va("%i", sv_minPing->integer) );
@@ -653,6 +647,7 @@ void SVC_Info( netadr_t from ) {
     if( *gamedir ) {
         Info_SetValueForKey( infostring, "game", gamedir );
     }
+    Info_SetValueForKey( infostring, "sv_allowDownload", va("%i", sv_allowDownload->integer) );
 
     NET_OutOfBandPrint( NS_SERVER, from, "infoResponse\n%s", infostring );
 }
