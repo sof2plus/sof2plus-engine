@@ -800,6 +800,7 @@ static memtagInfo_t memtags[] = {
     { "TAG_BOTLIB",     "botlib interface memory"           },
     { "TAG_RENDERER",   "rd-dedicated renderer memory"      },
     { "TAG_GHOUL2",     "Ghoul II system memory"            },
+    { "TAG_GP2",        "main GP2 system memory"            },
     { "TAG_TEXTPOOL",   "GP2 text pool system memory"       },
     { "TAG_SMALL",      "small temporary operation memory"  },
     { "TAG_STATIC",     "static memory blocks"              }

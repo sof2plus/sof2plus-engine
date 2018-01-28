@@ -120,7 +120,8 @@ static CGPGroup *GPG_AddGroup(CGPGroup *gpg, char *name, CTextPool **textPool)
     }
 
     // Allocate memory for new group.
-    newGroup = calloc(1, sizeof(CGPGroup));
+    newGroup = Z_TagMalloc(sizeof(CGPGroup), TAG_GP2);
+    memset(newGroup, 0, sizeof(CGPGroup));
     newGroup->mParent = gpg;
 
     // Set proper name.
@@ -155,7 +156,8 @@ static CGPValue *GPG_AddPair(CGPGroup *gpg, char *name, char *value, CTextPool *
     }
 
     // Allocate memory for this new pair.
-    newPair = calloc(1, sizeof(CGPValue));
+    newPair = Z_TagMalloc(sizeof(CGPValue), TAG_GP2);
+    memset(newPair, 0, sizeof(CGPValue));
 
     // Set base info.
     newPair->mBase.mName = name;
@@ -195,7 +197,7 @@ static void GPG_Clean(CGPGroup *gpg)
     }
 
     if(gpg->mBase.mName != topLevelName){
-        free(gpg);
+        Z_Free(gpg);
     }
 }
 
@@ -242,8 +244,11 @@ static void GPV_AddValue(CGPValue *gpv, char *newValue)
 {
     CGPValue    *value;
 
-    // Allocate the new value and set the base name.
-    value = calloc(1, sizeof(CGPValue));
+    // Allocate the new value.
+    value = Z_TagMalloc(sizeof(CGPValue), TAG_GP2);
+    memset(value, 0, sizeof(CGPValue));
+
+    // Set the base name.
     value->mBase.mName = newValue;
 
     if(gpv->mList == NULL){
@@ -274,7 +279,7 @@ static void GPV_Clean(CGPValue *gpv)
         gpv->mList = next;
     }
 
-    free(gpv);
+    Z_Free(gpv);
 }
 
 /*
@@ -322,7 +327,8 @@ static CTextPool *AllocTextPool(int mSize)
     CTextPool *mTextPool;
 
     // Allocate and zero initialize the text pool.
-    mTextPool = calloc(1, sizeof(CTextPool));
+    mTextPool = Z_TagMalloc(sizeof(CTextPool), TAG_GP2);
+    memset(mTextPool, 0, sizeof(CTextPool));
 
     // Allocate memory for the actual pool.
     mTextPool->mSize = mSize;
@@ -348,7 +354,7 @@ static void CleanTextPool(CTextPool *pool)
     while(pool){
         next = pool->mNext;
         Z_Free(pool->mPool);
-        free(pool);
+        Z_Free(pool);
         pool = next;
     }
 }
@@ -553,7 +559,8 @@ TGenericParser2 GP_Parse(char **dataPtr)
     }
 
     // Allocate and zero initialize the main parser structure.
-    topLevel = calloc(1, sizeof(CGenericParser2));
+    topLevel = Z_TagMalloc(sizeof(CGenericParser2), TAG_GP2);
+    memset(topLevel, 0, sizeof(CGenericParser2));
 
     // Initialize the text pool.
     topLevel->mTextPool = AllocTextPool(TOPPOOL_SIZE);
@@ -621,7 +628,7 @@ void GP_Delete(TGenericParser2 *GP2)
     GP_Clean(*GP2);
 
     // Free the top level.
-    free(*GP2);
+    Z_Free(*GP2);
     (*GP2) = NULL;
 }
 
