@@ -1,0 +1,441 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1FD3BB9B-DC72-407D-A8E4-D0216E62708E}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>sof2plus-engine</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>sof2plus-engine</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\..\build\debug-msvc14-x86\</OutDir>
+    <IntDir>..\..\build\debug-msvc14-x86\ded\</IntDir>
+    <TargetName>sof2plus.x86</TargetName>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
+    <OutDir>..\..\build\debug-msvc14-x86_64\</OutDir>
+    <IntDir>..\..\build\debug-msvc14-x86_64\ded\</IntDir>
+    <TargetName>sof2plus.x86_64</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\..\build\release-msvc14-x86\</OutDir>
+    <IntDir>..\..\build\release-msvc14-x86\ded\</IntDir>
+    <TargetName>sof2plus.x86</TargetName>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\..\build\release-msvc14-x86_64\</OutDir>
+    <IntDir>..\..\build\release-msvc14-x86_64\ded\</IntDir>
+    <TargetName>sof2plus.x86_64</TargetName>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_WIN32;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;BOTLIB;DEDICATED;USE_ICON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>
+      </SDLCheck>
+      <AdditionalIncludeDirectories>..\..\code\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <CompileAs>CompileAsC</CompileAs>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>user32.lib;advapi32.lib;winmm.lib;wsock32.lib;ws2_32.lib</AdditionalDependencies>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImageHasSafeExceptionHandlers>
+      </ImageHasSafeExceptionHandlers>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_WIN64;__WIN64__;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;BOTLIB;DEDICATED;USE_ICON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>
+      </SDLCheck>
+      <AdditionalIncludeDirectories>..\..\code\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OmitFramePointers>false</OmitFramePointers>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <CompileAs>CompileAsC</CompileAs>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>user32.lib;advapi32.lib;winmm.lib;wsock32.lib;ws2_32.lib</AdditionalDependencies>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>_WIN32;WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;BOTLIB;DEDICATED;USE_ICON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>
+      </SDLCheck>
+      <AdditionalIncludeDirectories>..\..\code\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <StringPooling>true</StringPooling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <CompileAs>CompileAsC</CompileAs>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>
+      </EnableCOMDATFolding>
+      <OptimizeReferences>
+      </OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>user32.lib;advapi32.lib;winmm.lib;wsock32.lib;ws2_32.lib</AdditionalDependencies>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>_WIN64;__WIN64__;NDEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;BOTLIB;DEDICATED;USE_ICON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>
+      </SDLCheck>
+      <AdditionalIncludeDirectories>..\..\code\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OmitFramePointers>false</OmitFramePointers>
+      <StringPooling>true</StringPooling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <CompileAs>CompileAsC</CompileAs>
+      <CallingConvention>Cdecl</CallingConvention>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>
+      </EnableCOMDATFolding>
+      <OptimizeReferences>
+      </OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>user32.lib;advapi32.lib;winmm.lib;wsock32.lib;ws2_32.lib</AdditionalDependencies>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImageHasSafeExceptionHandlers>
+      </ImageHasSafeExceptionHandlers>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\code\asm\ftola.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Zi /safeseh /Fo"$(IntDir)%(Filename).asm.obj" "%(FullPath)"
+</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Assembling...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).asm.obj;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Zi /safeseh /Fo"$(IntDir)%(Filename).asm.obj" "%(FullPath)"
+</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Assembling...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).asm.obj;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 /Didx64 /c /Zi /Fo"$(IntDir)%(Filename).asm.obj" "%(FullPath)"
+</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Assembling...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).asm.obj;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ml64 /Didx64 /c /Zi /Fo"$(IntDir)%(Filename).asm.obj" "%(FullPath)"
+</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Assembling...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).asm.obj;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\code\asm\snapvector.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Zi /safeseh /Fo"$(IntDir)%(Filename).asm.obj" "%(FullPath)"
+</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Assembling...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).asm.obj;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Zi /safeseh /Fo"$(IntDir)%(Filename).asm.obj" "%(FullPath)"
+</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Assembling...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).asm.obj;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 /Didx64 /c /Zi /Fo"$(IntDir)%(Filename).asm.obj" "%(FullPath)"
+</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Assembling...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).asm.obj;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ml64 /Didx64 /c /Zi /Fo"$(IntDir)%(Filename).asm.obj" "%(FullPath)"
+</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Assembling...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).asm.obj;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\code\botlib\be_aas_bspq3.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_cluster.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_debug.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_entity.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_file.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_main.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_move.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_optimize.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_reach.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_route.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_routealt.c" />
+    <ClCompile Include="..\..\code\botlib\be_aas_sample.c" />
+    <ClCompile Include="..\..\code\botlib\be_ai_char.c" />
+    <ClCompile Include="..\..\code\botlib\be_ai_chat.c" />
+    <ClCompile Include="..\..\code\botlib\be_ai_gen.c" />
+    <ClCompile Include="..\..\code\botlib\be_ai_goal.c" />
+    <ClCompile Include="..\..\code\botlib\be_ai_move.c" />
+    <ClCompile Include="..\..\code\botlib\be_ai_weap.c" />
+    <ClCompile Include="..\..\code\botlib\be_ai_weight.c" />
+    <ClCompile Include="..\..\code\botlib\be_ea.c" />
+    <ClCompile Include="..\..\code\botlib\be_interface.c" />
+    <ClCompile Include="..\..\code\botlib\l_crc.c" />
+    <ClCompile Include="..\..\code\botlib\l_libvar.c" />
+    <ClCompile Include="..\..\code\botlib\l_log.c" />
+    <ClCompile Include="..\..\code\botlib\l_memory.c" />
+    <ClCompile Include="..\..\code\botlib\l_precomp.c" />
+    <ClCompile Include="..\..\code\botlib\l_script.c" />
+    <ClCompile Include="..\..\code\botlib\l_struct.c" />
+    <ClCompile Include="..\..\code\null\null_client.c" />
+    <ClCompile Include="..\..\code\null\null_input.c" />
+    <ClCompile Include="..\..\code\null\null_snddma.c" />
+    <ClCompile Include="..\..\code\qcommon\cmd.c" />
+    <ClCompile Include="..\..\code\qcommon\cm_load.c" />
+    <ClCompile Include="..\..\code\qcommon\cm_patch.c" />
+    <ClCompile Include="..\..\code\qcommon\cm_polylib.c" />
+    <ClCompile Include="..\..\code\qcommon\cm_test.c" />
+    <ClCompile Include="..\..\code\qcommon\cm_trace.c" />
+    <ClCompile Include="..\..\code\qcommon\common.c" />
+    <ClCompile Include="..\..\code\qcommon\cvar.c" />
+    <ClCompile Include="..\..\code\qcommon\files.c" />
+    <ClCompile Include="..\..\code\qcommon\genericparser2.c" />
+    <ClCompile Include="..\..\code\qcommon\huffman.c" />
+    <ClCompile Include="..\..\code\qcommon\ioapi.c" />
+    <ClCompile Include="..\..\code\qcommon\md4.c" />
+    <ClCompile Include="..\..\code\qcommon\md5.c" />
+    <ClCompile Include="..\..\code\qcommon\msg.c" />
+    <ClCompile Include="..\..\code\qcommon\net_chan.c" />
+    <ClCompile Include="..\..\code\qcommon\net_ip.c" />
+    <ClCompile Include="..\..\code\qcommon\puff.c" />
+    <ClCompile Include="..\..\code\qcommon\q_math.c" />
+    <ClCompile Include="..\..\code\qcommon\q_shared.c" />
+    <ClCompile Include="..\..\code\qcommon\unzip.c" />
+    <ClCompile Include="..\..\code\qcommon\vm.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_g2_api.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_g2_bones.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_g2_collision.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_g2_misc.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_g2_surfaces.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_image_png.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_main.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_model.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_shader.c" />
+    <ClCompile Include="..\..\code\rd-dedicated\tr_skin.c" />
+    <ClCompile Include="..\..\code\server\sv_bot.c" />
+    <ClCompile Include="..\..\code\server\sv_ccmds.c" />
+    <ClCompile Include="..\..\code\server\sv_client.c" />
+    <ClCompile Include="..\..\code\server\sv_game.c" />
+    <ClCompile Include="..\..\code\server\sv_init.c" />
+    <ClCompile Include="..\..\code\server\sv_main.c" />
+    <ClCompile Include="..\..\code\server\sv_net_chan.c" />
+    <ClCompile Include="..\..\code\server\sv_snapshot.c" />
+    <ClCompile Include="..\..\code\server\sv_world.c" />
+    <ClCompile Include="..\..\code\sys\con_log.c" />
+    <ClCompile Include="..\..\code\sys\con_win32.c" />
+    <ClCompile Include="..\..\code\sys\sys_main.c" />
+    <ClCompile Include="..\..\code\sys\sys_win32.c" />
+    <ClCompile Include="..\..\code\zlib\adler32.c" />
+    <ClCompile Include="..\..\code\zlib\crc32.c" />
+    <ClCompile Include="..\..\code\zlib\inffast.c" />
+    <ClCompile Include="..\..\code\zlib\inflate.c" />
+    <ClCompile Include="..\..\code\zlib\inftrees.c" />
+    <ClCompile Include="..\..\code\zlib\zutil.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\code\asm\qasm-inline.h" />
+    <ClInclude Include="..\..\code\asm\qasm.h" />
+    <ClInclude Include="..\..\code\botlib\aasfile.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_bsp.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_cluster.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_debug.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_def.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_entity.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_file.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_funcs.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_main.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_move.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_optimize.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_reach.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_route.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_routealt.h" />
+    <ClInclude Include="..\..\code\botlib\be_aas_sample.h" />
+    <ClInclude Include="..\..\code\botlib\be_ai_char.h" />
+    <ClInclude Include="..\..\code\botlib\be_ai_chat.h" />
+    <ClInclude Include="..\..\code\botlib\be_ai_gen.h" />
+    <ClInclude Include="..\..\code\botlib\be_ai_goal.h" />
+    <ClInclude Include="..\..\code\botlib\be_ai_move.h" />
+    <ClInclude Include="..\..\code\botlib\be_ai_weap.h" />
+    <ClInclude Include="..\..\code\botlib\be_ai_weight.h" />
+    <ClInclude Include="..\..\code\botlib\be_ea.h" />
+    <ClInclude Include="..\..\code\botlib\be_interface.h" />
+    <ClInclude Include="..\..\code\botlib\botlib.h" />
+    <ClInclude Include="..\..\code\botlib\l_crc.h" />
+    <ClInclude Include="..\..\code\botlib\l_libvar.h" />
+    <ClInclude Include="..\..\code\botlib\l_log.h" />
+    <ClInclude Include="..\..\code\botlib\l_memory.h" />
+    <ClInclude Include="..\..\code\botlib\l_precomp.h" />
+    <ClInclude Include="..\..\code\botlib\l_script.h" />
+    <ClInclude Include="..\..\code\botlib\l_struct.h" />
+    <ClInclude Include="..\..\code\botlib\l_utils.h" />
+    <ClInclude Include="..\..\code\game\bg_public.h" />
+    <ClInclude Include="..\..\code\game\bg_weapons.h" />
+    <ClInclude Include="..\..\code\game\g_public.h" />
+    <ClInclude Include="..\..\code\qcommon\cm_local.h" />
+    <ClInclude Include="..\..\code\qcommon\cm_patch.h" />
+    <ClInclude Include="..\..\code\qcommon\cm_polylib.h" />
+    <ClInclude Include="..\..\code\qcommon\cm_public.h" />
+    <ClInclude Include="..\..\code\qcommon\genericparser2.h" />
+    <ClInclude Include="..\..\code\qcommon\ioapi.h" />
+    <ClInclude Include="..\..\code\qcommon\json.h" />
+    <ClInclude Include="..\..\code\qcommon\puff.h" />
+    <ClInclude Include="..\..\code\qcommon\qcommon.h" />
+    <ClInclude Include="..\..\code\qcommon\qfiles.h" />
+    <ClInclude Include="..\..\code\qcommon\q_platform.h" />
+    <ClInclude Include="..\..\code\qcommon\q_shared.h" />
+    <ClInclude Include="..\..\code\qcommon\surfaceflags.h" />
+    <ClInclude Include="..\..\code\qcommon\unzip.h" />
+    <ClInclude Include="..\..\code\qcommon\vm_local.h" />
+    <ClInclude Include="..\..\code\rd-dedicated\tr_g2_local.h" />
+    <ClInclude Include="..\..\code\rd-dedicated\tr_local.h" />
+    <ClInclude Include="..\..\code\rd-dedicated\tr_mdx_format.h" />
+    <ClInclude Include="..\..\code\server\server.h" />
+    <ClInclude Include="..\..\code\sys\sys_loadlib.h" />
+    <ClInclude Include="..\..\code\sys\sys_local.h" />
+    <ClInclude Include="..\..\code\sys\win_resource.h" />
+    <ClInclude Include="..\..\code\zlib\crc32.h" />
+    <ClInclude Include="..\..\code\zlib\inffast.h" />
+    <ClInclude Include="..\..\code\zlib\inffixed.h" />
+    <ClInclude Include="..\..\code\zlib\inflate.h" />
+    <ClInclude Include="..\..\code\zlib\inftrees.h" />
+    <ClInclude Include="..\..\code\zlib\zconf.h" />
+    <ClInclude Include="..\..\code\zlib\zlib.h" />
+    <ClInclude Include="..\..\code\zlib\zutil.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\code\sys\win_resource.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
