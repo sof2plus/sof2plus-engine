@@ -9,10 +9,7 @@
 #define __BG_PUBLIC_H__
 
 #include "bg_weapons.h"
-#ifndef DEDICATED
-#include "../../ui/menudef.h"
 #include "inv.h"
-#endif
 
 #define GAME_VERSION        "sof2mp-1.03"
 
@@ -864,9 +861,6 @@ int         BG_FindGametype         ( const char* name );
  *******************************************************************************/
 
 #define MAX_OUTFITTING_NAME     64
-#ifndef OUTFITTING_GROUP_MAX
-#define OUTFITTING_GROUP_MAX        5
-#endif
 
 typedef struct goutfitting_s
 {
