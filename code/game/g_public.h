@@ -446,6 +446,8 @@ typedef enum {
     G_CM_REGISTER_TERRAIN,
     G_GET_MODEL_FORMALNAME,
 
+    G_MEM_INIT,
+
     G_GT_INIT,
     G_GT_RUNFRAME,
     G_GT_START,

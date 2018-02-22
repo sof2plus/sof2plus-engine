@@ -877,6 +877,7 @@ typedef enum {
     TAG_GHOUL2,
     TAG_GP2,
     TAG_TEXTPOOL,
+    TAG_GAMEMEM,
     TAG_SMALL,
     TAG_STATIC
 } memtag_t;

@@ -802,8 +802,9 @@ static memtagInfo_t memtags[] = {
     { "TAG_GHOUL2",     "Ghoul II system memory"            },
     { "TAG_GP2",        "main GP2 system memory"            },
     { "TAG_TEXTPOOL",   "GP2 text pool system memory"       },
+    { "TAG_GAMEMEM",    "game module mem pool memory"       },
     { "TAG_SMALL",      "small temporary operation memory"  },
-    { "TAG_STATIC",     "static memory blocks"              }
+    { "TAG_STATIC",     "static memory"                     }
 };
 
 #define TAG_MAX         (ARRAY_LEN(memtags))

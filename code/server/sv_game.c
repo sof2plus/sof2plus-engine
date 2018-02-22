@@ -900,6 +900,21 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case G_G2_SETSKIN:
         return (intptr_t)G2API_SetSkin(VMA(1), args[2]);
 
+    case G_MEM_INIT:
+        {
+            void *gameMemory;
+
+            // Free any memory previously allocated by the game module.
+            // This should happen once per map.
+            Z_FreeTags(TAG_GAMEMEM);
+
+            // Allocate memory for the game module memory management system.
+            gameMemory = Z_TagMalloc(args[1], TAG_GAMEMEM);
+            Com_Memset(gameMemory, 0, args[1]);
+
+            return (intptr_t)gameMemory;
+        }
+
     case TRAP_MEMSET:
         Com_Memset( VMA(1), args[2], args[3] );
         return 0;
