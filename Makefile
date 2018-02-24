@@ -1,5 +1,6 @@
 #
 # SoF2Plus Makefile
+# Engine
 #
 # GNU Make required
 #
@@ -196,7 +197,7 @@ else # ifeq Linux
 
 ifeq ($(PLATFORM),darwin)
   LIBS = -framework Cocoa
-  OPTIMIZE =
+  OPTIMIZE = -O3
 
   # Default minimum Mac OS X version
   ifeq ($(MACOSX_VERSION_MIN),)
@@ -539,7 +540,7 @@ endif
 
 define DO_CC
 $(echo_cmd) "CC $<"
-$(Q)$(CC) $(NOTSHLIBCFLAGS) $(CFLAGS) $(CLIENT_CFLAGS) $(OPTIMIZE) -o $@ -c $<
+$(Q)$(CC) $(NOTSHLIBCFLAGS) $(CFLAGS) $(OPTIMIZE) -o $@ -c $<
 endef
 
 define DO_BOT_CC
