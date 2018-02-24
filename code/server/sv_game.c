@@ -803,6 +803,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION:
         return botlib_export->ai.GeneticParentsAndChildSelection(args[1], VMA(2), VMA(3), VMA(4), VMA(5));
 
+    //=============== Ghoul II functionality ================
     case G_G2_LISTBONES:
         G2API_ListBones(VMA(1));
         return 0;
@@ -811,8 +812,6 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
         return 0;
     case G_G2_INITGHOUL2MODEL:
         return G2API_InitGhoul2Model(VMA(1), (const char *)VMA(2), args[3], args[4]);
-    case G_G2_REMOVEGHOUL2MODEL:
-        return G2API_RemoveGhoul2Model(VMA(1));
     case G_G2_ANGLEOVERRIDE:
         return G2API_SetBoneAngles(VMA(1), (const char *)VMA(2), (float *)VMA(3), args[4],
                                   (const Eorientations)args[5], (const Eorientations)args[6], (const Eorientations)args[7]);
@@ -820,7 +819,20 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
         return G2API_SetBoneAnim(VMA(1), (const char *)VMA(2), args[3], args[4], args[5], VMF(6), VMF(7));
     case G_G2_GETANIMFILENAME:
         return (intptr_t)G2API_GetAnimFileName(VMA(1), VMA(2), args[3]);
+    case G_G2_REMOVEGHOUL2MODEL:
+        return G2API_RemoveGhoul2Model(VMA(1));
 
+    case G_G2_COLLISIONDETECT:
+        G2API_CollisionDetect(VMA(1), VMA(2), (const float *)VMA(3), (const float *)VMA(4), args[5], args[6],
+                             (float *)VMA(7), (float *)VMA(8), (float *)VMA(9), args[10], args[11]);
+        return 0;
+    case G_G2_REGISTERSKIN:
+        return G2API_RegisterSkin((const char *)VMA(1), args[2], (const char *)VMA(3));
+    case G_G2_SETSKIN:
+        return (intptr_t)G2API_SetSkin(VMA(1), args[2]);
+
+    //======== Generic Parser 2 (GP2) functionality =========
+    // CGenericParser2 (void *) routines
     case G_GP_PARSE:
         return (intptr_t)GP_Parse(VMA(1));
     case G_GP_PARSE_FILE:
@@ -852,6 +864,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case G_GP_GET_BASE_PARSE_GROUP:
         return (intptr_t)GP_GetBaseParseGroup((TGenericParser2)args[1]);
 
+    // CGPGroup (void *) routines
     case G_GPG_GET_NAME:
         return (intptr_t)GPG_GetName((TGPGroup)args[1], VMA(2), args[3]);
     case G_GPG_GET_NEXT:
@@ -876,6 +889,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
         GPG_FindPairValue((TGPGroup)args[1], VMA(2), VMA(3), VMA(4), args[5]);
         return 0;
 
+    // CGPValue (void *) routines
     case G_GPV_GET_NAME:
         return GPV_GetName((TGPValue)args[1], VMA(2), args[3]);
     case G_GPV_GET_NEXT:
@@ -890,15 +904,6 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
         return GPV_GetTopValue((TGPValue)args[1], VMA(2), args[3]);
     case G_GPV_GET_LIST:
         return (intptr_t)GPV_GetList((TGPValue)args[1]);
-
-    case G_G2_COLLISIONDETECT:
-        G2API_CollisionDetect(VMA(1), VMA(2), (const float *)VMA(3), (const float *)VMA(4), args[5], args[6],
-                             (float *)VMA(7), (float *)VMA(8), (float *)VMA(9), args[10], args[11]);
-        return 0;
-    case G_G2_REGISTERSKIN:
-        return G2API_RegisterSkin((const char *)VMA(1), args[2], (const char *)VMA(3));
-    case G_G2_SETSKIN:
-        return (intptr_t)G2API_SetSkin(VMA(1), args[2]);
 
     case G_MEM_INIT:
         {
