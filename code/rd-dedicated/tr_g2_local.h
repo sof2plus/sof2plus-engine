@@ -168,7 +168,7 @@ struct CGhoul2Model_s {
 //=============================================
 
 //
-// g2_api.c
+// tr_g2_api.c
 //
 
 void                    G2API_ListBones             ( CGhoul2Model_t *model );
@@ -191,7 +191,7 @@ qhandle_t               G2API_RegisterSkin          ( const char *skinName, int 
 qboolean                G2API_SetSkin               ( CGhoul2Model_t *model, qhandle_t customSkin );
 
 //
-// g2_bones.c
+// tr_g2_bones.c
 //
 
 extern mdxaBone_t       identityMatrix;
@@ -209,7 +209,7 @@ void                    G2_BoneGenerateMatrix       ( const model_t *modAnim, bo
 void                    G2_TransformSkeleton        ( CGhoul2Model_t *model, const int frameNum );
 
 //
-// g2_collision.c
+// tr_g2_collision.c
 //
 
 void                    G2_TransformModel           ( CGhoul2Model_t *model, vec3_t scale, int useLod );
@@ -218,7 +218,7 @@ void                    G2_TraceModel               ( CGhoul2Model_t *model, vec
                                                       CollisionRecord_t *collRecMap, int entNum, int traceFlags, int useLod );
 
 //
-// g2_misc.c
+// tr_g2_misc.c
 //
 
 qboolean                G2_SetupModelPointers       ( CGhoul2Model_t *model );
@@ -231,7 +231,7 @@ void                    G2_TransformPoint           ( const vec3_t in, vec3_t ou
 void                    G2_TransformTranslatePoint  ( const vec3_t in, vec3_t out, mdxaBone_t *mat );
 
 //
-// g2_surfaces.c
+// tr_g2_surfaces.c
 //
 
 int                     G2_IsSurfaceLegal           ( const model_t *mod, const char *surfaceName, int *flags );
