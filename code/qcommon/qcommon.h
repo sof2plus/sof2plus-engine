@@ -256,8 +256,13 @@ PROTOCOL
 extern int demo_protocols[];
 
 // override on command line, config files etc.
-#ifndef MASTER_SERVER_NAME
-#define MASTER_SERVER_NAME  "master.sof2.ravensoft.com"
+#ifndef MASTER_SERVER
+// FIXME BOE
+#define MASTER_SERVER           "master.1fxmod.org"
+#endif
+
+#ifndef LEGACY_MASTER_SERVER
+#define LEGACY_MASTER_SERVER    "master.sof2.ravensoft.com"
 #endif
 
 #define PORT_MASTER         20110

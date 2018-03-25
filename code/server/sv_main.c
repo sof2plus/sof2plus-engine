@@ -225,16 +225,22 @@ let it know we are alive, and log information.
 We will also have a heartbeat sent when a server
 changes from empty to non-empty, and full to non-full,
 but not on every player enter or exit.
+
+When the server shuts down, a heartbeat is sent twice
+to the master servers configured. If this server is
+the legacy master server (the official SoF2 master server),
+the appropriate replacement command is sent.
 ================
 */
 #define HEARTBEAT_MSEC  300*1000
 #define MASTERDNS_MSEC  24*60*60*1000
-void SV_MasterHeartbeat(const char *message)
+void SV_MasterHeartbeat(const char *message, qboolean shutdown)
 {
     static netadr_t adr[MAX_MASTER_SERVERS][2]; // [2] for v4 and v6 address for the same address string.
     int         i;
     int         res;
     int         netenabled;
+    char        *command;
 
     netenabled = Cvar_VariableIntegerValue("net_enabled");
 
@@ -245,9 +251,6 @@ void SV_MasterHeartbeat(const char *message)
     // if not time yet, don't send anything
     if ( svs.time < svs.nextHeartbeatTime )
         return;
-
-    if ( !Q_stricmp( com_gamename->string, LEGACY_MASTER_GAMENAME ) )
-        message = LEGACY_HEARTBEAT_FOR_MASTER;
 
     svs.nextHeartbeatTime = svs.time + HEARTBEAT_MSEC;
 
@@ -307,13 +310,19 @@ void SV_MasterHeartbeat(const char *message)
 
         Com_Printf ("Sending heartbeat to %s\n", sv_master[i]->string );
 
-        // this command should be changed if the server info / status format
-        // ever incompatably changes
+        // Determine the command to send.
+        // The official master server expects a "flatline" message
+        // when the server shuts down.
+        if(shutdown == qtrue && Q_stricmp(sv_master[i]->string, LEGACY_MASTER_SERVER) == 0){
+            command = "heartbeat flatline";
+        }else{
+            command = "heartbeat";
+        }
 
         if(adr[i][0].type != NA_BAD)
-            NET_OutOfBandPrint( NS_SERVER, adr[i][0], "heartbeat %s\n", message);
+            NET_OutOfBandPrint( NS_SERVER, adr[i][0], "%s %s\n", command, message);
         if(adr[i][1].type != NA_BAD)
-            NET_OutOfBandPrint( NS_SERVER, adr[i][1], "heartbeat %s\n", message);
+            NET_OutOfBandPrint( NS_SERVER, adr[i][1], "%s %s\n", command, message);
     }
 }
 
@@ -327,11 +336,11 @@ Informs all masters that this server is going down
 void SV_MasterShutdown( void ) {
     // send a heartbeat right now
     svs.nextHeartbeatTime = -9999;
-    SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
+    SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER, qtrue);
 
     // send it again to minimize chance of drops
     svs.nextHeartbeatTime = -9999;
-    SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
+    SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER, qtrue);
 
     // when the master tries to poll the server, it won't respond, so
     // it will be removed from the list
@@ -525,6 +534,7 @@ static void SVC_Status( netadr_t from ) {
     int     statusLength;
     int     playerLength;
     char    infostring[MAX_INFO_STRING];
+    char    keywords[MAX_INFO_STRING];
 
     // Prevent using getstatus as an amplifier
     if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
@@ -550,6 +560,24 @@ static void SVC_Status( netadr_t from ) {
     // to prevent timed spoofed reply packets that add ghost servers
     Info_SetValueForKey( infostring, "challenge", Cmd_Argv(1) );
 
+    // Determine the base keyword to use:
+    // - DEMOSOF2: v1.02t (MP TEST) servers
+    // - SOF2FULL: Retail servers (v1.00+)
+    if(Cvar_VariableValue("fs_restrict")){
+        Com_sprintf(keywords, sizeof(keywords), "DEMOSOF2 %s",
+            Info_ValueForKey(infostring, "sv_keywords"));
+    }else{
+        Com_sprintf(keywords, sizeof(keywords), "SOF2FULL %s",
+            Info_ValueForKey(infostring, "sv_keywords"));
+    }
+
+    // Add the keywords to the status response.
+    Info_SetValueForKey(infostring, "sv_keywords", keywords);
+
+    // Add the game version to the status response.
+    Info_SetValueForKey(infostring, "game_version", GAME_VERSION);
+
+    // Add the player information to the status response.
     status[0] = 0;
     statusLength = 0;
 
@@ -1121,7 +1149,7 @@ void SV_Frame( int msec ) {
     SV_SendClientMessages();
 
     // send a heartbeat to the master if needed
-    SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
+    SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER, qfalse);
 }
 
 /*

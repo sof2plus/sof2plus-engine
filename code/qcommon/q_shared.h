@@ -33,15 +33,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define HOMEPATH_NAME_UNIX          ".sof2plus"
 #define HOMEPATH_NAME_WIN           PRODUCT_NAME
 #define HOMEPATH_NAME_MACOSX        HOMEPATH_NAME_WIN
-#define GAMENAME_FOR_MASTER         "sof2mp"
 
-// Heartbeat for dpmaster protocol. You shouldn't change this unless you know what you're doing
-#define HEARTBEAT_FOR_MASTER        "sof2mp"
-
-// When com_gamename is LEGACY_MASTER_GAMENAME, use quake3 master protocol.
-// You shouldn't change this unless you know what you're doing
-#define LEGACY_MASTER_GAMENAME      "SoF2MP"
-#define LEGACY_HEARTBEAT_FOR_MASTER "SoF2MP-1"
+#define GAMENAME_FOR_MASTER         "SoF2MP"
+#define HEARTBEAT_FOR_MASTER        "SoF2MP-1"
 
 #define BASETA              "missionpack"
 
