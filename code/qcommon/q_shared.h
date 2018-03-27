@@ -108,6 +108,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
@@ -124,13 +125,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   typedef unsigned __int32 uint32_t;
   typedef unsigned __int16 uint16_t;
   typedef unsigned __int8 uint8_t;
+#else
+  #include <stdint.h>
+#endif
 
+#ifdef _WIN32
   // vsnprintf is ISO/IEC 9899:1999
   // abstracting this to make it portable
   int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap);
 #else
-  #include <stdint.h>
-
   #define Q_vsnprintf vsnprintf
 #endif
 
@@ -210,7 +213,7 @@ typedef int     clipHandle_t;
 
 #define MAX_SAY_TEXT    150
 
-// paramters for command buffer stuffing
+// parameters for command buffer stuffing
 typedef enum {
     EXEC_NOW,           // don't return until completed, a VM should NEVER use this,
                         // because some commands might cause the VM to be unloaded...
