@@ -75,6 +75,7 @@ typedef struct {
 // CGenericParser2 (void *) routines.
 //=============================================
 TGenericParser2     GP_Parse                ( char **dataPtr );
+TGenericParser2     GP_ParseFile            ( char *fileName );
 void                GP_Clean                ( TGenericParser2 GP2 );
 void                GP_Delete               ( TGenericParser2 *GP2 );
 TGPGroup            GP_GetBaseParseGroup    ( TGenericParser2 GP2 );

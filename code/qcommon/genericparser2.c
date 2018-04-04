@@ -43,7 +43,6 @@ static char         *GetToken               ( char **text, qboolean allowLineBre
 static void         SortObject              ( void *object, void **unsortedList, void **sortedList, void **lastObject );
 
 // Local variable definitions.
-static char         token[MAX_TOKEN_SIZE];
 static const char   *topLevelName           = TOP_LEVEL_NAME;
 
 /*
@@ -370,6 +369,7 @@ Parses token from the text buffer. The result is stored in the local
 
 static char *GetToken(char **text, qboolean allowLineBreaks, qboolean readUntilEOL)
 {
+    static char token[MAX_TOKEN_SIZE];
     char        *pointer = *text;
     int         length = 0;
     int         c = 0;
@@ -576,6 +576,38 @@ TGenericParser2 GP_Parse(char **dataPtr)
     // Unsuccessful, clean up and return.
     GP_Clean(topLevel);
     return NULL;
+}
+
+/*
+==================
+GP_ParseFile
+
+Fully parse the specified GP2 file.
+==================
+*/
+
+TGenericParser2 GP_ParseFile(char *fileName)
+{
+    TGenericParser2 GP2;
+    char            *dataPtr;
+    union {
+        char    *c;
+        void    *v;
+    } buf;
+
+    // Read the specified GP2 file.
+    FS_ReadFile(fileName, &buf.v);
+    if(!buf.c){
+        return NULL;
+    }
+
+    // Parse the GP2 file.
+    dataPtr = buf.c;
+    GP2 = GP_Parse(&dataPtr);
+
+    // Clean up and return.
+    FS_FreeFile(buf.v);
+    return GP2;
 }
 
 /*
