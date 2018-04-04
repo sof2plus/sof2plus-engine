@@ -836,25 +836,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case G_GP_PARSE:
         return (intptr_t)GP_Parse(VMA(1));
     case G_GP_PARSE_FILE:
-        {
-            TGenericParser2 GP2;
-            char            *dataPtr;
-            union {
-                char    *c;
-                void    *v;
-            } buf;
-
-            FS_ReadFile(VMA(1), &buf.v);
-            if(!buf.c){
-                return 0;
-            }
-
-            dataPtr = buf.c;
-            GP2 = GP_Parse(&dataPtr);
-
-            FS_FreeFile(buf.v);
-            return (intptr_t)GP2;
-        }
+        return (intptr_t)GP_ParseFile(VMA(1));
     case G_GP_CLEAN:
         GP_Clean((TGenericParser2)args[1]);
         return 0;
