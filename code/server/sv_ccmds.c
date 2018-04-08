@@ -209,7 +209,7 @@ in the specified map cycle file.
 ==================
 */
 
-static void SV_Mapcycle_f()
+static void SV_Mapcycle_f(void)
 {
     static char     lastMapGroup[1024]  = {0};
     TGenericParser2 GP2;
