@@ -515,6 +515,9 @@
     <ClInclude Include="..\..\code\qcommon\vm_local.h">
       <Filter>Header Files\qcommon</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\code\game\inv.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\code\asm\ftola.asm">

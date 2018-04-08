@@ -107,7 +107,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WIN32;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;BOTLIB;DEDICATED;USE_ICON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32;WIN32;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;BOTLIB;DEDICATED;USE_ICON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>
       </SDLCheck>
       <AdditionalIncludeDirectories>..\..\code\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -138,7 +138,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WIN64;__WIN64__;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;BOTLIB;DEDICATED;USE_ICON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN64;__WIN64__;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;BOTLIB;DEDICATED;USE_ICON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>
       </SDLCheck>
       <AdditionalIncludeDirectories>..\..\code\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -401,6 +401,7 @@
     <ClInclude Include="..\..\code\game\bg_public.h" />
     <ClInclude Include="..\..\code\game\bg_weapons.h" />
     <ClInclude Include="..\..\code\game\g_public.h" />
+    <ClInclude Include="..\..\code\game\inv.h" />
     <ClInclude Include="..\..\code\qcommon\cm_local.h" />
     <ClInclude Include="..\..\code\qcommon\cm_patch.h" />
     <ClInclude Include="..\..\code\qcommon\cm_polylib.h" />
