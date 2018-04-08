@@ -2597,11 +2597,11 @@ void Com_Init( char *commandLine ) {
     Rand_Init(Sys_Milliseconds());
 
     // get the developer cvar set as early as possible
-#ifdef _DEBUG
-    com_developer = Cvar_Get("developer", "1", CVAR_TEMP);
-#else
+#ifdef NDEBUG
     com_developer = Cvar_Get("developer", "0", CVAR_TEMP);
-#endif // _DEBUG
+#else
+    com_developer = Cvar_Get("developer", "1", CVAR_TEMP);
+#endif // NDEBUG
 
     // done early so bind command exists
     CL_InitKeyCommands();

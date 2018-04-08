@@ -42,11 +42,11 @@ Registers renderer CVARs.
 
 static void R_Register()
 {
-    #ifdef _DEBUG
-    r_verbose = Cvar_Get("r_verbose", "1", CVAR_CHEAT);
-    #else
+#ifdef NDEBUG
     r_verbose = Cvar_Get("r_verbose", "0", CVAR_CHEAT);
-    #endif // _DEBUG
+#else
+    r_verbose = Cvar_Get("r_verbose", "1", CVAR_CHEAT);
+#endif // NDEBUG
 }
 
 /*
