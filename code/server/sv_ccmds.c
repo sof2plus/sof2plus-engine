@@ -201,6 +201,120 @@ static void SV_Map_f( void ) {
 }
 
 /*
+==================
+SV_Mapcycle_f
+
+Switch the server to the next map
+in the specified map cycle file.
+==================
+*/
+
+static void SV_Mapcycle_f()
+{
+    static char     lastMapGroup[1024]  = {0};
+    TGenericParser2 GP2;
+    TGPGroup        mapcycleGroup;
+    TGPGroup        cvarGroup;
+    TGPValue        cvarPairs;
+    TGPGroup        subGroups;
+    TGPGroup        nextMap;
+    qboolean        fileValid;
+    char            key[64];
+    char            value[64];
+
+    //
+    // Validate the specified map cycle file.
+    //
+
+    // Try to open the GP2 file.
+    fileValid = qfalse;
+    GP2 = GP_ParseFile(sv_mapcycle->string);
+
+    if(!GP2){
+        Com_Printf(S_COLOR_RED "ERROR: map cycle file \"%s\" not found!\n", sv_mapcycle->string);
+    }else{
+        // Check if the "mapcycle" subgroup is present.
+        mapcycleGroup = GPG_FindSubGroup(GP_GetBaseParseGroup(GP2), "mapcycle");
+        subGroups = GPG_GetSubGroups(mapcycleGroup);
+
+        if(mapcycleGroup == NULL){
+            Com_Printf(S_COLOR_RED "ERROR: map cycle file \"%s\" is invalid: \"mapcycle\" group not found!\n", sv_mapcycle->string);
+            GP_Delete(&GP2);
+        }else if(subGroups == NULL){
+            Com_Printf(S_COLOR_RED "ERROR: map cycle file \"%s\" is invalid: no map groups are found!\n", sv_mapcycle->string);
+        }else{
+            fileValid = qtrue;
+        }
+    }
+
+    // If the map cycle file is invalid, restart the current map.
+    if(!fileValid){
+        // FIXME BOE
+        //if(RMG->integer > 0){
+        //    Com_Printf(S_COLOR_RED "Restarting RMG map due to error.\n");
+        //    Cbuf_AddText("rmgmap 0");
+        //}else{
+            // If the server is not yet started, we cannot restart the current map.
+            // In this case, the server will not start.
+            if(!com_sv_running->integer){
+                Com_Printf(S_COLOR_RED "Server not starting due to error.\n");
+            }else{
+                Com_Printf(S_COLOR_RED "Restarting current map due to error.\n");
+                Cbuf_AddText("map_restart 0");
+            }
+        //}
+
+        return;
+    }
+
+    //
+    // Find the next map group.
+    //
+
+    // Are we continuing from somewhere within the cycle?
+    nextMap = NULL;
+    if(strlen(lastMapGroup) > 0){
+        // Find the next sub group.
+        nextMap = GPG_GetNext(GPG_FindSubGroup(mapcycleGroup, lastMapGroup));
+    }
+
+    // If we have no next map, we are either just
+    // starting or reached the end of the cycle.
+    if(!nextMap){
+        nextMap = subGroups;
+    }
+
+    //
+    // Parse the next map cycle group.
+    //
+
+    // Iterate through CVARs to set, if any.
+    cvarGroup = GPG_FindSubGroup(nextMap, "cvars");
+    cvarPairs = GPG_GetPairs(cvarGroup);
+
+    while(cvarPairs != NULL){
+        // Get the CVAR name and value.
+        GPV_GetName(cvarPairs, key, sizeof(key));
+        GPV_GetTopValue(cvarPairs, value, sizeof(value));
+
+        // Set the CVAR.
+        Cvar_Set(key, value);
+
+        // Advance to the next CVAR pair.
+        cvarPairs = GPV_GetNext(cvarPairs);
+    }
+
+    // Save the current position in the map cycle file.
+    GPG_GetName(nextMap, lastMapGroup, sizeof(lastMapGroup));
+
+    // Execute the command.
+    GPG_FindPairValue(nextMap, "command", "", value, sizeof(value));
+    Cbuf_AddText(value);
+
+    GP_Delete(&GP2);
+}
+
+/*
 ================
 SV_MapRestart_f
 
@@ -1415,6 +1529,7 @@ void SV_AddOperatorCommands( void ) {
     Cmd_AddCommand ("spdevmap", SV_Map_f);
     Cmd_SetCommandCompletionFunc( "spdevmap", SV_CompleteMapName );
 #endif
+    Cmd_AddCommand ("mapcycle", SV_Mapcycle_f);
     Cmd_AddCommand ("killserver", SV_KillServer_f);
     if( com_dedicated->integer ) {
         Cmd_AddCommand ("say", SV_ConSay_f);

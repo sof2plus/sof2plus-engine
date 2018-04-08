@@ -23,9 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
+#include "../qcommon/genericparser2.h"
 #include "../game/g_public.h"
 #include "../game/bg_public.h"
-#include "../qcommon/genericparser2.h"
 #include "../rd-dedicated/tr_local.h"
 #include "../rd-dedicated/tr_g2_local.h"
 
@@ -262,6 +262,7 @@ extern  cvar_t  *sv_maxPing;
 extern  cvar_t  *sv_gametype;
 extern  cvar_t  *sv_pure;
 extern  cvar_t  *sv_floodProtect;
+extern  cvar_t  *sv_mapcycle;
 extern  cvar_t  *sv_lanForceRate;
 extern  cvar_t  *sv_banFile;
 
