@@ -449,6 +449,8 @@ static void SV_MapRestart_f( void ) {
     VM_Call (gvm, GAME_RUN_FRAME, sv.time);
     sv.time += 100;
     svs.time += 100;
+
+    Com_Printf ("-----------------------------------\n");
 }
 
 //===============================================================

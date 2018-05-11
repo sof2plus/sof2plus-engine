@@ -42,7 +42,7 @@ int     vm_debugLevel;
 // used by Com_Error to get rid of running vm's before longjmp
 static int forced_unload;
 
-#define MAX_VM      3
+#define MAX_VM      2
 vm_t    vmTable[MAX_VM];
 
 void VM_VmInfo_f( void );
@@ -338,11 +338,11 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
     ++vm->callLevel;
     // we have a dll loaded, call it directly
     //rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
-    int args[MAX_VMMAIN_ARGS-1];
+    intptr_t args[MAX_VMMAIN_ARGS-1];
     va_list ap;
     va_start(ap, callnum);
     for (i = 0; i < ARRAY_LEN(args); i++) {
-        args[i] = va_arg(ap, int);
+        args[i] = va_arg(ap, intptr_t);
     }
     va_end(ap);
 
