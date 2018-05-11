@@ -217,26 +217,6 @@ typedef enum {
     G_TRACECAPSULE, // ( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
     G_ENTITY_CONTACTCAPSULE,    // ( const vec3_t mins, const vec3_t maxs, const gentity_t *ent );
 
-    G_MEMSET = 100,
-    G_MEMCPY,
-    G_STRNCPY,
-    G_SIN,
-    G_COS,
-    G_ATAN2,
-    G_SQRT,
-    G_ANGLEVECTORS,
-    G_PERPENDICULARVECTOR,
-    G_FLOOR,
-    G_CEIL,
-
-    G_TESTPRINTINT,
-    G_TESTPRINTFLOAT,
-
-    G_ACOS,
-    G_ASIN,
-
-    G_MATRIXMULTIPLY,
-
     BOTLIB_SETUP = 200,             // ( void );
     BOTLIB_SHUTDOWN,                // ( void );
     BOTLIB_LIBVAR_SET,

@@ -17,23 +17,6 @@ typedef enum
     GT_CVAR_VARIABLE_INTEGER_VALUE, // ( const char *var_name );
     GT_CVAR_VARIABLE_STRING_BUFFER, // ( const char *var_name, char *buffer, int bufsize );
 
-    GT_MEMSET = 100,
-    GT_MEMCPY,
-    GT_STRNCPY,
-    GT_SIN,
-    GT_COS,
-    GT_ATAN2,
-    GT_SQRT,
-    GT_ANGLEVECTORS,
-    GT_PERPENDICULARVECTOR,
-    GT_FLOOR,
-    GT_CEIL,
-    GT_TESTPRINTINT,
-    GT_TESTPRINTFLOAT,
-    GT_ACOS,
-    GT_ASIN,
-    GT_MATRIXMULTIPLY,
-
     //================== Game module calls ==================
     GT_TEXTMESSAGE,                 // void ( int clientid, const char* message );
     GT_RESETITEM,                   // void ( int itemid );
