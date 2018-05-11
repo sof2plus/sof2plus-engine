@@ -448,10 +448,12 @@ typedef enum {
 
     G_MEM_INIT,
 
+    //================= Gametype interface ==================
     G_GT_INIT,
     G_GT_RUNFRAME,
     G_GT_START,
     G_GT_SENDEVENT,
+    G_GT_SHUTDOWN
 
 } gameImport_t;
 

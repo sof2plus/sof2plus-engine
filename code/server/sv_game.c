@@ -914,6 +914,9 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
         return 0;
     case G_GT_SENDEVENT:
         return SV_GT_SendEvent(args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+    case G_GT_SHUTDOWN:
+        SV_GT_Shutdown();
+        return 0;
 
     case TRAP_MEMSET:
         Com_Memset( VMA(1), args[2], args[3] );

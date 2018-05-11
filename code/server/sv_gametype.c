@@ -87,9 +87,6 @@ static void SV_RestartGametypeProgs(void)
         return;
     }
 
-    // FIXME BOE
-    //VM_Call(gtvm, GAMETYPE_SHUTDOWN, qtrue);
-
     // Do a restart instead of a free.
     gtvm = VM_Restart(gtvm, qtrue);
     if(!gtvm){
@@ -194,8 +191,7 @@ void SV_GT_Shutdown(void)
         return;
     }
 
-    // FIXME BOE
-    //VM_Call(gvm, GAMETYPE_SHUTDOWN, qfalse);
-    VM_Free(gvm);
-    gvm = NULL;
+    VM_Call(gtvm, GAMETYPE_SHUTDOWN);
+    VM_Free(gtvm);
+    gtvm = NULL;
 }
