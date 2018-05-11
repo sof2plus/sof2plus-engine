@@ -902,6 +902,19 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
             return (intptr_t)gameMemory;
         }
 
+    //================= Gametype interface ==================
+    case G_GT_INIT:
+        SV_GT_Init((const char *)VMA(1), args[2]);
+        return 0;
+    case G_GT_RUNFRAME:
+        SV_GT_RunFrame(args[1]);
+        return 0;
+    case G_GT_START:
+        SV_GT_Start(args[1]);
+        return 0;
+    case G_GT_SENDEVENT:
+        return SV_GT_SendEvent(args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+
     case TRAP_MEMSET:
         Com_Memset( VMA(1), args[2], args[3] );
         return 0;
