@@ -28,6 +28,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define BOX_MODEL_HANDLE        255
 #define CAPSULE_MODEL_HANDLE    254
 
+#define SHADERNUM_BITS          14
+#define MAX_SHADERS             (1<<SHADERNUM_BITS)
+#define MAX_SHADER_FILES        4096
+
 
 typedef struct {
     cplane_t    *plane;
@@ -65,6 +69,12 @@ typedef struct {
     int         checkcount;     // to avoid repeated testings
 } cbrush_t;
 
+typedef struct cShader_s {
+    char        shader[MAX_QPATH];
+    struct cShader_s        *mNext;
+
+    char        *shaderText;
+} cShader_t;
 
 typedef struct {
     int         checkcount;             // to avoid repeated testings

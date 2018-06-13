@@ -647,6 +647,11 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
     CMod_LoadVisibility( &header.lumps[LUMP_VISIBILITY] );
     CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS] );
 
+#ifndef BSPC
+    // FIXME BOE: Only load when a custom terrain is initialized (?)
+    CM_LoadShaderText();
+#endif // !BSPC
+
     // we are NOT freeing the file, because it is cached for the ref
     FS_FreeFile (buf.v);
 
