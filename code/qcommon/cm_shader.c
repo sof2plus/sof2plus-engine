@@ -24,34 +24,190 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "cm_local.h"
 
-// Local variable definitions.
-static cShader_t    *cmShaders[MAX_SHADERS];
-static int          numShaders                  = 0;
-
-//=============================================================================
-
 /*
 ==================
-CM_AllocShader
+CM_ParseSurfaceParm
 
-Allocates shader in the shader list.
-Returns pointer to new member.
+Update shader flags from
+the predefined surface
+info parameters.
 ==================
 */
 
-static cShader_t *CM_AllocShader(void)
+static shaderInfoParm_t shaderInfoParms[] =
 {
-    cShader_t   *shader;
+    // Game surface flags
+    {"sky",                     -1,                 SURF_SKY,           0                   },  // emit light from an environment map
+    {"slick",                   -1,                 SURF_SLICK,         0                   },
 
-    if(numShaders == MAX_SHADERS){
-        return NULL;
+    {"nodamage",                -1,                 SURF_NODAMAGE,      0                   },
+    {"noimpact",                -1,                 SURF_NOIMPACT,      0                   },  // don't make impact explosions or marks
+    {"nomarks",                 -1,                 SURF_NOMARKS,       0                   },  // don't make impact marks, but still explode
+    {"nodraw",                  -1,                 SURF_NODRAW,        0                   },  // don't generate a drawsurface (or a lightmap)
+    {"nosteps",                 -1,                 SURF_NOSTEPS,       0                   },
+    {"nodlight",                -1,                 SURF_NODLIGHT,      0                   },  // don't ever add dynamic lights
+
+    // Game content flags
+    {"nonsolid",                ~CONTENTS_SOLID,    0,                  0                   },  // special hack to clear solid flag
+    {"nonopaque",               ~CONTENTS_OPAQUE,   0,                  0                   },  // special hack to clear opaque flag
+    {"lava",                    ~CONTENTS_SOLID,    0,                  CONTENTS_LAVA       },  // very damaging
+    {"water",                   ~CONTENTS_SOLID,    0,                  CONTENTS_WATER      },
+    {"fog",                     ~CONTENTS_SOLID,    0,                  CONTENTS_FOG        },  // carves surfaces entering
+    {"playerclip",              ~CONTENTS_SOLID,    0,                  CONTENTS_PLAYERCLIP },
+    {"monsterclip",             ~CONTENTS_SOLID,    0,                  CONTENTS_MONSTERCLIP},
+    {"botclip",                 ~CONTENTS_SOLID,    0,                  CONTENTS_BOTCLIP    },  // for bots
+    {"shotclip",                ~CONTENTS_SOLID,    0,                  CONTENTS_SHOTCLIP   },
+    {"trigger",                 ~CONTENTS_SOLID,    0,                  CONTENTS_TRIGGER    },
+    {"nodrop",                  ~CONTENTS_SOLID,    0,                  CONTENTS_NODROP     },  // don't drop items or leave bodies (death fog, lava, etc)
+    {"terrain",                 ~CONTENTS_SOLID,    0,                  CONTENTS_TERRAIN    },  // use special terrain collsion
+    {"ladder",                  ~CONTENTS_SOLID,    0,                  CONTENTS_LADDER     },  // climb up in it like water
+    {"abseil",                  ~CONTENTS_SOLID,    0,                  CONTENTS_ABSEIL     },  // can abseil down this brush
+    {"outside",                 ~CONTENTS_SOLID,    0,                  CONTENTS_OUTSIDE    },  // volume is considered to be in the outside (i.e. not indoors)
+
+    {"detail",                  -1,                 0,                  CONTENTS_DETAIL     },  // don't include in structural bsp
+    {"trans",                   -1,                 0,                  CONTENTS_TRANSLUCENT},  // surface has an alpha component
+};
+
+static void CM_ParseSurfaceParm(dshader_t *shader, char **text)
+{
+    int     i;
+    char    *token;
+    #ifndef NDEBUG
+    // FIXME BOE: Remove later on.
+    qboolean    found = qfalse;
+    #endif // !NDEBUG
+
+    token = COM_ParseExt(text, qfalse);
+
+    // Iterate through all surface parameters.
+    // Update shader flags when we get a match.
+    for(i = 0; i < ARRAY_LEN(shaderInfoParms); i++){
+        if(Q_stricmp(token, shaderInfoParms[i].name) == 0){
+            shader->surfaceFlags |= shaderInfoParms[i].surfaceFlags;
+            shader->contentFlags |= shaderInfoParms[i].contents;
+            shader->contentFlags &= shaderInfoParms[i].clearSolid;
+            #ifndef NDEBUG
+            found = qtrue;
+            #endif // !NDEBUG
+            break;
+        }
     }
 
-    shader = Hunk_Alloc(sizeof(cShader_t), h_high);
-    cmShaders[numShaders] = shader;
-    numShaders++;
+    #ifndef NDEBUG
+    if(!found){
+        Com_Printf(S_COLOR_RED "CM_ParseSurfaceParm: No such surface: %s\n", token);
+    }
+    #endif // !NDEBUG
+}
 
-    return shader;
+/*
+==================
+CM_ParseShader
+
+Parses additional shader information.
+Shaders are only parsed if they are
+actually used on the server.
+
+This extracts all the info from the
+shader required for physics and
+collision.
+==================
+*/
+
+static void CM_ParseShader(dshader_t *shader, char **text)
+{
+    char        *token;
+
+    //
+    // Iterate through the shader.
+    //
+    while(1){
+        token = COM_ParseExt(text, qtrue);
+
+        //
+        // Last token found?
+        //
+        if(token[0] == '}'){
+            break;
+        }
+        //
+        // Material load.
+        //
+        // FIXME BOE
+        #ifndef NDEBUG
+        else if(Q_stricmp(token, "material") == 0 || Q_stricmp(token, "q3map_material") == 0){
+            token = COM_ParseExt(text, qfalse);
+            if(token[0] == 0){
+                break;
+            }
+            Com_Printf(S_COLOR_RED "Material parsing skipped: %s\n", token);
+        }
+        #endif // !NDEBUG
+        //
+        // Surface parameters.
+        //
+        else if(Q_stricmp(token, "surfaceParm") == 0){
+            CM_ParseSurfaceParm(shader, text);
+        }
+        //
+        // Other group.
+        //
+        else if(token[0] == '{'){
+            SkipBracedSection(text, 1);
+        }
+    }
+}
+
+/*
+==================
+CM_ParseShaderFile
+
+Parses .shader file, searches individual
+shaders that need to be parsed.
+==================
+*/
+
+static void CM_ParseShaderFile(char **text)
+{
+    int         i;
+    char        *shaderNameToken;
+    char        *genericToken;
+    dshader_t   *shader;
+
+    //
+    // Iterate through the shader file.
+    //
+    while(1){
+        // We start off by getting the current shader name.
+        shaderNameToken = COM_ParseExt(text, qtrue);
+        if(!shaderNameToken[0]){
+            // Stop if there's no data left.
+            break;
+        }
+
+        // Is this shader already present?
+        shader = NULL;
+        for(i = 0; i < cm.numShaders; i++){
+            if(strcmp(shaderNameToken, cm.shaders[i].shader) == 0){
+                shader = &cm.shaders[i];
+                break;
+            }
+        }
+
+        // Continue parsing the shader.
+        genericToken = COM_ParseExt(text, qtrue);
+        if(genericToken[0] == '{'){
+            if(shader != NULL){
+                // Parse this shader.
+                CM_ParseShader(shader, text);
+            }else{
+                // No need to continue parsing information
+                // if the shader isn't used.
+                SkipBracedSection(text, 1);
+                continue;
+            }
+        }
+    }
 }
 
 /*
@@ -65,24 +221,27 @@ scanned for shader names.
 ==================
 */
 
-static void CM_LoadShaderFiles(void)
+void CM_LoadShaderFiles(void)
 {
-    char        **shaderFiles;
+    char    **shaderFiles;
     union {
         int             *i;
         void            *v;
     } fileBuf;
-    int         fileLength;
-    int         numShaderFiles;
-    cShader_t   *shader;
+    int     fileLength;
+    char    *shaderBuf;
+    void    *shaderBufOrg;
+    int     numShaderFiles;
 
-    int         i;
-    char        *p;
-    char        *token;
+    int     i;
+    char    *p;
+    char    *token;
 
-    char        fileName[MAX_QPATH];
-    char        shaderName[MAX_QPATH];
-    int         shaderLine;
+    char    fileName[MAX_QPATH];
+    char    shaderName[MAX_QPATH];
+    int     shaderLine;
+
+    Com_DPrintf("--- Clipmap Shader Initialization ---\n");
 
     //
     // Load up all .shader files.
@@ -153,24 +312,22 @@ static void CM_LoadShaderFiles(void)
             continue;
         }
 
-        // Allocate a new shader.
-        shader = CM_AllocShader();
-
-        // If allocation fails, we've hit our shader limit.
-        if(shader == NULL){
-            Com_Printf(S_COLOR_RED "ERROR: Allocation failed for shader. Not continuing to load more shaders.\n");
-            break;
-        }
-
-        // Copy shader text to the new shader.
-        shader->shaderText = Hunk_Alloc(fileLength + 1, h_high);
-        strncpy(shader->shaderText, fileBuf.v, fileLength);
+        // Copy file to a temporary buffer.
+        shaderBuf = Z_Malloc(fileLength + 1);
+        shaderBufOrg = shaderBuf;
+        strncpy(shaderBuf, fileBuf.v, fileLength);
 
         // We are done with the file, free it.
         FS_FreeFile(fileBuf.v);
 
-        // Compress the shader text contents.
-        COM_Compress(shader->shaderText);
+        // Compress the contents.
+        COM_Compress(shaderBuf);
+
+        // Parse this shader file.
+        CM_ParseShaderFile(&shaderBuf);
+
+        // Free temporary buffer.
+        Z_Free(shaderBufOrg);
     }
 
     //
@@ -178,19 +335,6 @@ static void CM_LoadShaderFiles(void)
     //
 
     FS_FreeFileList(shaderFiles);
-}
 
-/*
-==================
-CM_LoadShaderText
-
-Loads all .shader files so it can
-be accessed by the server.
-==================
-*/
-
-void CM_LoadShaderText()
-{
-    Com_DPrintf("Loading shader text .....\n");
-    CM_LoadShaderFiles();
+    Com_DPrintf("--- Shader Initialization Complete ---\n");
 }

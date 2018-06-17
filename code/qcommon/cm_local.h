@@ -69,13 +69,6 @@ typedef struct {
     int         checkcount;     // to avoid repeated testings
 } cbrush_t;
 
-typedef struct cShader_s {
-    char        shader[MAX_QPATH];
-    struct cShader_s        *mNext;
-
-    char        *shaderText;
-} cShader_t;
-
 typedef struct {
     int         checkcount;             // to avoid repeated testings
     int         surfaceFlags;
@@ -204,3 +197,14 @@ struct patchCollide_s   *CM_GeneratePatchCollide( int width, int height, vec3_t 
 void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 void CM_ClearLevelPatches( void );
+
+// cm_shader.c
+
+typedef struct {
+    char    *name;
+    int     clearSolid;
+    int     surfaceFlags;
+    int     contents;
+} shaderInfoParm_t;
+
+void    CM_LoadShaderFiles  ( void );

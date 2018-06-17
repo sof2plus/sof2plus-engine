@@ -649,7 +649,7 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 
 #ifndef BSPC
     // FIXME BOE: Only load when a custom terrain is initialized (?)
-    CM_LoadShaderText();
+    CM_LoadShaderFiles();
 #endif // !BSPC
 
     // we are NOT freeing the file, because it is cached for the ref
