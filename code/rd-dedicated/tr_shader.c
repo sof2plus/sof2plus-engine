@@ -212,7 +212,6 @@ static void R_ParseShader(char **text, const char *shaderName)
     char        *token;
     shader_t    *shader;
 
-
     //
     // Iterate through the shader.
     //
@@ -352,7 +351,7 @@ void R_ShaderInit()
     char    shaderName[MAX_QPATH];
     int     shaderLine;
 
-    Com_Printf("------- Shader Initialization -------\n");
+    Com_DPrintf("--- Renderer Shader Initialization --\n");
 
     //
     // Load up all .shader files.
@@ -376,7 +375,7 @@ void R_ShaderInit()
     for(i = 0; i < numShaderFiles; i++){
         // Load the file.
         Com_sprintf(fileName, sizeof(fileName), "shaders/%s", shaderFiles[i]);
-        Com_Printf("... loading \"%s\"\n", fileName);
+        Com_DPrintf("... loading \"%s\"\n", fileName);
         fileLength = FS_ReadFile(fileName, &fileBuf.v);
 
         if(!fileBuf.i){
@@ -448,5 +447,5 @@ void R_ShaderInit()
 
     FS_FreeFileList(shaderFiles);
 
-    Com_Printf("--- Shader Initialization Complete ---\n");
+    Com_DPrintf("--- Shader Initialization Complete ---\n");
 }
