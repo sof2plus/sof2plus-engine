@@ -72,32 +72,97 @@ static void CM_ParseSurfaceParm(dshader_t *shader, char **text)
 {
     int     i;
     char    *token;
-    #ifndef NDEBUG
-    // FIXME BOE: Remove later on.
-    qboolean    found = qfalse;
-    #endif // !NDEBUG
 
     token = COM_ParseExt(text, qfalse);
+    if(!token){
+        Com_Printf(S_COLOR_YELLOW "WARNING: Missing surface in shader: \"%s\".\n", shader->shader);
+        return;
+    }
 
     // Iterate through all surface parameters.
     // Update shader flags when we get a match.
     for(i = 0; i < ARRAY_LEN(shaderInfoParms); i++){
-        if(Q_stricmp(token, shaderInfoParms[i].name) == 0){
+        if(Q_stricmp(shaderInfoParms[i].name, token) == 0){
             shader->surfaceFlags |= shaderInfoParms[i].surfaceFlags;
             shader->contentFlags |= shaderInfoParms[i].contents;
             shader->contentFlags &= shaderInfoParms[i].clearSolid;
-            #ifndef NDEBUG
-            found = qtrue;
-            #endif // !NDEBUG
-            break;
+            return;
         }
     }
 
-    #ifndef NDEBUG
-    if(!found){
-        Com_Printf(S_COLOR_RED "CM_ParseSurfaceParm: No such surface: %s\n", token);
+    // Surface not found in the list.
+    Com_DPrintf(S_COLOR_RED "CM_ParseSurfaceParm: No such surface defined: %s\n", token);
+}
+
+/*
+==================
+CM_ParseMaterial
+
+Parse which material is
+used in this shader.
+==================
+*/
+
+#define NUM_MATERIALS           32
+
+static const char *materialNames[NUM_MATERIALS] =
+{
+    "none",
+    "solidwood",
+    "hollowwood",
+    "solidmetal",
+    "hollowmetal",
+    "shortgrass",
+    "longgrass",
+    "dirt",
+    "sand",
+    "gravel",
+    "glass",
+    "concrete",
+    "marble",
+    "water",
+    "snow",
+    "ice",
+    "flesh",
+    "mud",
+    "bpglass",
+    "dryleaves",
+    "greenleaves",
+    "fabric",
+    "canvas",
+    "rock",
+    "rubber",
+    "plastic",
+    "tiles",
+    "carpet",
+    "plaster",
+    "shatterglass",
+    "armor",
+    "computer"
+};
+
+static void CM_ParseMaterial(dshader_t *shader, char **text)
+{
+    int     i;
+    char    *token;
+
+    token = COM_ParseExt(text, qfalse);
+    if(!token){
+        Com_Printf(S_COLOR_YELLOW "WARNING: Missing material in shader: \"%s\".\n", shader->shader);
+        return;
     }
-    #endif // !NDEBUG
+
+    // Iterate through all materials.
+    // Update surface flags when we get a match.
+    for(i = 0; i < NUM_MATERIALS; i++){
+        if(Q_stricmp(materialNames[i], token) == 0){
+            shader->surfaceFlags |= i;
+            return;
+        }
+    }
+
+    // Material not found in the list.
+    Com_DPrintf(S_COLOR_RED "CM_ParseMaterial: No such material defined: %s\n", token);
 }
 
 /*
@@ -133,16 +198,9 @@ static void CM_ParseShader(dshader_t *shader, char **text)
         //
         // Material load.
         //
-        // FIXME BOE
-        #ifndef NDEBUG
         else if(Q_stricmp(token, "material") == 0 || Q_stricmp(token, "q3map_material") == 0){
-            token = COM_ParseExt(text, qfalse);
-            if(token[0] == 0){
-                break;
-            }
-            Com_Printf(S_COLOR_RED "Material parsing skipped: %s\n", token);
+            CM_ParseMaterial(shader, text);
         }
-        #endif // !NDEBUG
         //
         // Surface parameters.
         //
@@ -204,7 +262,6 @@ static void CM_ParseShaderFile(char **text)
                 // No need to continue parsing information
                 // if the shader isn't used.
                 SkipBracedSection(text, 1);
-                continue;
             }
         }
     }
