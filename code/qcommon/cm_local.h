@@ -207,4 +207,5 @@ typedef struct {
     int     contents;
 } shaderInfoParm_t;
 
-void    CM_LoadShaderFiles  ( void );
+void        CM_LoadShaderFiles      ( void );
+dshader_t   *CM_FindShaderByName    ( const char *name );

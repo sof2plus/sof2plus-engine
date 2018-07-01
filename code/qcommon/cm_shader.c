@@ -395,3 +395,29 @@ void CM_LoadShaderFiles(void)
 
     Com_DPrintf("--- Shader Initialization Complete ---\n");
 }
+
+/*
+==================
+CM_FindShaderByName
+
+Searches for shader by name.
+Returns existing shader if
+it can be found, or NULL
+upon error.
+==================
+*/
+
+dshader_t *CM_FindShaderByName(const char *name)
+{
+    int i;
+
+    for(i = 0; i < cm.numShaders; i++){
+        if(Q_stricmp(cm.shaders[i].shader, name) == 0){
+            // Shader found.
+            return &cm.shaders[i];
+        }
+    }
+
+    // Not found, return NULL by default.
+    return NULL;
+}
