@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon.h"
 #include "cm_polylib.h"
+#include "cm_terrain.h"
 
 #define MAX_SUBMODELS           256
 #define BOX_MODEL_HANDLE        255
@@ -60,7 +61,7 @@ typedef struct {
     int         shaderNum;
 } cbrushside_t;
 
-typedef struct {
+typedef struct cbrush_s {
     int         shaderNum;      // the shader that determined the contents
     int         contents;
     vec3_t      bounds[2];
@@ -129,6 +130,8 @@ typedef struct {
 
     int         floodvalid;
     int         checkcount;                 // incremented on each trace
+
+    cTerrain_t  *terrain;
 } clipMap_t;
 
 
@@ -209,3 +212,6 @@ typedef struct {
 
 void        CM_LoadShaderFiles      ( void );
 dshader_t   *CM_FindShaderByName    ( const char *name );
+
+// cm_terrain.c
+void        CM_InitTerrain          ( const char *configString );

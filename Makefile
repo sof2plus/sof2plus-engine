@@ -697,6 +697,7 @@ SOF2DOBJ = \
   $(B)/ded/cm_patch.o \
   $(B)/ded/cm_polylib.o \
   $(B)/ded/cm_shader.o \
+  $(B)/ded/cm_terrain.o \
   $(B)/ded/cm_test.o \
   $(B)/ded/cm_trace.o \
   $(B)/ded/cmd.o \
