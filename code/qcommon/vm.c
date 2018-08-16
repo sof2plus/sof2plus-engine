@@ -374,6 +374,6 @@ void VM_VmInfo_f( void ) {
         if ( !vm->name[0] ) {
             break;
         }
-        Com_Printf( "%s : native", vm->name );
+        Com_Printf( "%s : native\n", vm->name );
     }
 }
