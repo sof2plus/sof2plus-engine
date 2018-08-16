@@ -479,7 +479,7 @@ void CM_TraceThroughPatch( traceWork_t *tw, cPatch_t *patch ) {
 CM_TraceThroughBrush
 ================
 */
-void CM_TraceThroughBrush( traceWork_t *tw, cbrush_t *brush ) {
+void CM_TraceThroughBrush( traceWork_t *tw, cbrush_t *brush, traceFraction_t *fractionOnly ) {
     int         i;
     cplane_t    *plane, *clipplane;
     float       dist;
@@ -635,12 +635,19 @@ void CM_TraceThroughBrush( traceWork_t *tw, cbrush_t *brush ) {
     // completely outside the brush
     //
     if (!startout) {    // original point was inside brush
-        tw->trace.startsolid = qtrue;
-        if (!getout) {
-            tw->trace.allsolid = qtrue;
-            tw->trace.fraction = 0;
-            tw->trace.contents = brush->contents;
+        // Modify if we perform a full brush collision check.
+        if(fractionOnly == NULL){
+            tw->trace.startsolid = qtrue;
+            if (!getout) {
+                tw->trace.allsolid = qtrue;
+                tw->trace.fraction = 0;
+                tw->trace.contents = brush->contents;
+            }
+        }else{
+            fractionOnly->enterFrac = 0.0f;
+            fractionOnly->leaveFrac = leaveFrac;
         }
+
         return;
     }
 
@@ -649,15 +656,25 @@ void CM_TraceThroughBrush( traceWork_t *tw, cbrush_t *brush ) {
             if (enterFrac < 0) {
                 enterFrac = 0;
             }
-            tw->trace.fraction = enterFrac;
-            if (clipplane != NULL) {
-                tw->trace.plane = *clipplane;
+
+            // Modify if we perform a full brush collision check.
+            if(fractionOnly == NULL){
+                tw->trace.fraction = enterFrac;
+                if (clipplane != NULL) {
+                    tw->trace.plane = *clipplane;
+                }
+                if (leadside != NULL) {
+                    tw->trace.surfaceFlags = leadside->surfaceFlags;
+                }
+                tw->trace.contents = brush->contents;
             }
-            if (leadside != NULL) {
-                tw->trace.surfaceFlags = leadside->surfaceFlags;
-            }
-            tw->trace.contents = brush->contents;
         }
+    }
+
+    // Store fraction only?
+    if(fractionOnly != NULL){
+        fractionOnly->enterFrac = enterFrac;
+        fractionOnly->leaveFrac = leaveFrac;
     }
 }
 

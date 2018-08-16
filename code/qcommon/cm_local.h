@@ -172,6 +172,11 @@ typedef struct {
     sphere_t    sphere;     // sphere for oriendted capsule collision
 } traceWork_t;
 
+typedef struct {
+    float       enterFrac;  // Fraction where the ray enters the brush.
+    float       leaveFrac;  // Fraction where the ray leaves the brush.
+} traceFraction_t;
+
 typedef struct leafList_s {
     int     count;
     int     maxcount;
