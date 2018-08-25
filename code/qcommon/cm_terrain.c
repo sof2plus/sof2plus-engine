@@ -34,7 +34,7 @@ on the passed shader.
 ==================
 */
 
-static void CM_SetTerrainShaders(dshader_t *shader, int height)
+static void CM_SetTerrainShaders(cTerrain_t *t, dshader_t *shader, int height)
 {
     int i;
 
@@ -44,16 +44,16 @@ static void CM_SetTerrainShaders(dshader_t *shader, int height)
     }
 
     for(i = height; i < HEIGHT_RESOLUTION; i++){
-        if(!cm.terrain->mHeightDetails[i].mSurfaceFlags){
+        if(!t->mHeightDetails[i].mSurfaceFlags){
             // Copy surface flags from the shader.
-            cm.terrain->mHeightDetails[i].mSurfaceFlags = shader->surfaceFlags;
+            t->mHeightDetails[i].mSurfaceFlags = shader->surfaceFlags;
 
             // Set contents to be the default.
-            cm.terrain->mHeightDetails[i].mContents = CONTENTS_SOLID | CONTENTS_OPAQUE;
+            t->mHeightDetails[i].mContents = CONTENTS_SOLID | CONTENTS_OPAQUE;
         }else{
             // FIXME BOE: Remove later on.
-            if(cm.terrain->mHeightDetails[i].mContents != (CONTENTS_SOLID | CONTENTS_OPAQUE)){
-                Com_Printf(S_COLOR_RED "CM_SetTerrainShaders: Content flags: %s [%3d] -> %d\n", shader->shader, i, cm.terrain->mHeightDetails[i].mContents);
+            if(t->mHeightDetails[i].mContents != (CONTENTS_SOLID | CONTENTS_OPAQUE)){
+                Com_Printf(S_COLOR_RED "CM_SetTerrainShaders: Content flags: %s [%3d] -> %d\n", shader->shader, i, t->mHeightDetails[i].mContents);
             }
         }
     }
@@ -68,7 +68,7 @@ terrain definition file.
 ==================
 */
 
-static void CM_LoadTerrainDef(const char *configString)
+static void CM_LoadTerrainDef(cTerrain_t *t, const char *configString)
 {
     const char      *defFile;
     char            defFileFull[MAX_QPATH];
@@ -143,16 +143,16 @@ static void CM_LoadTerrainDef(const char *configString)
                     shader = CM_FindShaderByName(shaderName);
                     if(shader){
                         // Valid shader. Set the height information.
-                        CM_SetTerrainShaders(shader, height);
+                        CM_SetTerrainShaders(t, shader, height);
                     }
                 }
             }else if(Q_stricmp(itemGroupName, "water") == 0){
                 // Grab the height of the water.
                 GPG_FindPairValue(itemGroup, "height", "0", heightBuf, sizeof(heightBuf));
-                cm.terrain->mBaseWaterHeight = atol(heightBuf);
+                t->mBaseWaterHeight = atol(heightBuf);
 
                 // Set the real water height.
-                cm.terrain->mWaterHeight = cm.terrain->mBaseWaterHeight * cm.terrain->mTerxelSize[2];
+                t->mWaterHeight = t->mBaseWaterHeight * t->mTerxelSize[2];
 
                 // Get the shader to determine the material.
                 GPG_FindPairValue(itemGroup, "shader", "", shaderName, sizeof(shaderName));
@@ -160,8 +160,8 @@ static void CM_LoadTerrainDef(const char *configString)
                     // Shader defined, get its info.
                     shader = CM_FindShaderByName(shaderName);
                     if(shader){
-                        cm.terrain->mWaterContents = shader->contentFlags;
-                        cm.terrain->mWaterSurfaceFlags = shader->surfaceFlags;
+                        t->mWaterContents = shader->contentFlags;
+                        t->mWaterSurfaceFlags = shader->surfaceFlags;
                     }
                 }
             }
@@ -643,10 +643,12 @@ CM_InitTerrain
 Initializes a new terrain
 based on the supplied
 configuration string.
+
+Returns the new terrain instance.
 ==================
 */
 
-void CM_InitTerrain(const char *configString)
+cTerrain_t *CM_InitTerrain(const char *configString)
 {
     int             numPatches, numBrushesPerPatch;
     int             size;
@@ -658,7 +660,7 @@ void CM_InitTerrain(const char *configString)
     //
 
     // Allocate memory for this terrain.
-    cm.terrain = t = Hunk_Alloc(sizeof(cTerrain_t), h_high);
+    t = Hunk_Alloc(sizeof(cTerrain_t), h_high);
 
     //
     // Extract the relevant information from the configuration string.
@@ -728,7 +730,7 @@ void CM_InitTerrain(const char *configString)
     //
 
     // Get the shader properties for the blended shaders.
-    CM_LoadTerrainDef(configString);
+    CM_LoadTerrainDef(t, configString);
 
     //
     // Create the terrain patches.
@@ -742,4 +744,6 @@ void CM_InitTerrain(const char *configString)
 
     // Update the patches.
     CM_UpdateTerrainPatches(t);
+
+    return t;
 }

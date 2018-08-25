@@ -131,7 +131,8 @@ typedef struct {
     int         floodvalid;
     int         checkcount;                 // incremented on each trace
 
-    cTerrain_t  *terrain;
+    cTerrain_t  *terrains[MAX_TERRAINS];
+    int         numTerrains;
 } clipMap_t;
 
 
@@ -219,4 +220,4 @@ void        CM_LoadShaderFiles      ( void );
 dshader_t   *CM_FindShaderByName    ( const char *name );
 
 // cm_terrain.c
-void        CM_InitTerrain          ( const char *configString );
+cTerrain_t  *CM_InitTerrain         ( const char *configString );
