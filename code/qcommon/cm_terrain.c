@@ -644,7 +644,9 @@ Initializes a new terrain
 based on the supplied
 configuration string.
 
-Returns the new terrain instance.
+Returns the new terrain instance,
+or NULL if the terrain config
+is invalid.
 ==================
 */
 
@@ -654,6 +656,22 @@ cTerrain_t *CM_InitTerrain(const char *configString)
     int             size;
     char            heightMap[MAX_QPATH];
     cTerrain_t      *t;
+
+    //
+    // Check if certain terrain properties are valid.
+    //
+
+    Q_strncpyz(heightMap, Info_ValueForKey(configString, "heightMap"), sizeof(heightMap));
+
+    // A valid heightmap file must be specified.
+    if(!heightMap[0] || !strstr(heightMap, "random_")){
+        Com_Printf(S_COLOR_RED "CM_InitTerrain: Heightmap filename must contain \"random_\".\n");
+        return NULL;
+    }
+    if(FS_ReadFile(va("%s.png", heightMap), NULL) <= 0){
+        Com_Printf(S_COLOR_RED "CM_InitTerrain: Specified heightmap file is empty or nonexistent.\n");
+        return NULL;
+    }
 
     //
     // Initialize the new terrain.
@@ -667,7 +685,6 @@ cTerrain_t *CM_InitTerrain(const char *configString)
     //
 
     numPatches = atoi(Info_ValueForKey(configString, "numPatches"));
-    Q_strncpyz(heightMap, Info_ValueForKey(configString, "heightMap"), sizeof(heightMap));
 
     t->mTerxels = atoi(Info_ValueForKey(configString, "terxels"));
     t->mHasPhysics = atoi(Info_ValueForKey(configString, "physics")) > 0;
@@ -707,11 +724,6 @@ cTerrain_t *CM_InitTerrain(const char *configString)
     // flattenmap now the dimensions are known.
     t->mHeightMap = Hunk_Alloc(t->mRealArea, h_high);
     t->mFlattenMap = Hunk_Alloc(t->mRealArea, h_high);
-
-    // A heightmap must be specified.
-    if(!heightMap[0]){
-        Com_Error(ERR_FATAL, "Terrain has no heightmap specified");
-    }
 
     // Work out the dimensions of the terxel.
     // It should be almost square.
