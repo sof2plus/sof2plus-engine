@@ -68,6 +68,7 @@ typedef struct cbrush_s {
     int         numsides;
     cbrushside_t    *sides;
     int         checkcount;     // to avoid repeated testings
+    cTerrain_t  *terrain;
 } cbrush_t;
 
 typedef struct {
@@ -218,6 +219,3 @@ typedef struct {
 
 void        CM_LoadShaderFiles      ( void );
 dshader_t   *CM_FindShaderByName    ( const char *name );
-
-// cm_terrain.c
-cTerrain_t  *CM_InitTerrain         ( const char *configString );

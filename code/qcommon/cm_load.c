@@ -843,5 +843,3 @@ void CM_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs ) {
     VectorCopy( cmod->mins, mins );
     VectorCopy( cmod->maxs, maxs );
 }
-
-

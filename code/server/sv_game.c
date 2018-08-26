@@ -887,6 +887,9 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case G_GPV_GET_LIST:
         return (intptr_t)GPV_GetList((TGPValue)args[1]);
 
+    case G_CM_REGISTER_TERRAIN:
+        return CM_RegisterTerrain((const char *)VMA(1));
+
     case G_MEM_INIT:
         {
             void *gameMemory;

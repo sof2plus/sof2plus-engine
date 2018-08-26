@@ -650,7 +650,7 @@ is invalid.
 ==================
 */
 
-cTerrain_t *CM_InitTerrain(const char *configString)
+static cTerrain_t *CM_InitTerrain(const char *configString)
 {
     int             numPatches, numBrushesPerPatch;
     int             size;
@@ -758,4 +758,75 @@ cTerrain_t *CM_InitTerrain(const char *configString)
     CM_UpdateTerrainPatches(t);
 
     return t;
+}
+
+/*
+==================
+CM_RegisterTerrain
+
+Registering a terrain on the server
+allows physics to examine the
+terrain data.
+
+Returns the terrain ID instance on
+existing terrains and valid new
+terrain instances. If the terrain
+configuration is invalid, or the
+server has no capacity to store
+more terrains, 0 is returned
+instead.
+==================
+*/
+
+int CM_RegisterTerrain(const char *configString)
+{
+    int             terrainId;
+    int             modelIndex;
+    int             brushNum;
+    clipHandle_t    h;
+    cmodel_t        *cmod;
+    cbrush_t        *b;
+    cTerrain_t      *t;
+
+    // Determine terrain ID.
+    terrainId = atoi(Info_ValueForKey(configString, "terrainId"));
+
+    // Is this terrain already registered?
+    if(terrainId && terrainId < MAX_TERRAINS && cm.terrains[terrainId] != NULL){
+        // Return the valid terrain ID.
+        return terrainId;
+    }
+
+    // Only continue if we have room to store more terrains.
+    if(cm.numTerrains == MAX_TERRAINS - 1){
+        return 0;
+    }
+
+    // Proceed initializing a new terrain.
+    t = CM_InitTerrain(configString);
+
+    // Don't continue unless we have a valid terrain.
+    if(t == NULL){
+        return 0;
+    }
+
+    // Store the newly initialized terrain in the clipmap terrain array.
+    cm.terrains[++cm.numTerrains] = t;
+
+    // Get the associated model.
+    modelIndex = atoi(Info_ValueForKey(configString, "modelIndex"));
+    h = CM_InlineModel(modelIndex);
+    cmod = CM_ClipHandleToModel(h);
+
+    // Get the brush.
+    brushNum = cm.leafbrushes[cmod->leaf.firstLeafBrush];
+
+    // Only link this terrain to the brush if it is within bounds.
+    if(brushNum >= 0 && brushNum < cm.numBrushes){
+        b = &cm.brushes[brushNum];
+        b->terrain = t;
+    }
+
+    // Return the new terrain ID.
+    return cm.numTerrains;
 }
