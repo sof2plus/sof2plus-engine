@@ -708,7 +708,7 @@ void CM_TraceThroughLeaf( traceWork_t *tw, cLeaf_t *leaf ) {
             continue;
         }
 
-        CM_TraceThroughBrush( tw, b );
+        CM_TraceThroughBrush( tw, b, NULL );
         if ( !tw->trace.fraction ) {
             return;
         }
