@@ -471,7 +471,7 @@ static char *GetToken(char **text, qboolean allowLineBreaks, qboolean readUntilE
     if(token[0] == '\"'){
         // Remove start quote.
         length--;
-        memmove(token, token+1, length);
+        memmove(token, token + 1, sizeof(token) - 1);
 
         if(length && token[length-1] == '\"'){
             // Remove end quote.
@@ -586,7 +586,7 @@ Fully parse the specified GP2 file.
 ==================
 */
 
-TGenericParser2 GP_ParseFile(char *fileName)
+TGenericParser2 GP_ParseFile(const char *fileName)
 {
     TGenericParser2 GP2;
     char            *dataPtr;
