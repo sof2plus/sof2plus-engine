@@ -836,7 +836,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
     case G_GP_PARSE:
         return (intptr_t)GP_Parse(VMA(1));
     case G_GP_PARSE_FILE:
-        return (intptr_t)GP_ParseFile(VMA(1));
+        return (intptr_t)GP_ParseFile((const char *)VMA(1));
     case G_GP_CLEAN:
         GP_Clean((TGenericParser2)args[1]);
         return 0;
