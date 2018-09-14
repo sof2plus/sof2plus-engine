@@ -162,16 +162,17 @@ typedef struct
 typedef struct {
     vec3_t      start;
     vec3_t      end;
-    vec3_t      size[2];    // size of the box being swept through the model
-    vec3_t      offsets[8]; // [signbits][x] = either size[0][x] or size[1][x]
-    float       maxOffset;  // longest corner length from origin
-    vec3_t      extents;    // greatest of abs(size[0]) and abs(size[1])
-    vec3_t      bounds[2];  // enclosing box of start and end surrounding by size
-    vec3_t      modelOrigin;// origin of the model tracing through
-    int         contents;   // ored contents of the model tracing through
-    qboolean    isPoint;    // optimized case
-    trace_t     trace;      // returned from trace call
-    sphere_t    sphere;     // sphere for oriendted capsule collision
+    vec3_t      size[2];        // size of the box being swept through the model
+    vec3_t      offsets[8];     // [signbits][x] = either size[0][x] or size[1][x]
+    float       maxOffset;      // longest corner length from origin
+    vec3_t      extents;        // greatest of abs(size[0]) and abs(size[1])
+    vec3_t      bounds[2];      // enclosing box of start and end surrounding by size
+    vec3_t      localBounds[2]; // enclosing box of start and end surrounding by size for a segment
+    vec3_t      modelOrigin;    // origin of the model tracing through
+    int         contents;       // ored contents of the model tracing through
+    qboolean    isPoint;        // optimized case
+    trace_t     trace;          // returned from trace call
+    sphere_t    sphere;         // sphere for oriendted capsule collision
 } traceWork_t;
 
 typedef struct {
@@ -217,5 +218,15 @@ typedef struct {
     int     contents;
 } shaderInfoParm_t;
 
-void        CM_LoadShaderFiles      ( void );
-dshader_t   *CM_FindShaderByName    ( const char *name );
+void        CM_LoadShaderFiles              ( void );
+dshader_t   *CM_FindShaderByName            ( const char *name );
+
+// cm_terrain.c
+void        CM_TerrainPatchCollide          ( cTerrain_t *t, traceWork_t *tw, const vec3_t start, const vec3_t end, int checkcount );
+float       CM_TerrainWaterCollide          ( cTerrain_t *t, const vec3_t begin, const vec3_t end, float fraction );
+
+// cm_trace.c
+void        CM_CalcExtents                  ( const vec3_t start, const vec3_t end, const traceWork_t *tw, vec3_t bounds[2] );
+
+void        CM_HandleTerrainPatchCollide    ( traceWork_t *tw, cTerrainPatch_t *patch, int checkcount );
+void        CM_TraceThroughTerrain          ( traceWork_t *tw, cbrush_t *brush );

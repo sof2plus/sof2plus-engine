@@ -266,6 +266,14 @@ int CM_PointContents( const vec3_t p, clipHandle_t model ) {
 
         if ( i == b->numsides ) {
             contents |= b->contents;
+
+            // See if point is in the terrain linked to the brush, if present.
+            if(b->terrain && (contents & CONTENTS_TERRAIN)){
+                // Check if point is below the global terrain water height.
+                if(p[2] < b->terrain->mWaterHeight){
+                    contents |= b->terrain->mWaterContents;
+                }
+            }
         }
     }
 

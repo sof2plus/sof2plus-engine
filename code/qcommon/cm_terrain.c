@@ -830,3 +830,260 @@ int CM_RegisterTerrain(const char *configString)
     // Return the new terrain ID.
     return cm.numTerrains;
 }
+
+/*
+===============================================================================
+
+COLLISION TESTING
+
+===============================================================================
+*/
+
+/*
+==================
+CM_TerrainPatchCollide
+
+Checks if the trace is
+about to collide with
+anything on the terrain
+patches.
+==================
+*/
+
+void CM_TerrainPatchCollide(cTerrain_t *t, traceWork_t *tw, const vec3_t start, const vec3_t end, int checkcount)
+{
+    vec3_t  tBounds[2];
+    float   slope, offset;
+    float   startPatchLoc, endPatchLoc;
+    float   patchDirection, checkDirection;
+    float   startPos, endPos;
+    float   fraction;
+    int     count, countPatches;
+
+    // Set direction defaults.
+    patchDirection = 1;
+    checkDirection = 1;
+
+    // Save original fraction.
+    fraction = tw->trace.fraction;
+
+    // Convert to a valid bounding box.
+    CM_CalcExtents(start, end, tw, tBounds);
+
+    // X travels more than Y?
+    if(fabs(end[0] - start[0]) >= fabs(fabs(end[1] - start[1]))){
+        // Calculate line slope.
+        if(end[0] - start[0]){
+            slope = (end[1] - start[1]) / (end[0] - start[0]);
+        }else{
+            slope = 0;
+        }
+
+        // Calculate offset.
+        offset = start[1] - (start[0] * slope);
+
+        // Find the starting location on the patch.
+        startPatchLoc = floor((start[0] - t->mBounds[0][0]) / t->mPatchSize[0]);
+        endPatchLoc = floor((end[0] - t->mBounds[0][0]) / t->mPatchSize[0]);
+
+        // In what direction are we moving along slope?
+        if(startPatchLoc <= endPatchLoc){
+            // Positive direction.
+            endPatchLoc++;
+            startPatchLoc--;
+            countPatches = endPatchLoc - startPatchLoc + 1;
+        }else{
+            // Negative direction.
+            endPatchLoc--;
+            startPatchLoc++;
+            patchDirection = -1;
+            countPatches = startPatchLoc - endPatchLoc + 1;
+        }
+
+        // Should we check in the negative direction?
+        if(slope < 0.0f){
+            checkDirection = -1;
+        }
+
+        // Now calculate the real world location.
+        startPos = ((startPatchLoc * t->mPatchSize[0] + t->mBounds[0][0]) * slope) + offset;
+
+        // Calculate it back into patch coordinates.
+        startPos = floor((startPos - t->mBounds[0][1] + tw->size[0][1]) / t->mPatchSize[1]);
+
+        do{
+            // Valid location?
+            if(startPatchLoc >= 0 && startPatchLoc < t->mBlockWidth){
+                // Calculate the real world location.
+                endPos = (((startPatchLoc + patchDirection) * t->mPatchSize[0] + t->mBounds[0][0]) * slope) + offset;
+
+                // Calculate it back into patch coordinates.
+                endPos = floor((endPos - t->mBounds[0][1] + tw->size[1][1]) / t->mPatchSize[1]);
+
+                if(checkDirection < 0){
+                    startPos++;
+                    endPos--;
+                }else{
+                    startPos--;
+                    endPos++;
+                }
+
+                // Collide with patches.
+                count = fabs(endPos - startPos) + 1;
+                while(count > 0){
+                    // Valid location?
+                    if(startPos >= 0 && startPos < t->mBlockHeight){
+                        // Collide with every patch to find the minimum fraction.
+                        CM_HandleTerrainPatchCollide(tw, CM_GetPatch(t, startPatchLoc, startPos), checkcount);
+
+                        if(tw->trace.fraction <= 0.0f){
+                            return;
+                        }
+                    }
+
+                    startPos += checkDirection;
+                    count--;
+                }
+
+                if(tw->trace.fraction < fraction){
+                    return;
+                }
+            }
+
+            // Move to the next spot.
+            // We will stay one behind, to get the opposite edge of the terrain patch.
+
+            // Calculate the real world location.
+            startPos = ((startPatchLoc * t->mPatchSize[0] + t->mBounds[0][0]) * slope) + offset;
+            startPatchLoc += patchDirection;
+
+            // Calculate it back into patch coordinates.
+            startPos = floor((startPos - t->mBounds[0][1] + tw->size[0][1]) / t->mPatchSize[1]);
+            countPatches--;
+        }while(countPatches > 0);
+    }else{
+        // Calculate line slope and offset.
+        slope = (end[0] - start[0]) / (end[1] - start[1]);
+        offset = start[0] - (start[1] * slope);
+
+        // Find the starting location on the patch.
+        startPatchLoc = floor((start[1] - t->mBounds[0][1]) / t->mPatchSize[1]);
+        endPatchLoc = floor((end[1] - t->mBounds[0][1]) / t->mPatchSize[1]);
+
+        // In what direction are we moving along slope?
+        if(startPatchLoc <= endPatchLoc){
+            // Positive direction.
+            endPatchLoc++;
+            startPatchLoc--;
+            countPatches = endPatchLoc - startPatchLoc + 1;
+        }else{
+            // Negative direction.
+            endPatchLoc--;
+            startPatchLoc++;
+            patchDirection = -1;
+            countPatches = startPatchLoc - endPatchLoc + 1;
+        }
+
+        // Should we check in the negative direction?
+        if(slope < 0.0f){
+            checkDirection = -1;
+        }
+
+        // Now calculate the real world location.
+        startPos = ((startPatchLoc * t->mPatchSize[1] + t->mBounds[0][1]) * slope) + offset;
+
+        // Calculate it back into patch coordinates.
+        startPos = floor((startPos - t->mBounds[0][0] + tw->size[0][0]) / t->mPatchSize[0]);
+
+        do{
+           // Valid location?
+            if(startPatchLoc >= 0 && startPatchLoc < t->mBlockHeight){
+                // Calculate the real world location.
+                endPos = (((startPatchLoc + patchDirection) * t->mPatchSize[1] + t->mBounds[0][1]) * slope) + offset;
+
+                // Calculate it back into patch coordinates.
+                endPos = floor((endPos - t->mBounds[0][0] + tw->size[1][0]) / t->mPatchSize[0]);
+
+                if(checkDirection < 0){
+                    startPos++;
+                    endPos--;
+                }else{
+                    startPos--;
+                    endPos++;
+                }
+
+                // Collide with patches.
+                count = fabs(endPos - startPos) + 1;
+                while(count > 0){
+                    // Valid location?
+                    if(startPos >= 0 && startPos < t->mBlockWidth){
+                        // Collide with every patch to find the minimum fraction.
+                        CM_HandleTerrainPatchCollide(tw, CM_GetPatch(t, startPos, startPatchLoc), checkcount);
+
+                        if(tw->trace.fraction <= 0.0f){
+                            return;
+                        }
+                    }
+
+                    startPos += checkDirection;
+                    count--;
+                }
+
+                if(tw->trace.fraction < fraction){
+                    return;
+                }
+            }
+
+            // Move to the next spot.
+            // We will stay one behind, to get the opposite edge of the terrain patch.
+
+            // Calculate the real world location.
+            startPos = ((startPatchLoc * t->mPatchSize[1] + t->mBounds[0][1]) * slope) + offset;
+            startPatchLoc += patchDirection;
+
+            // Calculate it back into patch coordinates.
+            startPos = floor((startPos - t->mBounds[0][0] + tw->size[0][0]) / t->mPatchSize[0]);
+            countPatches--;
+        }while(countPatches > 0);
+    }
+}
+
+/*
+==================
+CM_TerrainWaterCollide
+
+Checks if the trace is about
+to enter or leave the water.
+
+Returns original fraction
+if the trace is completely
+above or below the water.
+==================
+*/
+
+float CM_TerrainWaterCollide(cTerrain_t *t, const vec3_t begin, const vec3_t end, float fraction)
+{
+    // Check if we are completely above water.
+    if((begin[2] > t->mWaterHeight) && (end[2] > t->mWaterHeight)){
+        return fraction;
+    }
+
+    // Check if we are completely below water.
+    if((begin[2] < t->mWaterHeight) && (end[2] < t->mWaterHeight)){
+        return fraction;
+    }
+
+    // Check for starting in water and leaving the water.
+    if(begin[2] < t->mWaterHeight - SURFACE_CLIP_EPSILON)
+    {
+        fraction = ((t->mWaterHeight - SURFACE_CLIP_EPSILON) - begin[2]) / (end[2] - begin[2]);
+        return fraction;
+    }
+
+    // By now the trace must be entering the water.
+    if(begin[2] > t->mWaterHeight + SURFACE_CLIP_EPSILON){
+        fraction = (begin[2] - (t->mWaterHeight + SURFACE_CLIP_EPSILON)) / (begin[2] - end[2]);
+    }
+
+    return fraction;
+}

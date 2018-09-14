@@ -258,6 +258,22 @@ void CM_TestInLeaf( traceWork_t *tw, cLeaf_t *leaf ) {
             continue;
         }
 
+#ifndef BSPC
+        if(b->terrain && (b->contents & CONTENTS_TERRAIN)){
+            // Invalidate the checkount for the terrain
+            // as the terrain brush has to be processed
+            // many times.
+            b->checkcount--;
+
+            // Trace through the terrain.
+            CM_TraceThroughTerrain(tw, b);
+
+            // If inside a terrain brush, we don't bother
+            // with regular brush collision.
+            continue;
+        }
+#endif // !BSPC
+
         CM_TestBoxInBrush( tw, b );
         if ( tw->trace.allsolid ) {
             return;
@@ -708,7 +724,19 @@ void CM_TraceThroughLeaf( traceWork_t *tw, cLeaf_t *leaf ) {
             continue;
         }
 
-        CM_TraceThroughBrush( tw, b, NULL );
+#ifndef BSPC
+        if(b->terrain && (b->contents & CONTENTS_TERRAIN)){
+            // Invalidate the checkount for the terrain
+            // as the terrain brush has to be processed
+            // many times.
+            b->checkcount--;
+
+            // Trace through the terrain.
+            CM_TraceThroughTerrain(tw, b);
+        }else
+#endif // !BSPC
+            CM_TraceThroughBrush( tw, b, NULL );
+
         if ( !tw->trace.fraction ) {
             return;
         }
@@ -1036,6 +1064,188 @@ void CM_TraceBoundingBoxThroughCapsule( traceWork_t *tw, clipHandle_t model ) {
     cmod = CM_ClipHandleToModel( h );
     CM_TraceThroughLeaf( tw, &cmod->leaf );
 }
+
+/*
+==================
+CM_DoBoxesCollide
+
+Check if the boxes specified
+by coordinates do not
+intersect in any way.
+==================
+*/
+
+static qboolean CM_DoBoxesCollide(const vec3_t boundsA[2], const vec3_t boundsB[2])
+{
+    int i;
+
+    for(i = 0; i < 3; i++){
+        if(boundsA[1][i] < boundsB[0][i]){
+            return qtrue;
+        }
+        if(boundsA[0][i] > boundsB[1][i]){
+            return qtrue;
+        }
+    }
+
+    return qfalse;
+}
+
+/*
+==================
+CM_CalcExtents
+
+Calculate box boundaries
+specified by start, end
+and the size of the trace
+box.
+==================
+*/
+
+void CM_CalcExtents(const vec3_t start, const vec3_t end, const traceWork_t *tw, vec3_t bounds[2])
+{
+    int i;
+
+    for(i = 0; i < 3; i++){
+        if(start[i] < end[i]){
+            bounds[0][i] = start[i] + tw->size[0][i];
+            bounds[1][i] = end[i] + tw->size[1][i];
+        }else{
+            bounds[0][i] = end[i] + tw->size[0][i];
+            bounds[1][i] = start[i] + tw->size[1][i];
+        }
+    }
+}
+
+/*
+==================
+CM_HandleTerrainPatchCollide
+
+When this function is called, there
+is a chance of collision.
+
+The collision data is made up of two
+triangle planes. Collide with both
+triangles to find the shortest
+fraction.
+==================
+*/
+
+void CM_HandleTerrainPatchCollide(traceWork_t *tw, cTerrainPatch_t *patch, int checkcount)
+{
+    cbrush_t    *brush;
+    int         numBrushes;
+    int         i;
+
+    // Get the collision data.
+    brush = patch->mPatchBrushData;
+    numBrushes = patch->mNumBrushes;
+
+    for(i = 0; i < numBrushes; i++, brush++){
+        if(brush->checkcount == checkcount){
+            return;
+        }
+
+        // Generic collision of terxel bounds
+        // to line segment bounds.
+        if(!CM_DoBoxesCollide(brush->bounds, tw->localBounds)){
+            continue;
+        }
+
+        // Perform a trace through this brush.
+        brush->checkcount = checkcount;
+        CM_TraceThroughBrush(tw, brush, NULL);
+        if(tw->trace.fraction <= 0.0f){
+            break;
+        }
+    }
+}
+
+#ifndef BSPC
+
+/*
+==================
+CM_TraceThroughTerrain
+
+During this function a fraction trace
+is performed and converted to the
+brush fraction on exit.
+==================
+*/
+
+void CM_TraceThroughTerrain(traceWork_t *tw, cbrush_t *brush)
+{
+    cTerrain_t      *t;
+    traceFraction_t fract;
+    vec3_t          tStart, tEnd, tDistance;
+    vec3_t          baseStart, baseEnd;
+    int             i;
+    float           fraction;
+
+    // At this point we may be colliding with a terrain brush with a valid terrain structure.
+    t = brush->terrain;
+
+    // Ensure there is absolutely no connection.
+    if(CM_DoBoxesCollide(tw->bounds, t->mBounds)){
+        return;
+    }
+
+    // Now we know that at least some part of the trace needs to collide with the terrain.
+    // The regular brush collision is handled elsewhere, so advance the ray to an edge in the terrain brush.
+    CM_TraceThroughBrush(tw, brush, &fract);
+
+    // Work out the corners of the AABB when the trace first hits
+    // the terrain brush and when it leaves.
+    for(i = 0; i < 3; i++){
+        tStart[i] = tw->start[i] + (fract.enterFrac * (tw->end[i] - tw->start[i]));
+        tEnd[i] = tw->start[i] + (fract.leaveFrac * (tw->end[i] - tw->start[i]));
+    }
+    VectorSubtract(tEnd, tStart, tDistance);
+
+    // Make a copy of the base fraction.
+    fraction = tw->trace.fraction;
+
+    // Save a copy of the base start and end vectors.
+    VectorCopy(tw->start, baseStart);
+    VectorCopy(tw->end, baseEnd);
+
+    // Use the terrain vectors. Start both at the beginning since the
+    // step will be added to the end as the first step of the loop.
+    VectorCopy(tStart, tw->start);
+    VectorCopy(tStart, tw->end);
+
+    // Add the distance between the start and end
+    // points to the end point.
+    VectorAdd(tw->end, tDistance, tw->end);
+
+    // Step through the terrain patch.
+    CM_CalcExtents(tStart, tw->end, tw, tw->localBounds);
+    CM_TerrainPatchCollide(t, tw, tw->start, tw->end, brush->checkcount);
+
+    // Put the original start and end back.
+    VectorCopy(baseStart, tw->start);
+    VectorCopy(baseEnd, tw->end);
+
+    // Convert the global fraction only if
+    // something was hit along the way.
+    if(tw->trace.fraction != 1.0f){
+        tw->trace.fraction = fract.enterFrac + ((fract.leaveFrac - fract.enterFrac) * tw->trace.fraction);
+        tw->trace.contents = brush->contents;
+    }
+
+    // Collide with any water.
+    if(tw->contents & CONTENTS_WATER){
+        fraction = CM_TerrainWaterCollide(t, tw->start, tw->end, tw->trace.fraction);
+        if(fraction < tw->trace.fraction){
+            VectorSet(tw->trace.plane.normal, 0.0f, 0.0f, 1.0f);
+            tw->trace.fraction = fraction;
+            tw->trace.contents = t->mWaterContents;
+            tw->trace.surfaceFlags = t->mWaterSurfaceFlags;
+        }
+    }
+}
+
+#endif // !BSPC
 
 //=========================================================================================
 
