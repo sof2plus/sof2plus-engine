@@ -46,6 +46,7 @@ static shaderInfoParm_t shaderInfoParms[] =
     {"nodraw",                  -1,                 SURF_NODRAW,        0                   },  // don't generate a drawsurface (or a lightmap)
     {"nosteps",                 -1,                 SURF_NOSTEPS,       0                   },
     {"nodlight",                -1,                 SURF_NODLIGHT,      0                   },  // don't ever add dynamic lights
+    {"nomiscents",              -1,                 SURF_NOMISCENTS,    0                   },
 
     // Game content flags
     {"nonsolid",                ~CONTENTS_SOLID,    0,                  0                   },  // special hack to clear solid flag
