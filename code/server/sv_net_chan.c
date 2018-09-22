@@ -66,7 +66,6 @@ static void SV_Netchan_Encode(client_t *client, msg_t *msg, const char *clientCo
         // modify the key with the last received and with this message acknowledged client command
         if (!string[index])
             index = 0;
-        // FIXME BOE: Review EUR language support.
         if (string[index] > 127 || string[index] == '%') {
             key ^= '.' << (i & 1);
         }
