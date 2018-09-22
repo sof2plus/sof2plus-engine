@@ -365,7 +365,7 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 
         // TTimo
         // clients were not acking fragmented messages
-        chan->incomingSequence = sequence; // FIXME BOE: Review.
+        chan->incomingSequence = sequence;
 
         return qtrue;
     }
