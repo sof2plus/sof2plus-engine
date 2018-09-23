@@ -594,12 +594,6 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
         return;
     }
 
-    // free old stuff
-    if(cm == &cmBSPs[0]){
-        Com_Memset( cm, 0, sizeof(clipMap_t) );
-        CM_ClearLevelPatches();
-    }
-
     if ( !name[0] ) {
         cm->numLeafs = 1;
         cm->numClusters = 1;
