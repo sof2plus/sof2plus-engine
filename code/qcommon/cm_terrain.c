@@ -792,13 +792,13 @@ int CM_RegisterTerrain(const char *configString)
     terrainId = atoi(Info_ValueForKey(configString, "terrainId"));
 
     // Is this terrain already registered?
-    if(terrainId && terrainId < MAX_TERRAINS && cm.terrains[terrainId] != NULL){
+    if(terrainId && terrainId < MAX_TERRAINS && cm->terrains[terrainId] != NULL){
         // Return the valid terrain ID.
         return terrainId;
     }
 
     // Only continue if we have room to store more terrains.
-    if(cm.numTerrains == MAX_TERRAINS - 1){
+    if(cm->numTerrains == MAX_TERRAINS - 1){
         return 0;
     }
 
@@ -811,7 +811,7 @@ int CM_RegisterTerrain(const char *configString)
     }
 
     // Store the newly initialized terrain in the clipmap terrain array.
-    cm.terrains[++cm.numTerrains] = t;
+    cm->terrains[++cm->numTerrains] = t;
 
     // Get the associated model.
     modelIndex = atoi(Info_ValueForKey(configString, "modelIndex"));
@@ -819,16 +819,16 @@ int CM_RegisterTerrain(const char *configString)
     cmod = CM_ClipHandleToModel(h);
 
     // Get the brush.
-    brushNum = cm.leafbrushes[cmod->leaf.firstLeafBrush];
+    brushNum = cm->leafbrushes[cmod->leaf.firstLeafBrush];
 
     // Only link this terrain to the brush if it is within bounds.
-    if(brushNum >= 0 && brushNum < cm.numBrushes){
-        b = &cm.brushes[brushNum];
+    if(brushNum >= 0 && brushNum < cm->numBrushes){
+        b = &cm->brushes[brushNum];
         b->terrain = t;
     }
 
     // Return the new terrain ID.
-    return cm.numTerrains;
+    return cm->numTerrains;
 }
 
 /*
