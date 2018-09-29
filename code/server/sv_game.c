@@ -288,6 +288,29 @@ void SV_GetUsercmd( int clientNum, usercmd_t *cmd ) {
     *cmd = svs.clients[clientNum].lastUsercmd;
 }
 
+/*
+==================
+SV_SetActiveSubBSP
+
+Set server sub-BSP based on model
+index, or resets the active
+sub-BSP if requested (-1) or
+out of range.
+==================
+*/
+
+static void SV_SetActiveSubBSP(int modelIndex)
+{
+    // Set sub-BSP index based on the provided model index.
+    sv.subBSPIndex      = CM_FindSubBSP(modelIndex);
+
+    // Save the passed model index.
+    sv.subBSPModelIndex = modelIndex;
+
+    // Set the entity parse point to the beginning of the active BSP.
+    sv.entityParsePoint = CM_EntityString(sv.subBSPIndex);
+}
+
 //==============================================
 
 static int  FloatAsInt( float f ) {
@@ -386,6 +409,9 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
         return SV_PointContents( VMA(1), args[2] );
     case G_SET_BRUSH_MODEL:
         SV_SetBrushModel( VMA(1), VMA(2) );
+        return 0;
+    case G_SET_ACTIVE_SUBBSP:
+        SV_SetActiveSubBSP(args[1]);
         return 0;
     case G_IN_PVS:
         return SV_inPVS( VMA(1), VMA(2) );

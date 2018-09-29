@@ -81,6 +81,10 @@ typedef struct {
 
     int             restartTime;
     int             time;
+
+    // Server sub-BSP support.
+    int             subBSPIndex;
+    int             subBSPModelIndex;
 } server_t;
 
 
