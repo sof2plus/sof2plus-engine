@@ -239,7 +239,8 @@ void CM_TestBoxInBrush( traceWork_t *tw, cbrush_t *brush ) {
 CM_TestInLeaf
 ================
 */
-void CM_TestInLeaf( traceWork_t *tw, cLeaf_t *leaf ) {
+void CM_TestInLeaf(clipMap_t *cm, traceWork_t *tw, cLeaf_t *leaf)
+{
     int         k;
     int         brushnum;
     cbrush_t    *b;
@@ -414,7 +415,7 @@ void CM_TestBoundingBoxInCapsule( traceWork_t *tw, clipHandle_t model ) {
     h = CM_TempBoxModel(tw->size[0], tw->size[1], qfalse);
     // calculate collision
     cmod = CM_ClipHandleToModel( h );
-    CM_TestInLeaf( tw, &cmod->leaf );
+    CM_TestInLeaf( cmg, tw, &cmod->leaf );
 }
 
 /*
@@ -444,16 +445,16 @@ void CM_PositionTest( traceWork_t *tw ) {
     ll.lastLeaf = 0;
     ll.overflowed = qfalse;
 
-    cm->checkcount++;
+    cmg->checkcount++;
 
     CM_BoxLeafnums_r( &ll, 0 );
 
 
-    cm->checkcount++;
+    cmg->checkcount++;
 
     // test the contents of the leafs
     for (i=0 ; i < ll.count ; i++) {
-        CM_TestInLeaf( tw, &cm->leafs[leafs[i]] );
+        CM_TestInLeaf( cmg, tw, &cmg->leafs[leafs[i]] );
         if ( tw->trace.allsolid ) {
             break;
         }
@@ -699,7 +700,8 @@ void CM_TraceThroughBrush( traceWork_t *tw, cbrush_t *brush, traceFraction_t *fr
 CM_TraceThroughLeaf
 ================
 */
-void CM_TraceThroughLeaf( traceWork_t *tw, cLeaf_t *leaf ) {
+void CM_TraceThroughLeaf(clipMap_t *cm, traceWork_t *tw, cLeaf_t *leaf)
+{
     int         k;
     int         brushnum;
     cbrush_t    *b;
@@ -1062,7 +1064,7 @@ void CM_TraceBoundingBoxThroughCapsule( traceWork_t *tw, clipHandle_t model ) {
     h = CM_TempBoxModel(tw->size[0], tw->size[1], qfalse);
     // calculate collision
     cmod = CM_ClipHandleToModel( h );
-    CM_TraceThroughLeaf( tw, &cmod->leaf );
+    CM_TraceThroughLeaf( cmg, tw, &cmod->leaf );
 }
 
 /*
@@ -1259,7 +1261,8 @@ trace volumes it is possible to hit something in a later leaf with
 a smaller intercept fraction.
 ==================
 */
-void CM_TraceThroughTree( traceWork_t *tw, int num, float p1f, float p2f, vec3_t p1, vec3_t p2) {
+void CM_TraceThroughTree(clipMap_t *cm, traceWork_t *tw, int num, float p1f, float p2f, vec3_t p1, vec3_t p2)
+{
     cNode_t     *node;
     cplane_t    *plane;
     float       t1, t2, offset;
@@ -1275,7 +1278,7 @@ void CM_TraceThroughTree( traceWork_t *tw, int num, float p1f, float p2f, vec3_t
 
     // if < 0, we are in a leaf node
     if (num < 0) {
-        CM_TraceThroughLeaf( tw, &cm->leafs[-1-num] );
+        CM_TraceThroughLeaf( cm, tw, &cm->leafs[-1-num] );
         return;
     }
 
@@ -1304,11 +1307,11 @@ void CM_TraceThroughTree( traceWork_t *tw, int num, float p1f, float p2f, vec3_t
 
     // see which sides we need to consider
     if ( t1 >= offset + 1 && t2 >= offset + 1 ) {
-        CM_TraceThroughTree( tw, node->children[0], p1f, p2f, p1, p2 );
+        CM_TraceThroughTree( cm, tw, node->children[0], p1f, p2f, p1, p2 );
         return;
     }
     if ( t1 < -offset - 1 && t2 < -offset - 1 ) {
-        CM_TraceThroughTree( tw, node->children[1], p1f, p2f, p1, p2 );
+        CM_TraceThroughTree( cm, tw, node->children[1], p1f, p2f, p1, p2 );
         return;
     }
 
@@ -1343,7 +1346,7 @@ void CM_TraceThroughTree( traceWork_t *tw, int num, float p1f, float p2f, vec3_t
     mid[1] = p1[1] + frac*(p2[1] - p1[1]);
     mid[2] = p1[2] + frac*(p2[2] - p1[2]);
 
-    CM_TraceThroughTree( tw, node->children[side], p1f, midf, p1, mid );
+    CM_TraceThroughTree( cm, tw, node->children[side], p1f, midf, p1, mid );
 
 
     // go past the node
@@ -1360,7 +1363,7 @@ void CM_TraceThroughTree( traceWork_t *tw, int num, float p1f, float p2f, vec3_t
     mid[1] = p1[1] + frac2*(p2[1] - p1[1]);
     mid[2] = p1[2] + frac2*(p2[2] - p1[2]);
 
-    CM_TraceThroughTree( tw, node->children[side^1], midf, p2f, mid, p2 );
+    CM_TraceThroughTree( cm, tw, node->children[side^1], midf, p2f, mid, p2 );
 }
 
 
@@ -1378,6 +1381,10 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, vec3_t mi
     traceWork_t tw;
     vec3_t      offset;
     cmodel_t    *cmod;
+    clipMap_t   *cm;
+
+    // Find which clipmap the model belongs to.
+    cm = CM_ClipmapFromModel(model);
 
     cmod = CM_ClipHandleToModel( model );
 
@@ -1494,11 +1501,11 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, vec3_t mi
     // check for position test special case
     //
     if (start[0] == end[0] && start[1] == end[1] && start[2] == end[2]) {
-        if ( model ) {
+        if ( model && cmod->firstNode == -1 ) {
 #ifdef ALWAYS_BBOX_VS_BBOX // FIXME - compile time flag?
             if ( model == BOX_MODEL_HANDLE || model == CAPSULE_MODEL_HANDLE) {
                 tw.sphere.use = qfalse;
-                CM_TestInLeaf( &tw, &cmod->leaf );
+                CM_TestInLeaf( cm, &tw, &cmod->leaf );
             }
             else
 #elif defined(ALWAYS_CAPSULE_VS_CAPSULE)
@@ -1516,10 +1523,12 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, vec3_t mi
                 }
             }
             else {
-                CM_TestInLeaf( &tw, &cmod->leaf );
+                CM_TestInLeaf( cm, &tw, &cmod->leaf );
             }
-        } else {
+        } else if ( cmod->firstNode == -1 ) {
             CM_PositionTest( &tw );
+        } else {
+            CM_TraceThroughTree( cm, &tw, cmod->firstNode, 0, 1, tw.start, tw.end );
         }
     } else {
         //
@@ -1538,11 +1547,11 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, vec3_t mi
         //
         // general sweeping through world
         //
-        if ( model ) {
+        if ( model && cmod->firstNode == -1 ) {
 #ifdef ALWAYS_BBOX_VS_BBOX
             if ( model == BOX_MODEL_HANDLE || model == CAPSULE_MODEL_HANDLE) {
                 tw.sphere.use = qfalse;
-                CM_TraceThroughLeaf( &tw, &cmod->leaf );
+                CM_TraceThroughLeaf( cm, &tw, &cmod->leaf );
             }
             else
 #elif defined(ALWAYS_CAPSULE_VS_CAPSULE)
@@ -1560,10 +1569,10 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, vec3_t mi
                 }
             }
             else {
-                CM_TraceThroughLeaf( &tw, &cmod->leaf );
+                CM_TraceThroughLeaf( cm, &tw, &cmod->leaf );
             }
         } else {
-            CM_TraceThroughTree( &tw, 0, 0, 1, tw.start, tw.end );
+            CM_TraceThroughTree( cm, &tw, 0, 0, 1, tw.start, tw.end );
         }
     }
 

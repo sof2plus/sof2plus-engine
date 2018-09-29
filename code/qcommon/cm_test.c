@@ -28,7 +28,8 @@ CM_PointLeafnum_r
 
 ==================
 */
-int CM_PointLeafnum_r( const vec3_t p, int num ) {
+int CM_PointLeafnum_r(clipMap_t *cm, const vec3_t p, int num)
+{
     float       d;
     cNode_t     *node;
     cplane_t    *plane;
@@ -54,10 +55,10 @@ int CM_PointLeafnum_r( const vec3_t p, int num ) {
 }
 
 int CM_PointLeafnum( const vec3_t p ) {
-    if ( !cm->numNodes ) {   // map not loaded
+    if ( !cmg->numNodes ) {   // map not loaded
         return 0;
     }
-    return CM_PointLeafnum_r (p, 0);
+    return CM_PointLeafnum_r (cmg, p, 0);
 }
 
 
@@ -76,7 +77,7 @@ void CM_StoreLeafs( leafList_t *ll, int nodenum ) {
     leafNum = -1 - nodenum;
 
     // store the lastLeaf even if the list is overflowed
-    if ( cm->leafs[ leafNum ].cluster != -1 ) {
+    if ( cmg->leafs[ leafNum ].cluster != -1 ) {
         ll->lastLeaf = leafNum;
     }
 
@@ -96,15 +97,15 @@ void CM_StoreBrushes( leafList_t *ll, int nodenum ) {
 
     leafnum = -1 - nodenum;
 
-    leaf = &cm->leafs[leafnum];
+    leaf = &cmg->leafs[leafnum];
 
     for ( k = 0 ; k < leaf->numLeafBrushes ; k++ ) {
-        brushnum = cm->leafbrushes[leaf->firstLeafBrush+k];
-        b = &cm->brushes[brushnum];
-        if ( b->checkcount == cm->checkcount ) {
+        brushnum = cmg->leafbrushes[leaf->firstLeafBrush+k];
+        b = &cmg->brushes[brushnum];
+        if ( b->checkcount == cmg->checkcount ) {
             continue;   // already checked this brush in another leaf
         }
-        b->checkcount = cm->checkcount;
+        b->checkcount = cmg->checkcount;
         for ( i = 0 ; i < 3 ; i++ ) {
             if ( b->bounds[0][i] >= ll->bounds[1][i] || b->bounds[1][i] <= ll->bounds[0][i] ) {
                 break;
@@ -148,7 +149,7 @@ void CM_BoxLeafnums_r( leafList_t *ll, int nodenum ) {
             return;
         }
 
-        node = &cm->nodes[nodenum];
+        node = &cmg->nodes[nodenum];
         plane = node->plane;
         s = BoxOnPlaneSide( ll->bounds[0], ll->bounds[1], plane );
         if (s == 1) {
@@ -172,7 +173,7 @@ CM_BoxLeafnums
 int CM_BoxLeafnums( const vec3_t mins, const vec3_t maxs, int *list, int listsize, int *lastLeaf) {
     leafList_t  ll;
 
-    cm->checkcount++;
+    cmg->checkcount++;
 
     VectorCopy( mins, ll.bounds[0] );
     VectorCopy( maxs, ll.bounds[1] );
@@ -197,7 +198,7 @@ CM_BoxBrushes
 int CM_BoxBrushes( const vec3_t mins, const vec3_t maxs, cbrush_t **list, int listsize ) {
     leafList_t  ll;
 
-    cm->checkcount++;
+    cmg->checkcount++;
 
     VectorCopy( mins, ll.bounds[0] );
     VectorCopy( maxs, ll.bounds[1] );
@@ -232,16 +233,28 @@ int CM_PointContents( const vec3_t p, clipHandle_t model ) {
     int         contents;
     float       d;
     cmodel_t    *clipm;
+    clipMap_t   *cm;
 
-    if (!cm->numNodes) { // map not loaded
+    if (!cmg->numNodes) { // map not loaded
         return 0;
     }
 
     if ( model ) {
         clipm = CM_ClipHandleToModel( model );
-        leaf = &clipm->leaf;
+
+        // Find which clipmap the model belongs to.
+        cm = CM_ClipmapFromModel(model);
+
+        if(clipm->firstNode != -1){
+            leafnum = CM_PointLeafnum_r(cm, p, 0);
+            leaf = &cm->leafs[leafnum];
+        }else{
+            leaf = &clipm->leaf;
+        }
     } else {
-        leafnum = CM_PointLeafnum_r (p, 0);
+        cm = cmg;
+
+        leafnum = CM_PointLeafnum_r (cm, p, 0);
         leaf = &cm->leafs[leafnum];
     }
 
@@ -322,11 +335,11 @@ PVS
 */
 
 byte    *CM_ClusterPVS (int cluster) {
-    if (cluster < 0 || cluster >= cm->numClusters || !cm->vised ) {
-        return cm->visibility;
+    if (cluster < 0 || cluster >= cmg->numClusters || !cmg->vised ) {
+        return cmg->visibility;
     }
 
-    return cm->visibility + cluster * cm->clusterBytes;
+    return cmg->visibility + cluster * cmg->clusterBytes;
 }
 
 
@@ -339,7 +352,8 @@ AREAPORTALS
 ===============================================================================
 */
 
-void CM_FloodArea_r( int areaNum, int floodnum) {
+void CM_FloodArea_r(clipMap_t *cm, int areaNum, int floodnum)
+{
     int     i;
     cArea_t *area;
     int     *con;
@@ -357,7 +371,7 @@ void CM_FloodArea_r( int areaNum, int floodnum) {
     con = cm->areaPortals + areaNum * cm->numAreas;
     for ( i=0 ; i < cm->numAreas  ; i++ ) {
         if ( con[i] > 0 ) {
-            CM_FloodArea_r( i, floodnum );
+            CM_FloodArea_r( cm, i, floodnum );
         }
     }
 }
@@ -368,7 +382,8 @@ CM_FloodAreaConnections
 
 ====================
 */
-void    CM_FloodAreaConnections( void ) {
+void CM_FloodAreaConnections(clipMap_t *cm)
+{
     int     i;
     cArea_t *area;
     int     floodnum;
@@ -383,7 +398,7 @@ void    CM_FloodAreaConnections( void ) {
             continue;       // already flooded into
         }
         floodnum++;
-        CM_FloodArea_r (i, floodnum);
+        CM_FloodArea_r (cm, i, floodnum);
     }
 
 }
@@ -399,22 +414,22 @@ void    CM_AdjustAreaPortalState( int area1, int area2, qboolean open ) {
         return;
     }
 
-    if ( area1 >= cm->numAreas || area2 >= cm->numAreas ) {
+    if ( area1 >= cmg->numAreas || area2 >= cmg->numAreas ) {
         Com_Error (ERR_DROP, "CM_ChangeAreaPortalState: bad area number");
     }
 
     if ( open ) {
-        cm->areaPortals[ area1 * cm->numAreas + area2 ]++;
-        cm->areaPortals[ area2 * cm->numAreas + area1 ]++;
+        cmg->areaPortals[ area1 * cmg->numAreas + area2 ]++;
+        cmg->areaPortals[ area2 * cmg->numAreas + area1 ]++;
     } else {
-        cm->areaPortals[ area1 * cm->numAreas + area2 ]--;
-        cm->areaPortals[ area2 * cm->numAreas + area1 ]--;
-        if ( cm->areaPortals[ area2 * cm->numAreas + area1 ] < 0 ) {
+        cmg->areaPortals[ area1 * cmg->numAreas + area2 ]--;
+        cmg->areaPortals[ area2 * cmg->numAreas + area1 ]--;
+        if ( cmg->areaPortals[ area2 * cmg->numAreas + area1 ] < 0 ) {
             Com_Error (ERR_DROP, "CM_AdjustAreaPortalState: negative reference count");
         }
     }
 
-    CM_FloodAreaConnections ();
+    CM_FloodAreaConnections (cmg);
 }
 
 /*
@@ -434,11 +449,11 @@ qboolean    CM_AreasConnected( int area1, int area2 ) {
         return qfalse;
     }
 
-    if (area1 >= cm->numAreas || area2 >= cm->numAreas) {
+    if (area1 >= cmg->numAreas || area2 >= cmg->numAreas) {
         Com_Error (ERR_DROP, "area >= cm->numAreas");
     }
 
-    if (cm->areas[area1].floodnum == cm->areas[area2].floodnum) {
+    if (cmg->areas[area1].floodnum == cmg->areas[area2].floodnum) {
         return qtrue;
     }
     return qfalse;
@@ -465,7 +480,7 @@ int CM_WriteAreaBits (byte *buffer, int area)
     int     floodnum;
     int     bytes;
 
-    bytes = (cm->numAreas+7)>>3;
+    bytes = (cmg->numAreas+7)>>3;
 
 #ifndef BSPC
     if (cm_noAreas->integer || area == -1)
@@ -477,10 +492,10 @@ int CM_WriteAreaBits (byte *buffer, int area)
     }
     else
     {
-        floodnum = cm->areas[area].floodnum;
-        for (i=0 ; i<cm->numAreas ; i++)
+        floodnum = cmg->areas[area].floodnum;
+        for (i=0 ; i<cmg->numAreas ; i++)
         {
-            if (cm->areas[i].floodnum == floodnum || area == -1)
+            if (cmg->areas[i].floodnum == floodnum || area == -1)
                 buffer[i>>3] |= 1<<(i&7);
         }
     }

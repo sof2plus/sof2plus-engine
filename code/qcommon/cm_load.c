@@ -50,13 +50,16 @@ void SetPlaneSignbits (cplane_t *out) {
 
 #define LL(x) x=LittleLong(x)
 
+#define MAX_CLIPMAP_BSP (MAX_SUB_BSP + 1)
 
-clipMap_t   cmBSPs[MAX_SUB_BSP + 1];    // Clipmap of the main BSP and any sub-BSPs.
-clipMap_t   *cm;                        // Active BSP clipmap.
+
+clipMap_t   cmBSPs[MAX_CLIPMAP_BSP];    // Clipmap of the main BSP and any sub-BSPs.
+clipMap_t   *cmg = &cmBSPs[0];          // The clipmap of the main BSP.
 
 int         c_pointcontents;
 int         c_traces, c_brush_traces, c_patch_traces;
 
+int         totalSubModels;             // Total amount of models present in the world.
 
 byte        *cmod_base;
 
@@ -73,7 +76,7 @@ cbrush_t    *box_brush;
 
 
 void    CM_InitBoxHull (void);
-void    CM_FloodAreaConnections (void);
+void    CM_FloodAreaConnections (clipMap_t *cm);
 
 
 /*
@@ -89,7 +92,8 @@ void    CM_FloodAreaConnections (void);
 CMod_LoadShaders
 =================
 */
-void CMod_LoadShaders( lump_t *l ) {
+void CMod_LoadShaders(clipMap_t *cm, lump_t *l)
+{
     dshader_t   *in, *out;
     int         i, count;
 
@@ -120,7 +124,8 @@ void CMod_LoadShaders( lump_t *l ) {
 CMod_LoadSubmodels
 =================
 */
-void CMod_LoadSubmodels( lump_t *l ) {
+void CMod_LoadSubmodels(clipMap_t *cm, lump_t *l)
+{
     dmodel_t    *in;
     cmodel_t    *out;
     int         i, j, count;
@@ -150,9 +155,13 @@ void CMod_LoadSubmodels( lump_t *l ) {
             out->maxs[j] = LittleFloat (in->maxs[j]) + 1;
         }
 
+        // FIXME BOE: Review if a "cm == cmg" check is required here,
+        // similar to JK:JA.
         if ( i == 0 ) {
+            out->firstNode = 0;
             continue;   // world model doesn't need other info
         }
+        out->firstNode = -1;
 
         // make a "leaf" just to hold the model's brushes and surfaces
         out->leaf.numLeafBrushes = LittleLong( in->numBrushes );
@@ -178,7 +187,8 @@ CMod_LoadNodes
 
 =================
 */
-void CMod_LoadNodes( lump_t *l ) {
+void CMod_LoadNodes(clipMap_t *cm, lump_t *l)
+{
     dnode_t     *in;
     int         child;
     cNode_t     *out;
@@ -232,7 +242,8 @@ CMod_LoadBrushes
 
 =================
 */
-void CMod_LoadBrushes( lump_t *l ) {
+void CMod_LoadBrushes(clipMap_t *cm, lump_t *l)
+{
     dbrush_t    *in;
     cbrush_t    *out;
     int         i, count;
@@ -268,7 +279,7 @@ void CMod_LoadBrushes( lump_t *l ) {
 CMod_LoadLeafs
 =================
 */
-void CMod_LoadLeafs (lump_t *l)
+void CMod_LoadLeafs(clipMap_t *cm, lump_t *l)
 {
     int         i;
     cLeaf_t     *out;
@@ -311,7 +322,7 @@ void CMod_LoadLeafs (lump_t *l)
 CMod_LoadPlanes
 =================
 */
-void CMod_LoadPlanes (lump_t *l)
+void CMod_LoadPlanes(clipMap_t *cm, lump_t *l)
 {
     int         i, j;
     cplane_t    *out;
@@ -352,7 +363,7 @@ void CMod_LoadPlanes (lump_t *l)
 CMod_LoadLeafBrushes
 =================
 */
-void CMod_LoadLeafBrushes (lump_t *l)
+void CMod_LoadLeafBrushes(clipMap_t *cm, lump_t *l)
 {
     int         i;
     int         *out;
@@ -379,7 +390,7 @@ void CMod_LoadLeafBrushes (lump_t *l)
 CMod_LoadLeafSurfaces
 =================
 */
-void CMod_LoadLeafSurfaces( lump_t *l )
+void CMod_LoadLeafSurfaces(clipMap_t *cm, lump_t *l)
 {
     int         i;
     int         *out;
@@ -406,7 +417,7 @@ void CMod_LoadLeafSurfaces( lump_t *l )
 CMod_LoadBrushSides
 =================
 */
-void CMod_LoadBrushSides (lump_t *l)
+void CMod_LoadBrushSides(clipMap_t *cm, lump_t *l)
 {
     int             i;
     cbrushside_t    *out;
@@ -442,7 +453,8 @@ void CMod_LoadBrushSides (lump_t *l)
 CMod_LoadEntityString
 =================
 */
-void CMod_LoadEntityString( lump_t *l ) {
+void CMod_LoadEntityString(clipMap_t *cm, lump_t *l)
+{
     cm->entityString = Hunk_Alloc( l->filelen, h_high );
     cm->numEntityChars = l->filelen;
     Com_Memcpy (cm->entityString, cmod_base + l->fileofs, l->filelen);
@@ -454,7 +466,8 @@ CMod_LoadVisibility
 =================
 */
 #define VIS_HEADER  8
-void CMod_LoadVisibility( lump_t *l ) {
+void CMod_LoadVisibility(clipMap_t *cm, lump_t *l)
+{
     int     len;
     byte    *buf;
 
@@ -483,7 +496,8 @@ CMod_LoadPatches
 =================
 */
 #define MAX_PATCH_VERTS     1024
-void CMod_LoadPatches( lump_t *surfs, lump_t *verts ) {
+void CMod_LoadPatches(clipMap_t *cm, lump_t *surfs, lump_t *verts)
+{
     drawVert_t  *dv, *dv_p;
     dsurface_t  *in;
     int         count;
@@ -563,12 +577,18 @@ unsigned CM_Checksum(dheader_t *header) {
 
 /*
 ==================
-CM_LoadMap
+CM_LoadBSPFile
 
-Loads in the map and all submodels
+Load the actual BSP file contents
+to the specified clipmap.
+
+Returns qfalse upon any error,
+or qtrue upon success.
 ==================
 */
-void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
+
+static qboolean CM_LoadBSPFile(clipMap_t *cm, const char *name, int *checksum)
+{
     union {
         int             *i;
         void            *v;
@@ -576,32 +596,6 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
     int             i;
     dheader_t       header;
     int             length;
-    static unsigned last_checksum;
-
-    if ( !name || !name[0] ) {
-        Com_Error( ERR_DROP, "CM_LoadMap: NULL name" );
-    }
-
-#ifndef BSPC
-    cm_noAreas = Cvar_Get ("cm_noAreas", "0", CVAR_CHEAT);
-    cm_noCurves = Cvar_Get ("cm_noCurves", "0", CVAR_CHEAT);
-    cm_playerCurveClip = Cvar_Get ("cm_playerCurveClip", "1", CVAR_ARCHIVE|CVAR_CHEAT );
-#endif
-    Com_DPrintf( "CM_LoadMap( %s, %i )\n", name, clientload );
-
-    if ( !strcmp( cm->name, name ) && clientload ) {
-        *checksum = last_checksum;
-        return;
-    }
-
-    if ( !name[0] ) {
-        cm->numLeafs = 1;
-        cm->numClusters = 1;
-        cm->numAreas = 1;
-        cm->cmodels = Hunk_Alloc( sizeof( *cm->cmodels ), h_high );
-        *checksum = 0;
-        return;
-    }
 
     //
     // load the file
@@ -613,11 +607,12 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 #endif
 
     if ( !buf.i ) {
-        Com_Error (ERR_DROP, "Couldn't load %s", name);
+        return qfalse;
     }
 
-    last_checksum = LittleLong (Com_BlockChecksum (buf.i, length));
-    *checksum = last_checksum;
+    if(checksum != NULL){
+        *checksum = LittleLong (Com_BlockChecksum (buf.i, length));
+    }
 
     header = *(dheader_t *)buf.i;
     for (i=0 ; i<sizeof(dheader_t)/4 ; i++) {
@@ -632,35 +627,129 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
     cmod_base = (byte *)buf.i;
 
     // load into heap
-    CMod_LoadShaders( &header.lumps[LUMP_SHADERS] );
-    CMod_LoadLeafs (&header.lumps[LUMP_LEAFS]);
-    CMod_LoadLeafBrushes (&header.lumps[LUMP_LEAFBRUSHES]);
-    CMod_LoadLeafSurfaces (&header.lumps[LUMP_LEAFSURFACES]);
-    CMod_LoadPlanes (&header.lumps[LUMP_PLANES]);
-    CMod_LoadBrushSides (&header.lumps[LUMP_BRUSHSIDES]);
-    CMod_LoadBrushes (&header.lumps[LUMP_BRUSHES]);
-    CMod_LoadSubmodels (&header.lumps[LUMP_MODELS]);
-    CMod_LoadNodes (&header.lumps[LUMP_NODES]);
-    CMod_LoadEntityString (&header.lumps[LUMP_ENTITIES]);
-    CMod_LoadVisibility( &header.lumps[LUMP_VISIBILITY] );
-    CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS] );
+    CMod_LoadShaders(cm, &header.lumps[LUMP_SHADERS]);
+    CMod_LoadLeafs(cm, &header.lumps[LUMP_LEAFS]);
+    CMod_LoadLeafBrushes(cm, &header.lumps[LUMP_LEAFBRUSHES]);
+    CMod_LoadLeafSurfaces(cm, &header.lumps[LUMP_LEAFSURFACES]);
+    CMod_LoadPlanes(cm, &header.lumps[LUMP_PLANES]);
+    CMod_LoadBrushSides(cm, &header.lumps[LUMP_BRUSHSIDES]);
+    CMod_LoadBrushes(cm, &header.lumps[LUMP_BRUSHES]);
+    CMod_LoadSubmodels(cm, &header.lumps[LUMP_MODELS]);
+    CMod_LoadNodes(cm, &header.lumps[LUMP_NODES]);
+    CMod_LoadEntityString(cm, &header.lumps[LUMP_ENTITIES]);
+    CMod_LoadVisibility(cm, &header.lumps[LUMP_VISIBILITY]);
+    CMod_LoadPatches(cm, &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS]);
+
+    // Increment the total amount of sub-models loaded across loaded clipmap BSPs.
+    totalSubModels += cm->numSubModels;
+
+    // we are NOT freeing the file, because it is cached for the ref
+    FS_FreeFile(buf.v);
+
+    return qtrue;
+}
+
+/*
+==================
+CM_LoadMap
+
+Loads in the map and all submodels
+==================
+*/
+
+void CM_LoadMap(const char *name, int *checksum)
+{
+    static unsigned last_checksum;
+
+    if(!name || !name[0]) {
+        Com_Error(ERR_DROP, "CM_LoadMap: NULL name");
+    }
+
+#ifndef BSPC
+    cm_noAreas = Cvar_Get("cm_noAreas", "0", CVAR_CHEAT);
+    cm_noCurves = Cvar_Get("cm_noCurves", "0", CVAR_CHEAT);
+    cm_playerCurveClip = Cvar_Get("cm_playerCurveClip", "1", CVAR_ARCHIVE|CVAR_CHEAT);
+#endif
+
+    Com_DPrintf("CM_LoadMap: %s\n", name);
+
+    // Check if we're attempting to load an already loaded map.
+    if(strcmp(cmg->name, name) == 0){
+        *checksum = last_checksum;
+        return;
+    }
+
+    // Load in the file contents.
+    if(!CM_LoadBSPFile(cmg, name, &last_checksum)){
+        Com_Error(ERR_DROP, "Couldn't load %s", name);
+    }
+    *checksum = last_checksum;
 
 #ifndef BSPC
     // FIXME BOE: Only load when a custom terrain is initialized (?)
     CM_LoadShaderFiles();
 #endif // !BSPC
 
-    // we are NOT freeing the file, because it is cached for the ref
-    FS_FreeFile (buf.v);
-
     CM_InitBoxHull ();
 
-    CM_FloodAreaConnections ();
+    CM_FloodAreaConnections (cmg);
 
-    // allow this to be cached if it is loaded by the server
-    if ( !clientload ) {
-        Q_strncpyz( cm->name, name, sizeof( cm->name ) );
+    // allow this to be cached
+    Q_strncpyz(cmg->name, name, sizeof(cmg->name));
+}
+
+/*
+==================
+CM_LoadSubBSP
+
+Loads in the specified sub-BSP
+and all of its data.
+==================
+*/
+
+int CM_LoadSubBSP(const char *name)
+{
+    int         i;
+    int         count;
+    clipMap_t   *cm;
+
+    // Iterate through all sub-BSPs. Determine clipmap array index
+    // and whether it is loaded already.
+    count = cmg->numSubModels;
+    for(i = 1; i < MAX_CLIPMAP_BSP; i++){
+        // Do the names match?
+        if(Q_stricmp(name, cmBSPs[i].name) == 0){
+            return count;
+        }
+
+        // Empty name means this index can be used.
+        if(cmBSPs[i].name[0] == 0){
+            break;
+        }
+
+        // Keep track of model count to set the proper model index later on.
+        count += cmBSPs[i].numSubModels;
     }
+
+    if(i == MAX_CLIPMAP_BSP){
+        Com_Error(ERR_DROP, "CM_LoadSubBSP: Too many unique sub-BSPs!");
+    }
+
+    // Load the BSP file.
+    Com_DPrintf("CM_LoadSubBSP: %s\n", name);
+
+    // Set the active clipmap based on the determined index.
+    cm = &cmBSPs[i];
+
+    // Load in the file contents.
+    if(!CM_LoadBSPFile(cm, name, NULL)){
+        Com_Error(ERR_DROP, "CM_LoadSubBSP: Couldn't load: %s", name);
+    }
+
+    CM_FloodAreaConnections(cm);
+
+    // Return the model index.
+    return count;
 }
 
 /*
@@ -672,9 +761,8 @@ void CM_ClearMap( void ) {
     Com_Memset( &cmBSPs, 0, sizeof( cmBSPs ) );
     CM_ClearLevelPatches();
 
-    // (Re)set active clipmap to the
-    // clipmap of the main BSP.
-    cm = &cmBSPs[0];
+    // Reset total model count.
+    totalSubModels = 0;
 }
 
 /*
@@ -683,18 +771,35 @@ CM_ClipHandleToModel
 ==================
 */
 cmodel_t    *CM_ClipHandleToModel( clipHandle_t handle ) {
+    int         i;
+    int         modelCount;
+
     if ( handle < 0 ) {
         Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i", handle );
     }
-    if ( handle < cm->numSubModels ) {
-        return &cm->cmodels[handle];
+    if ( handle < cmg->numSubModels ) {
+        return &cmg->cmodels[handle];
     }
     if ( handle == BOX_MODEL_HANDLE ) {
         return &box_model;
     }
+
+    // Iterate through all sub-BSPs, check
+    // if the model belongs to any.
+    modelCount = cmg->numSubModels;
+    for(i = 1; i < MAX_CLIPMAP_BSP; i++){
+        clipMap_t   *currBSP = &cmBSPs[i];
+
+        if(handle < (modelCount + currBSP->numSubModels)){
+            return &currBSP->cmodels[handle - modelCount];
+        }
+
+        modelCount += currBSP->numSubModels;
+    }
+
     if ( handle < MAX_SUBMODELS ) {
         Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i < %i < %i",
-            cm->numSubModels, handle, MAX_SUBMODELS );
+            cmg->numSubModels, handle, MAX_SUBMODELS );
     }
     Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i", handle + MAX_SUBMODELS );
 
@@ -708,36 +813,36 @@ CM_InlineModel
 ==================
 */
 clipHandle_t    CM_InlineModel( int index ) {
-    if ( index < 0 || index >= cm->numSubModels ) {
+    if ( index < 0 || index >= totalSubModels ) {
         Com_Error (ERR_DROP, "CM_InlineModel: bad number");
     }
     return index;
 }
 
 int     CM_NumClusters( void ) {
-    return cm->numClusters;
+    return cmg->numClusters;
 }
 
 int     CM_NumInlineModels( void ) {
-    return cm->numSubModels;
+    return cmg->numSubModels;
 }
 
 char    *CM_EntityString( void ) {
-    return cm->entityString;
+    return cmg->entityString;
 }
 
 int     CM_LeafCluster( int leafnum ) {
-    if (leafnum < 0 || leafnum >= cm->numLeafs) {
+    if (leafnum < 0 || leafnum >= cmg->numLeafs) {
         Com_Error (ERR_DROP, "CM_LeafCluster: bad number");
     }
-    return cm->leafs[leafnum].cluster;
+    return cmg->leafs[leafnum].cluster;
 }
 
 int     CM_LeafArea( int leafnum ) {
-    if ( leafnum < 0 || leafnum >= cm->numLeafs ) {
+    if ( leafnum < 0 || leafnum >= cmg->numLeafs ) {
         Com_Error (ERR_DROP, "CM_LeafArea: bad number");
     }
-    return cm->leafs[leafnum].area;
+    return cmg->leafs[leafnum].area;
 }
 
 //=======================================================================
@@ -758,25 +863,26 @@ void CM_InitBoxHull (void)
     cplane_t    *p;
     cbrushside_t    *s;
 
-    box_planes = &cm->planes[cm->numPlanes];
+    box_planes = &cmg->planes[cmg->numPlanes];
 
-    box_brush = &cm->brushes[cm->numBrushes];
+    box_brush = &cmg->brushes[cmg->numBrushes];
     box_brush->numsides = 6;
-    box_brush->sides = cm->brushsides + cm->numBrushSides;
+    box_brush->sides = cmg->brushsides + cmg->numBrushSides;
     box_brush->contents = CONTENTS_BODY;
 
+    box_model.firstNode = -1;
     box_model.leaf.numLeafBrushes = 1;
 //  box_model.leaf.firstLeafBrush = cm.numBrushes;
-    box_model.leaf.firstLeafBrush = cm->numLeafBrushes;
-    cm->leafbrushes[cm->numLeafBrushes] = cm->numBrushes;
+    box_model.leaf.firstLeafBrush = cmg->numLeafBrushes;
+    cmg->leafbrushes[cmg->numLeafBrushes] = cmg->numBrushes;
 
     for (i=0 ; i<6 ; i++)
     {
         side = i&1;
 
         // brush sides
-        s = &cm->brushsides[cm->numBrushSides+i];
-        s->plane =  cm->planes + (cm->numPlanes+i*2+side);
+        s = &cmg->brushsides[cmg->numBrushSides+i];
+        s->plane =  cmg->planes + (cmg->numPlanes+i*2+side);
         s->surfaceFlags = 0;
 
         // planes
@@ -844,4 +950,60 @@ void CM_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs ) {
     cmod = CM_ClipHandleToModel( model );
     VectorCopy( cmod->mins, mins );
     VectorCopy( cmod->maxs, maxs );
+}
+
+//=======================================================================
+
+/*
+==================
+CM_FindSubBSP
+
+Finds what BSP the specified model
+index belongs to and, if valid, returns
+the main or sub-BSP index.
+
+Also returns the main BSP index if
+the model index is out of range.
+==================
+*/
+
+int CM_FindSubBSP(int modelIndex)
+{
+    int i;
+    int modelCount;
+
+    // Check if the model index is within range.
+    if(modelIndex < 0 || modelIndex >= totalSubModels){
+        return 0;
+    }
+
+    // Does the model index belong the main BSP or any of the sub-BSPs?
+    modelCount  = 0;
+    for(i = 0; i < MAX_CLIPMAP_BSP; i++){
+        modelCount += cmBSPs[i].numSubModels;
+
+        if(modelIndex < modelCount){
+            // Model belongs to this BSP.
+            break;
+        }
+    }
+
+    return i;
+}
+
+/*
+==================
+CM_ClipmapFromModel
+
+Gets the clipmap of which the specified
+model index belongs to.
+
+Returns the main BSP clipmap if the
+model index is out of range.
+==================
+*/
+
+clipMap_t *CM_ClipmapFromModel(int modelIndex)
+{
+    return &cmBSPs[CM_FindSubBSP(modelIndex)];
 }

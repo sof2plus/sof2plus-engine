@@ -246,9 +246,9 @@ static void CM_ParseShaderFile(char **text)
 
         // Is this shader already present?
         shader = NULL;
-        for(i = 0; i < cm->numShaders; i++){
-            if(strcmp(shaderNameToken, cm->shaders[i].shader) == 0){
-                shader = &cm->shaders[i];
+        for(i = 0; i < cmg->numShaders; i++){
+            if(strcmp(shaderNameToken, cmg->shaders[i].shader) == 0){
+                shader = &cmg->shaders[i];
                 break;
             }
         }
@@ -412,10 +412,10 @@ dshader_t *CM_FindShaderByName(const char *name)
 {
     int i;
 
-    for(i = 0; i < cm->numShaders; i++){
-        if(Q_stricmp(cm->shaders[i].shader, name) == 0){
+    for(i = 0; i < cmg->numShaders; i++){
+        if(Q_stricmp(cmg->shaders[i].shader, name) == 0){
             // Shader found.
-            return &cm->shaders[i];
+            return &cmg->shaders[i];
         }
     }
 

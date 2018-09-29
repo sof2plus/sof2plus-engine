@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qfiles.h"
 
 
-void        CM_LoadMap( const char *name, qboolean clientload, int *checksum);
+void        CM_LoadMap( const char *name, int *checksum);
 void        CM_ClearMap( void );
 clipHandle_t CM_InlineModel( int index );       // 0 = world, 1 + are bmodels
 clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule );
@@ -33,6 +33,9 @@ void        CM_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
 int         CM_NumClusters (void);
 int         CM_NumInlineModels( void );
 char        *CM_EntityString (void);
+
+int         CM_LoadSubBSP           ( const char *name );
+int         CM_FindSubBSP           ( int modelIndex );
 
 // returns an ORed contents mask
 int         CM_PointContents( const vec3_t p, clipHandle_t model );

@@ -505,7 +505,7 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
     sv.checksumFeed = ( ((unsigned int)rand() << 16) ^ (unsigned int)rand() ) ^ Com_Milliseconds();
     FS_Restart( sv.checksumFeed );
 
-    CM_LoadMap( va("maps/%s.bsp", server), qfalse, &checksum );
+    CM_LoadMap( va("maps/%s.bsp", server), &checksum );
 
     SV_SendMapChange();
 

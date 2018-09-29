@@ -53,6 +53,7 @@ typedef struct {
 typedef struct cmodel_s {
     vec3_t      mins, maxs;
     cLeaf_t     leaf;           // submodels don't reference the main tree
+    int         firstNode;      // only for cmodel[0] (for the main and bsp instances)
 } cmodel_t;
 
 typedef struct {
@@ -141,14 +142,16 @@ typedef struct {
 // and to avoid various numeric issues
 #define SURFACE_CLIP_EPSILON    (0.125)
 
-extern  clipMap_t   cmBSPs[MAX_SUB_BSP + 1];    // Clipmap of the main BSP and any sub-BSPs.
-extern  clipMap_t   *cm;                        // Active BSP clipmap.
+extern  clipMap_t   *cmg;                   // The clipmap of the main BSP.
 
 extern  int         c_pointcontents;
 extern  int         c_traces, c_brush_traces, c_patch_traces;
 extern  cvar_t      *cm_noAreas;
 extern  cvar_t      *cm_noCurves;
 extern  cvar_t      *cm_playerCurveClip;
+
+// cm_load.c
+clipMap_t   *CM_ClipmapFromModel            ( int modelIndex );
 
 // cm_test.c
 
