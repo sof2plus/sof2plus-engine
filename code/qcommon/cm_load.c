@@ -827,8 +827,8 @@ int     CM_NumInlineModels( void ) {
     return cmg->numSubModels;
 }
 
-char    *CM_EntityString( void ) {
-    return cmg->entityString;
+char    *CM_EntityString( int cmIndex ) {
+    return cmBSPs[cmIndex].entityString;
 }
 
 int     CM_LeafCluster( int leafnum ) {

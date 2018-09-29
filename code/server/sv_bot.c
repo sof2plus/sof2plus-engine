@@ -247,7 +247,7 @@ BotImport_BSPEntityData
 ==================
 */
 static char *BotImport_BSPEntityData(void) {
-    return CM_EntityString();
+    return CM_EntityString(0);
 }
 
 /*

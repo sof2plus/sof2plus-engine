@@ -32,7 +32,7 @@ void        CM_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
 
 int         CM_NumClusters (void);
 int         CM_NumInlineModels( void );
-char        *CM_EntityString (void);
+char        *CM_EntityString (int cmIndex);
 
 int         CM_LoadSubBSP           ( const char *name );
 int         CM_FindSubBSP           ( int modelIndex );

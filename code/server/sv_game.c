@@ -970,7 +970,7 @@ static void SV_InitGameVM( qboolean restart ) {
     int     i;
 
     // start the entity parsing at the beginning
-    sv.entityParsePoint = CM_EntityString();
+    sv.entityParsePoint = CM_EntityString(0);
 
     // clear all gentity pointers that might still be set from
     // a previous level
