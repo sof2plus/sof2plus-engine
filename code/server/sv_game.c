@@ -109,29 +109,43 @@ sets mins and maxs for inline bmodels
 =================
 */
 void SV_SetBrushModel( sharedEntity_t *ent, const char *name ) {
-    clipHandle_t    h;
-    vec3_t          mins, maxs;
+    vec3_t  mins, maxs;
 
     if (!name) {
         Com_Error( ERR_DROP, "SV_SetBrushModel: NULL" );
     }
 
-    if (name[0] != '*') {
+    // Regular map model.
+    if(name[0] == '*'){
+        clipHandle_t    h;
+
+        ent->s.modelindex = atoi(name + 1);
+
+        if(sv.subBSPIndex){
+            ent->s.modelindex += sv.subBSPModelIndex;
+        }
+
+        h = CM_InlineModel( ent->s.modelindex );
+        CM_ModelBounds( h, mins, maxs );
+        VectorCopy (mins, ent->r.mins);
+        VectorCopy (maxs, ent->r.maxs);
+        ent->r.bmodel = qtrue;
+
+        ent->r.contents = -1;       // we don't know exactly what is in the brushes
+    }
+    // Sub-BSP.
+    else if (name[0] == '#' && name[1]){
+        ent->s.modelindex = CM_LoadSubBSP(va("maps/%s.bsp", name + 1));
+
+        CM_ModelBounds( ent->s.modelindex, mins, maxs );
+        VectorCopy (mins, ent->r.mins);
+        VectorCopy (maxs, ent->r.maxs);
+        ent->r.bmodel = qtrue;
+
+        ent->r.contents = -1;       // we don't know exactly what is in the brushes
+    }else{
         Com_Error( ERR_DROP, "SV_SetBrushModel: %s isn't a brush model", name );
     }
-
-
-    ent->s.modelindex = atoi( name + 1 );
-
-    h = CM_InlineModel( ent->s.modelindex );
-    CM_ModelBounds( h, mins, maxs );
-    VectorCopy (mins, ent->r.mins);
-    VectorCopy (maxs, ent->r.maxs);
-    ent->r.bmodel = qtrue;
-
-    ent->r.contents = -1;       // we don't know exactly what is in the brushes
-
-    SV_LinkEntity( ent );       // FIXME: remove
 }
 
 
