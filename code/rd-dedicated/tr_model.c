@@ -25,6 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "tr_local.h"
 
 #define LL(x) x=LittleLong(x)
+#define LF(x) x=LittleFloat(x)
+#define LS(x) x=LittleShort(x)
 
 // Local function definitions.
 static qboolean     R_LoadMDXA              ( model_t *mod, void *buffer, int bufferSize, const char *modName );
@@ -203,6 +205,14 @@ static qboolean R_LoadMDXA(model_t *mod, void *buffer, int bufferSize, const cha
     mdxaHeader_t        *mdxaHeader, *mdxa;
     int                 version;
     int                 size;
+#ifdef Q3_BIG_ENDIAN
+    mdxaSkelOffsets_t   *skelOffsets;
+    mdxaSkel_t          *skel;
+    mdxaCompQuatBone_t  *pCompBonePool;
+    unsigned short      *pwIn;
+    int                 maxBoneIndex;
+    int                 i, j, k;
+#endif // Q3_BIG_ENDIAN
 
     mdxaHeader = (mdxaHeader_t *)buffer;
 
@@ -224,17 +234,68 @@ static qboolean R_LoadMDXA(model_t *mod, void *buffer, int bufferSize, const cha
 
     // Copy all the values over from the file.
     Com_Memcpy(mod->modelData, buffer, size);
-    LL(mdxa->ident);
-    LL(mdxa->version);
-    LL(mdxa->numFrames);
-    LL(mdxa->numBones);
-    LL(mdxa->ofsFrames);
-    LL(mdxa->ofsEnd);
 
+    // Animation file must contain frames.
+    LL(mdxa->numFrames);
     if(mdxa->numFrames < 1){
         Com_Printf(S_COLOR_YELLOW "R_LoadMDXA: \"%s\" has no frames.\n", modName);
         return qfalse;
     }
+
+#ifdef Q3_BIG_ENDIAN
+    //
+    // Swap remaining header information.
+    //
+    LL(mdxa->ident);
+    LL(mdxa->version);
+    LL(mdxa->ofsFrames);
+    LL(mdxa->numBones);
+    LL(mdxa->ofsCompBonePool);
+    LL(mdxa->ofsEnd);
+
+    //
+    // Swap the skeleton information.
+    //
+    skelOffsets     = (mdxaSkelOffsets_t *)((byte *)mdxa + sizeof(mdxaHeader_t));
+    for(i = 0; i < mdxa->numBones; i++){
+        // Swap the offset.
+        LL(skelOffsets->offsets[i]);
+
+        // Get skeleton.
+        skel = (mdxaSkel_t *)((byte *)mdxa + sizeof(mdxaHeader_t) + skelOffsets->offsets[i]);
+
+        // Swap base info.
+        LL(skel->flags);
+        LL(skel->parent);
+        LL(skel->numChildren);
+
+        // Swap positional info.
+        for(j = 0; j < 3; j++){
+            for(k = 0; k < 4; k++){
+                LF(skel->BasePoseMat.matrix[j][k]);
+                LF(skel->BasePoseMatInv.matrix[j][k]);
+            }
+        }
+
+        // Swap child array.
+        for(j = 0; j < skel->numChildren; j++){
+            LL(skel->children[j]);
+        }
+    }
+
+    //
+    // Swap the compressed bones.
+    //
+    maxBoneIndex    = (mdxa->ofsEnd - mdxa->ofsCompBonePool) / sizeof(mdxaCompQuatBone_t);
+    pCompBonePool   = (mdxaCompQuatBone_t *)((byte *)mdxa + mdxa->ofsCompBonePool);
+    for(i = 0; i < maxBoneIndex; i++){
+        pwIn = (unsigned short *)((byte *)pCompBonePool[i].Comp);
+
+        for(j = 0; j < 7; j++){
+            LS(pwIn[j]);
+        }
+    }
+#endif // Q3_BIG_ENDIAN
 
     return qtrue;
 }
@@ -249,12 +310,22 @@ Load a Ghoul II mesh file.
 
 static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const char *modName)
 {
-    mdxmHeader_t        *mdxmHeader, *mdxm;
-    mdxmLOD_t           *lod;
-    mdxmSurface_t       *surf;
-    int                 version;
-    int                 size;
-    int                 i, l;
+    mdxmHeader_t            *mdxmHeader, *mdxm;
+    mdxmLOD_t               *lod;
+    mdxmSurface_t           *surf;
+    int                     version;
+    int                     size;
+    int                     i, l;
+#ifdef Q3_BIG_ENDIAN
+    mdxmSurfHierarchy_t     *surfInfo;
+    mdxmHierarchyOffsets_t  *surfIndexes;
+    mdxmLODSurfOffset_t     *lodIndexes;
+    mdxmTriangle_t          *tris;
+    mdxmVertex_t            *verts;
+    mdxmVertexTexCoord_t    *pTexCoords;
+    int                     *piBoneReferences;
+    int                     j;
+#endif // Q3_BIG_ENDIAN
 
     mdxmHeader = (mdxmHeader_t *)buffer;
 
@@ -276,6 +347,9 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
 
     // Copy the buffer contents.
     Com_Memcpy(mod->modelData, buffer, size);
+
+#ifdef Q3_BIG_ENDIAN
+    // Swap remaining header information.
     LL(mdxm->ident);
     LL(mdxm->version);
     LL(mdxm->numLODs);
@@ -283,6 +357,7 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
     LL(mdxm->numSurfaces);
     LL(mdxm->ofsSurfHierarchy);
     LL(mdxm->ofsEnd);
+#endif // Q3_BIG_ENDIAN
 
     // Store how many LODs this model has.
     mod->numLods = mdxm->numLODs;
@@ -300,6 +375,30 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
         }
     }
 
+#ifdef Q3_BIG_ENDIAN
+    //
+    // Swap the surface information.
+    //
+    surfInfo    = (mdxmSurfHierarchy_t *)((byte *)mdxm + mdxm->ofsSurfHierarchy);
+    surfIndexes = (mdxmHierarchyOffsets_t *)((byte *)mdxm + sizeof(mdxmHeader_t));
+    for(i = 0; i < mdxm->numSurfaces; i++){
+        // Swap base info.
+        LL(surfInfo->numChildren);
+        LL(surfInfo->parentIndex);
+
+        // Swap all children indexes.
+        for(j = 0; j < surfInfo->numChildren; j++){
+            LL(surfInfo->childIndexes[j]);
+        }
+
+        // Swap the surface offset.
+        LL(surfIndexes->offsets[i]);
+
+        // Find the next surface.
+        surfInfo = (mdxmSurfHierarchy_t *)((byte *)surfInfo + (size_t)(&((mdxmSurfHierarchy_t *)0)->childIndexes[surfInfo->numChildren]));
+    }
+#endif // Q3_BIG_ENDIAN
+
     //
     // Swap all the LOD's.
     //
@@ -307,11 +406,15 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
     for(l = 0 ; l < mdxm->numLODs ; l++){
         int triCount = 0;
 
+#ifdef Q3_BIG_ENDIAN
         LL(lod->ofsEnd);
+#endif // Q3_BIG_ENDIAN
 
         // Swap all the surfaces.
         surf = (mdxmSurface_t *)((byte *)lod + sizeof(mdxmLOD_t) + (mdxm->numSurfaces * sizeof(mdxmLODSurfOffset_t)));
         for(i = 0 ; i < mdxm->numSurfaces ; i++){
+#ifdef Q3_BIG_ENDIAN
+            LL(surf->thisSurfaceIndex);
             LL(surf->numTriangles);
             LL(surf->ofsTriangles);
             LL(surf->numVerts);
@@ -320,6 +423,7 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
             LL(surf->ofsHeader);
             LL(surf->numBoneReferences);
             LL(surf->ofsBoneReferences);
+#endif // Q3_BIG_ENDIAN
 
             triCount += surf->numTriangles;
 
@@ -335,6 +439,48 @@ static qboolean R_LoadMDXM(model_t *mod, void *buffer, int bufferSize, const cha
 
                 return qfalse;
             }
+
+#ifdef Q3_BIG_ENDIAN
+            // Swap the LOD offset.
+            lodIndexes  = (mdxmLODSurfOffset_t *)((byte *)lod + sizeof(mdxmLOD_t));
+            LL(lodIndexes->offsets[surf->thisSurfaceIndex]);
+
+            // Swap the bone reference data.
+            piBoneReferences = (int *)((byte *)surf + surf->ofsBoneReferences);
+            for(j = 0; j < surf->numBoneReferences; j++){
+                LL(piBoneReferences[j]);
+            }
+
+            // Swap the triangles.
+            tris        = (mdxmTriangle_t *)((byte *)surf + surf->ofsTriangles);
+            for(j = 0; j < surf->numTriangles; j++){
+                LL(tris->indexes[0]);
+                LL(tris->indexes[1]);
+                LL(tris->indexes[2]);
+
+                tris++;
+            }
+
+            // Swap the vertexes.
+            verts       = (mdxmVertex_t *)((byte *)surf + surf->ofsVerts);
+            pTexCoords  = (mdxmVertexTexCoord_t *)&verts[surf->numVerts];
+            for(j = 0; j < surf->numVerts; j++){
+                LF(verts->normal[0]);
+                LF(verts->normal[1]);
+                LF(verts->normal[2]);
+
+                LF(verts->vertCoords[0]);
+                LF(verts->vertCoords[1]);
+                LF(verts->vertCoords[2]);
+
+                LF(pTexCoords[j].texCoords[0]);
+                LF(pTexCoords[j].texCoords[1]);
+
+                LL(verts->uiNmWeightsAndBoneIndexes);
+
+                verts++;
+            }
+#endif // Q3_BIG_ENDIAN
 
             // Find the next surface.
             surf = (mdxmSurface_t *)((byte *)surf + surf->ofsEnd);

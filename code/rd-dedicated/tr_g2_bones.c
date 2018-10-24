@@ -371,16 +371,10 @@ Returns the bone pool index.
 
 static int G2_GetBonePoolIndex(const mdxaHeader_t *pMDXAHeader, int iFrame, int iBone)
 {
-    const int iOffsetToIndex = (iFrame * pMDXAHeader->numBones * 3) + (iBone * 3);
-    mdxaIndex_t *pIndex;
+    const int iOffsetToIndex    = (iFrame * pMDXAHeader->numBones * 3) + (iBone * 3);
+    mdxaIndex_t *pIndex         = (mdxaIndex_t *)((byte*)pMDXAHeader + pMDXAHeader->ofsFrames + iOffsetToIndex);
 
-    pIndex = (mdxaIndex_t *) ((byte*) pMDXAHeader + pMDXAHeader->ofsFrames + iOffsetToIndex);
-
-    #ifndef Q3_LITTLE_ENDIAN
-    // FIXME BOE
-    #error "G2_GetBonePoolIndex: Big endian fix not yet implemented."
-    #endif
-    return pIndex->iIndex & 0x00FFFFFF;
+    return (pIndex->iIndex[2] << 16) + (pIndex->iIndex[1] << 8) + (pIndex->iIndex[0]);
 }
 
 /*
