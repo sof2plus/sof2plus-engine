@@ -135,6 +135,21 @@ ZDIR=$(MOUNT_DIR)/zlib
 
 bin_path=$(shell which $(1) 2> /dev/null)
 
+# set PKG_CONFIG_PATH or PKG_CONFIG to influence this, e.g.
+# PKG_CONFIG_PATH=/opt/cross/i386-mingw32msvc/lib/pkgconfig or
+# PKG_CONFIG=arm-linux-gnueabihf-pkg-config
+ifeq ($(CROSS_COMPILING),0)
+  PKG_CONFIG ?= pkg-config
+else
+ifneq ($(PKG_CONFIG_PATH),)
+  PKG_CONFIG ?= pkg-config
+else
+  # Don't use host pkg-config when cross-compiling.
+  # (unknown-pkg-config is meant to be a non-existant command.)
+  PKG_CONFIG ?= unknown-pkg-config
+endif
+endif
+
 # Add git version info
 USE_GIT=
 ifeq ($(wildcard .git),.git)
@@ -495,8 +510,8 @@ TARGETS += $(B)/$(SERVERBIN)$(FULLBINEXT)
 ifeq ($(USE_INTERNAL_ZLIB),1)
   ZLIB_CFLAGS = -DNO_GZIP -I$(ZDIR)
 else
-  ZLIB_CFLAGS ?= $(shell pkg-config --silence-errors --cflags zlib || true)
-  ZLIB_LIBS ?= $(shell pkg-config --silence-errors --libs zlib || echo -lz)
+  ZLIB_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags zlib || true)
+  ZLIB_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs zlib || echo -lz)
 endif
 BASE_CFLAGS += $(ZLIB_CFLAGS)
 LIBS += $(ZLIB_LIBS)
@@ -637,6 +652,7 @@ targets: makedirs
 	@echo "  VERSION: $(VERSION)"
 	@echo "  COMPILE_PLATFORM: $(COMPILE_PLATFORM)"
 	@echo "  COMPILE_ARCH: $(COMPILE_ARCH)"
+	@echo "  PKG_CONFIG: $(PKG_CONFIG)"
 	@echo "  CC: $(CC)"
 ifeq ($(PLATFORM),mingw32)
 	@echo "  WINDRES: $(WINDRES)"
