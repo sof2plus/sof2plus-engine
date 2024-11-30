@@ -1500,7 +1500,7 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, vec3_t mi
     //
     // check for position test special case
     //
-    if (start[0] == end[0] && start[1] == end[1] && start[2] == end[2]) {
+    if (start[0] == end[0] && start[1] == end[1] && start[2] == end[2] && tw.size[0][0] == 0.0f && tw.size[0][1] == 0.0f && tw.size[0][2] == 0.0f) {
         if ( model && cmod->firstNode == -1 ) {
 #ifdef ALWAYS_BBOX_VS_BBOX // FIXME - compile time flag?
             if ( model == BOX_MODEL_HANDLE || model == CAPSULE_MODEL_HANDLE) {
