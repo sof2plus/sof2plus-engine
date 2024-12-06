@@ -39,3 +39,5 @@ profile
 *.sdf
 *.opensdf
 *.suo
+/.vs
+/misc/msvc14/.vs/sof2plus-engine
