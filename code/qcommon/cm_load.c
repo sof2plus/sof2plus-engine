@@ -748,6 +748,9 @@ int CM_LoadSubBSP(const char *name)
 
     CM_FloodAreaConnections(cm);
 
+    // Write the BSP name into the clipmap struct so that it could be reused.
+    Q_strncpyz(cm->name, name, sizeof(cm->name));
+
     // Return the model index.
     return count;
 }
